@@ -12,6 +12,12 @@ LPAREN : '(' ;
 RPAREN : ')' ;
 MUL : '*' ;
 ADD : '+' ;
+DIV : '/' ;
+MINUS: '-';
+IF : 'if' ;
+ELSE: 'else';
+WHILE: 'while';
+
 
 CLASS : 'class' ;
 INT : 'int' ;
@@ -19,20 +25,21 @@ PUBLIC : 'public' ;
 RETURN : 'return' ;
 
 INTEGER : [0-9] ;
-ID : [a-zA-Z]+ ;
-
+ID : [a-zA-Z]+INTEGER*[a-zA-Z]*INTEGER* ;
 WS : [ \t\n\r\f]+ -> skip ;
 
 program
-    : classDecl EOF
+    : (importDecl)* classDecl EOF
     ;
-
+importDecl 
+    : ‘import’ ID ( ‘.’ ID )* SEMI
 
 classDecl
-    : CLASS name=ID
+    : 'class' name=ID ('extends' ID)?
         LCURLY
+        varDecl*
         methodDecl*
-        RCURLY
+        RCURLY 
     ;
 
 varDecl
@@ -40,29 +47,47 @@ varDecl
     ;
 
 type
-    : name= INT ;
+    : name= 'int' 
+    | name= 'int...'
+    | name= 'boolean'
+    | name= 'int[]'
+    | name= ID
+    ;
 
 methodDecl locals[boolean isPublic=false]
-    : (PUBLIC {$isPublic=true;})?
+    : ('public' {$isPublic=true;})?
         type name=ID
         LPAREN param RPAREN
         LCURLY varDecl* stmt* RCURLY
     ;
 
 param
-    : type name=ID
+    : (type name=ID(',')?)*
     ;
 
 stmt
-    : expr EQUALS expr SEMI #AssignStmt //
+    : expr EQUALS expr SEMI #AssignStmt
+    | IF LPAREN expr RPAREN 
+        LCURLY 
+            stmt 
+        RCURLY 
+      (ELSE
+        LCURLY
+            stmt
+        RCURLY)? #IfStmt  
+    | WHILE LPAREN expr RPAREN
+        LCURLY
+            stmt
+        RCURLY #WhileStmt
+    | expr SEMI
     | RETURN expr SEMI #ReturnStmt
     ;
 
 expr
-    : expr op= MUL expr #BinaryExpr //
-    | expr op= ADD expr #BinaryExpr //
-    | value=INTEGER #IntegerLiteral //
-    | name=ID #VarRefExpr //
+    : expr op=(MUL | DIV) expr #BinaryExpr 
+    | expr op=(ADD | MINUS) expr #BinaryExpr 
+    | value=INTEGER #IntegerLiteral 
+    | name=ID #VarRefExpr 
     ;
 
 
