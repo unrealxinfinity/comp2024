@@ -19,6 +19,7 @@ SUB : '-' ;
 NOT : '!';
 CLASS : 'class' ;
 INT : 'int' ;
+BOOLEAN :'bool';
 PUBLIC : 'public' ;
 RETURN : 'return' ;
 TRUE : 'true';
@@ -65,11 +66,13 @@ param
     ;
 
 stmt
-    : LCURLY
-    |
-    |
-    |
-    | RETURN expr SEMI #ReturnStmt
+    : LCURLY (stmt)* RCURLY
+    | 'if' LCURLY expr RCURLY stmt 'else' stmt
+    | 'while' LCURLY expr RCURLY stmt
+    | expr ';'
+    | ID '=' expr ';'
+    | ID LCURLY expr RCURLY '=' expr ';'
+    | RETURN expr SEMI
     ;
 
 expr
