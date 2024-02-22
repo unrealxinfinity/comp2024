@@ -6,35 +6,36 @@ grammar Javamm;
 
 LENGTH: 'length';
 NEW: 'new';
-EQUALS : '=';
+EQUALS: '=';
 SEMI : ';' ;
 LRECT: '[';
 RRECT: ']';
-LCURLY : '{' ;
-RCURLY : '}' ;
-LPAREN : '(' ;
-RPAREN : ')' ;
-LRECT = '[';
-RRECT = ']';
-MUL : '*' ;
-ADD : '+' ;
-DIV : '/' ;
-SUB : '-' ;
-NOT : '!';
-CLASS : 'class' ;
-INT : 'int' ;
-BOOLEAN :'bool';
-PUBLIC : 'public' ;
-NEW: 'new'
-THIS: 'this';
+LCURLY: '{';
+RCURLY: '}';
+LPAREN: '(';
+RPAREN: ')';
+MUL: '*' ;
+ADD: '+' ;
+DIV: '/' ;
+SUB: '-' ;
+NOT: '!';
+CLASS: 'class';
+INT: 'int';
+BOOLEAN:'bool';
+
+PUBLIC : 'public';
+STATIC: 'static';
+VOID: 'void';
+MAIN : 'main';
 RETURN : 'return' ;
 TRUE : 'true';
 FALSE: 'false';
 THIS : 'this';
 AND: '&&';
 LT: '<';
-INTEGER : '0' | [1-9][0-9]*;
-ID : [a-zA-Z]+ ;
+INTEGER : [0-9]+ ;
+ID : [a-zA-Z]+INTEGER?[a-zA-Z]*INTEGER? ;
+STRING : [a-zA-Z]*;
 
 WS : [ \t\n\r\f]+ -> skip ;
 
@@ -57,7 +58,8 @@ type
     | name=INT '...'
     | name= INT
     | name = BOOLEAN
-    | ID
+    | name= STRING LRECT RRECT
+    | name= ID
     ;
 
 methodDecl locals[boolean isPublic=false]
@@ -65,6 +67,8 @@ methodDecl locals[boolean isPublic=false]
         type name=ID
         LPAREN param RPAREN
         LCURLY varDecl* stmt* RCURLY
+    | (PUBLIC)? STATIC VOID MAIN LPAREN 'String' LRECT RRECT ID RPAREN LCURLY ( varDecl)* ( stmt )* RCURLY
+
     ;
 
 param
@@ -88,8 +92,8 @@ expr
     | expr (op= MUL | op=DIV)  expr #BinaryExpr //
     | expr (op= ADD | op=SUB) expr #BinaryExpr //
     | NOT expr #LogicalExpr
-    | expr LT expr #LogicalExpr
-    | expr AND expr #LogicalExpr
+    | expr (op=LT) expr #LogicalExpr
+    | expr (op=AND) expr #LogicalExpr
     //| expr OR expr #LogicalExpr
     | NEW INT '[' expr ']' #CustomExpr
     | NEW ID LPAREN RPAREN #Custom2Expr
