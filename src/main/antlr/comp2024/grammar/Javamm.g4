@@ -67,16 +67,16 @@ param
 
 stmt
     : LCURLY (stmt)* RCURLY
-    | 'if' LCURLY expr RCURLY stmt 'else' stmt
-    | 'while' LCURLY expr RCURLY stmt
+    | 'if' LPAREN expr RPAREN stmt 'else' stmt
+    | 'while' LPAREN expr RPAREN (stmt)*
     | expr ';'
     | ID '=' expr ';'
     | ID LCURLY expr RCURLY '=' expr ';'
-    | RETURN expr SEMI
+    //| RETURN expr SEMI
     ;
 
 expr
-    : expr '(' expr ')' #ParensExpr
+    : '(' expr ')' #ParensExpr
     | expr '[' expr ']' #IndexedExpr
     | expr '.' LENGTH #LengthExpr
     | expr '.' ID '(' (expr ( ',' expr )*)? ')' #Custom3Expr
