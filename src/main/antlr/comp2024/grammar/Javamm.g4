@@ -4,6 +4,8 @@ grammar Javamm;
     package pt.up.fe.comp2024;
 }
 
+LENGTH: 'length';
+NEW: 'new';
 EQUALS : '=';
 SEMI : ';' ;
 LCURLY : '{' ;
@@ -12,27 +14,31 @@ LPAREN : '(' ;
 RPAREN : ')' ;
 MUL : '*' ;
 ADD : '+' ;
-
+DIV : '/' ;
+SUB : '-' ;
+NOT : '!';
 CLASS : 'class' ;
 INT : 'int' ;
 PUBLIC : 'public' ;
 RETURN : 'return' ;
-
-INTEGER : [0-9] ;
+TRUE : 'true';
+FALSE: 'false';
+THIS : 'this';
+AND: '&&';
+LT: '<';
+INTEGER : '0' | [1-9][0-9]*;
 ID : [a-zA-Z]+ ;
 
 WS : [ \t\n\r\f]+ -> skip ;
 
 program
-    : classDecl EOF
+    : (importDeclaration)* classDecl EOF
     ;
 
+importDeclaration : 'import' ID ( '.' ID )* ';' ;
 
 classDecl
-    : CLASS name=ID
-        LCURLY
-        methodDecl*
-        RCURLY
+    : 'class' ID ('extends' ID)? '{' (varDecl)* (methodDecl)* '}'
     ;
 
 varDecl
@@ -40,7 +46,12 @@ varDecl
     ;
 
 type
-    : name= INT ;
+    : name=INT '['']'
+    | name=INT '...'
+    | name= INT
+    | name = BOOLEAN
+    | ID
+    ;
 
 methodDecl locals[boolean isPublic=false]
     : (PUBLIC {$isPublic=true;})?
@@ -54,15 +65,32 @@ param
     ;
 
 stmt
-    : expr EQUALS expr SEMI #AssignStmt //
+    : LCURLY
+    |
+    |
+    |
     | RETURN expr SEMI #ReturnStmt
     ;
 
 expr
-    : expr op= MUL expr #BinaryExpr //
-    | expr op= ADD expr #BinaryExpr //
+    : expr '(' expr ')' #ParensExpr
+    | expr '[' expr ']' #IndexedExpr
+    | expr '.' LENGTH #LengthExpr
+    | expr '.' ID '(' (expr ( ',' expr )*)? ')' #Custom3Expr
+    | expr (op= MUL | op=DIV)  expr #BinaryExpr //
+    | expr (op= ADD | op=SUB) expr #BinaryExpr //
+    | NOT expr #LogicalExpr
+    | expr LT expr #LogicalExpr
+    | expr AND expr #LogicalExpr
+    //| expr OR expr #LogicalExpr
+    | NEW INT '[' expr ']' #CustomExpr
+    | NEW ID LPAREN RPAREN #Custom2Expr
+    | '[' expr '(' ',' expr')''*' ')''?' ']' #Custom3Expr
     | value=INTEGER #IntegerLiteral //
+    | value=TRUE #BooleanLiteral
+    | value=FALSE #BooleanLiteral
     | name=ID #VarRefExpr //
+    | 'this' #This
     ;
 
 
