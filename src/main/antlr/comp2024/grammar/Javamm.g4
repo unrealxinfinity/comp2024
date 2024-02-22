@@ -8,6 +8,8 @@ LENGTH: 'length';
 NEW: 'new';
 EQUALS : '=';
 SEMI : ';' ;
+LRECT: '[';
+RRECT: ']';
 LCURLY : '{' ;
 RCURLY : '}' ;
 LPAREN : '(' ;
@@ -67,11 +69,11 @@ param
 
 stmt
     : LCURLY (stmt)* RCURLY
-    | 'if' LPAREN expr RPAREN stmt 'else' stmt
+    |'if' LPAREN expr RPAREN (stmt)* 'else' (stmt)*
     | 'while' LPAREN expr RPAREN (stmt)*
     | expr ';'
     | ID '=' expr ';'
-    | ID LCURLY expr RCURLY '=' expr ';'
+    | ID LRECT expr RRECT '=' expr ';'
     //| RETURN expr SEMI
     ;
 
