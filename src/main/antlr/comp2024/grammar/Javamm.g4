@@ -45,77 +45,77 @@ STRING : [a-zA-Z]+;
 WS : [ \t\n\r\f]+ -> skip ;
 
 program
-    : (importDeclaration)* classDecl EOF
+    : (importDecl)* classDecl EOF
     ;
 
-importDeclaration : 'import' ID ( '.' ID )* ';' ;
+importDecl : 'import' ID ( '.' ID )* ';' #ImportDeclaration ;
 
 classDecl
     : 'class' ID ('extends' ID)? '{'
             (varDecl)* (methodDecl)*
-        '}'
+        '}' #ClassDeclaration
     ;
 
 varDecl
-    : type name=ID SEMI
+    : type name=ID SEMI #VariableDeclaration
     ;
 
 type
-    : name=INT '['']'
-    | name=INT '...'
-    | name= INT
-    | name = BOOLEAN
-    | name= STR LRECT RRECT
-    | name= ID
-    | name= STR
-    | name= VOID
+    : name=INT '['']' #IntArrayType
+    | name=INT '...' #IntVarArg
+    | name= INT #Int
+    | name = BOOLEAN #BoolType
+    | name= STR LRECT RRECT #StringArrayType
+    | name= ID #CustomType
+    | name= STR #StringType
+    | name= VOID #VoidType
     ;
 
 methodDecl locals[boolean isPublic=false]
     : (PUBLIC {$isPublic=true;})? type name=ID LPAREN param RPAREN
         LCURLY
             varDecl* stmt*
-        RCURLY
+        RCURLY #MethodDeclaration
     | (PUBLIC)? STATIC VOID MAIN LPAREN param RPAREN
         LCURLY
             ( varDecl)* ( stmt )*
-        RCURLY
+        RCURLY #MainMethodDeclaration
     ;
 
 param
-    : (type name=ID(',')?)*
+    : (type name=ID(',')?)* #Parameter
     ;
 
 stmt
-    : LCURLY (stmt)* RCURLY
+    : LCURLY (stmt)* RCURLY #EncloseStatement
     | IF LPAREN expr RPAREN
         (stmt)*
       ELSE
-        (stmt)*
-    | WHILE LPAREN expr RPAREN (stmt)*
-    | expr SEMI
-    | ID '=' expr SEMI
-    | ID LRECT expr RRECT '=' expr SEMI
-    | RETURN expr SEMI
+        (stmt)* #IfStatement
+    | WHILE LPAREN expr RPAREN (stmt)* #WhileStatement
+    | expr SEMI #SimpleStatement
+    | ID '=' expr SEMI #AssignmentStatement
+    | ID LRECT expr RRECT '=' expr SEMI #ArrayAlterIndexStatement
+    | RETURN expr SEMI #ReturnStatemnt
     ;
 expr
     : '(' expr ')' #ParensExpr
     | expr '[' expr ']' #IndexedExpr
-    | expr '.' LENGTH #LengthExpr
-    | expr '.' ID LPAREN (expr ( ',' expr )*)? RPAREN #Custom3Expr
+    | expr '.' LENGTH #LengthFunctionExpr
+    | expr '.' ID LPAREN (expr ( ',' expr )*)? RPAREN #ClassFunctionCallExpr
     | expr (op= MUL | op=DIV)  expr #BinaryExpr //
     | expr (op= ADD | op=SUB) expr #BinaryExpr //
     | NOT expr #LogicalExpr
     | expr (op=LT) expr #LogicalExpr
     | expr (op=AND) expr #LogicalExpr
     //| expr OR expr #LogicalExpr
-    | NEW INT LRECT expr RRECT #CustomExpr
-    | NEW ID LPAREN RPAREN #Custom2Expr
-    | LRECT (expr ( ',' expr)* )? RRECT #Custom3Expr
-    | value=INTEGER #IntegerLiteral //
+    | NEW INT LRECT expr RRECT #NewArrayExpr
+    | NEW ID LPAREN RPAREN #NewClassExpr
+    | LRECT (expr ( ',' expr)* )? RRECT #ArrayExpr
+    | value=INTEGER #IntegerLiteral
     | value=TRUE #BooleanLiteral
     | value=FALSE #BooleanLiteral
-    | name=ID #VarRefExpr //
+    | name=ID #VarRefLiteral //
     | THIS #This
     ;
 
