@@ -5,7 +5,7 @@ grammar Javamm;
 }
 
 LENGTH: 'length';
-NEW: 'new';
+
 EQUALS: '=';
 SEMI : ';' ;
 LRECT: '[';
@@ -19,24 +19,29 @@ ADD: '+' ;
 DIV: '/' ;
 SUB: '-' ;
 NOT: '!';
-CLASS: 'class';
-INT: 'int';
-BOOLEAN:'bool';
+AND: '&&';
+LT: '<';
 
 PUBLIC : 'public';
 STATIC: 'static';
+CLASS: 'class';
 VOID: 'void';
 MAIN : 'main';
 RETURN : 'return' ;
 TRUE : 'true';
 FALSE: 'false';
 THIS : 'this';
-AND: '&&';
-LT: '<';
+IF: 'if';
+ELSE:'else';
+WHILE: 'while';
+STR: 'String';
+INT: 'int';
+BOOLEAN:'bool';
+NEW: 'new';
+
 INTEGER : [0-9]+ ;
 ID : [a-zA-Z]+INTEGER?[a-zA-Z]*INTEGER? ;
-STRING : [a-zA-Z]*;
-
+STRING : [a-zA-Z]+;
 WS : [ \t\n\r\f]+ -> skip ;
 
 program
@@ -46,7 +51,9 @@ program
 importDeclaration : 'import' ID ( '.' ID )* ';' ;
 
 classDecl
-    : 'class' ID ('extends' ID)? '{' (varDecl)* (methodDecl)* '}'
+    : 'class' ID ('extends' ID)? '{'
+            (varDecl)* (methodDecl)*
+        '}'
     ;
 
 varDecl
@@ -58,17 +65,21 @@ type
     | name=INT '...'
     | name= INT
     | name = BOOLEAN
-    | name= STRING LRECT RRECT
+    | name= STR LRECT RRECT
     | name= ID
+    | name= STR
+    | name= VOID
     ;
 
 methodDecl locals[boolean isPublic=false]
-    : ('public' {$isPublic=true;})?
-        type name=ID
-        LPAREN param RPAREN
-        LCURLY varDecl* stmt* RCURLY
-    | (PUBLIC)? STATIC VOID MAIN LPAREN 'String' LRECT RRECT ID RPAREN LCURLY ( varDecl)* ( stmt )* RCURLY
-
+    : (PUBLIC {$isPublic=true;})? type name=ID LPAREN param RPAREN
+        LCURLY
+            varDecl* stmt*
+        RCURLY
+    | (PUBLIC)? STATIC VOID MAIN LPAREN param RPAREN
+        LCURLY
+            ( varDecl)* ( stmt )*
+        RCURLY
     ;
 
 param
@@ -77,32 +88,35 @@ param
 
 stmt
     : LCURLY (stmt)* RCURLY
-    |'if' LPAREN expr RPAREN (stmt)* 'else' (stmt)*
-    | 'while' LPAREN expr RPAREN (stmt)*
-    | expr ';'
-    | ID '=' expr ';'
-    | ID LRECT expr RRECT '=' expr ';'
-    //| RETURN expr SEMI
+    | IF LPAREN expr RPAREN
+        (stmt)*
+      ELSE
+        (stmt)*
+    | WHILE LPAREN expr RPAREN (stmt)*
+    | expr SEMI
+    | ID '=' expr SEMI
+    | ID LRECT expr RRECT '=' expr SEMI
+    | RETURN expr SEMI
     ;
 expr
     : '(' expr ')' #ParensExpr
     | expr '[' expr ']' #IndexedExpr
     | expr '.' LENGTH #LengthExpr
-    | expr '.' ID '(' (expr ( ',' expr )*)? ')' #Custom3Expr
+    | expr '.' ID LPAREN (expr ( ',' expr )*)? RPAREN #Custom3Expr
     | expr (op= MUL | op=DIV)  expr #BinaryExpr //
     | expr (op= ADD | op=SUB) expr #BinaryExpr //
     | NOT expr #LogicalExpr
     | expr (op=LT) expr #LogicalExpr
     | expr (op=AND) expr #LogicalExpr
     //| expr OR expr #LogicalExpr
-    | NEW INT '[' expr ']' #CustomExpr
+    | NEW INT LRECT expr RRECT #CustomExpr
     | NEW ID LPAREN RPAREN #Custom2Expr
-    | '[' expr '(' ',' expr')''*' ')''?' ']' #Custom3Expr
+    | LRECT (expr ( ',' expr)* )? RRECT #Custom3Expr
     | value=INTEGER #IntegerLiteral //
     | value=TRUE #BooleanLiteral
     | value=FALSE #BooleanLiteral
     | name=ID #VarRefExpr //
-    | 'this' #This
+    | THIS #This
     ;
 
 
