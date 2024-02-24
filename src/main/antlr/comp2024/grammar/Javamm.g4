@@ -36,7 +36,7 @@ ELSE:'else';
 WHILE: 'while';
 STR: 'String';
 INT: 'int';
-BOOLEAN:'bool';
+BOOLEAN:'boolean';
 NEW: 'new';
 
 INTEGER : [0-9]+ ;
@@ -51,13 +51,13 @@ program
 importDecl : 'import' ID ( '.' ID )* ';' #ImportDeclaration ;
 
 classDecl
-    : 'class' ID ('extends' ID)? '{'
+    : 'class' name=ID ('extends' ID)? '{'
             (varDecl)* (methodDecl)*
-        '}' #ClassDeclaration
+        '}'
     ;
 
 varDecl
-    : type name=ID SEMI #VariableDeclaration
+    : type name=ID SEMI
     ;
 
 type
@@ -72,18 +72,18 @@ type
     ;
 
 methodDecl locals[boolean isPublic=false]
-    : (PUBLIC {$isPublic=true;})? type name=ID LPAREN param RPAREN
+    : (PUBLIC {$isPublic=true;})? type name=ID LPAREN (param)* RPAREN
         LCURLY
             varDecl* stmt*
-        RCURLY #MethodDeclaration
-    | (PUBLIC)? STATIC VOID MAIN LPAREN param RPAREN
+        RCURLY
+    | (PUBLIC)? STATIC VOID name=MAIN LPAREN (param)* RPAREN
         LCURLY
             ( varDecl)* ( stmt )*
-        RCURLY #MainMethodDeclaration
+        RCURLY
     ;
 
 param
-    : (type name=ID(',')?)* #Parameter
+    : (type name=ID(',')?)
     ;
 
 stmt
