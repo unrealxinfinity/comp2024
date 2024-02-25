@@ -10,6 +10,7 @@ public enum Kind {
     PROGRAM,
     CLASS_DECL,
     VAR_DECL,
+    IMPORT_DECL,
     TYPE,
     METHOD_DECL,
     PARAM,
@@ -17,7 +18,8 @@ public enum Kind {
     RETURN_STMT,
     BINARY_EXPR,
     INTEGER_LITERAL,
-    VAR_REF_EXPR;
+    VAR_REF_EXPR,
+    BOOLEAN_LITERAL;
 
 
     private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);
@@ -30,6 +32,7 @@ public enum Kind {
     }
 
     private Kind() {
+
         this.name = SpecsStrings.toCamelCase(name(), "_", true);
     }
 
