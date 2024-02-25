@@ -48,7 +48,7 @@ program
     : (importDecl)* classDecl EOF
     ;
 
-importDecl : 'import' ID ( '.' ID )* ';' #ImportDeclaration ;
+importDecl : 'import' ( ID '.')* name=ID ';' ;
 
 classDecl
     : 'class' name=ID ('extends' superclass=ID)? '{'

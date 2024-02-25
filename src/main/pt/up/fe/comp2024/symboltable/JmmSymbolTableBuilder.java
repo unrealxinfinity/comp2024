@@ -29,10 +29,16 @@ public class JmmSymbolTableBuilder {
         var params = buildParams(classDecl);
         var locals = buildLocals(classDecl);
         var fields = buildFields(classDecl);
+        var imports = buildImports(root);
 
-        return new JmmSymbolTable(className, superName, methods, returnTypes, params, locals, fields);
+        return new JmmSymbolTable(className, superName, methods, imports, returnTypes, params, locals, fields);
     }
 
+    private static List<String> buildImports(JmmNode root) {
+        return root.getChildren(IMPORT_DECL).stream()
+                .map(method -> method.get("name"))
+                .toList();
+    }
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
         // TODO: Simple implementation that needs to be expanded
 
