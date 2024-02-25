@@ -51,7 +51,7 @@ program
 importDecl : 'import' ID ( '.' ID )* ';' #ImportDeclaration ;
 
 classDecl
-    : 'class' name=ID ('extends' ID)? '{'
+    : 'class' name=ID ('extends' superclass=ID)? '{'
             (varDecl)* (methodDecl)*
         '}'
     ;
