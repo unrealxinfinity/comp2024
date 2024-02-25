@@ -61,14 +61,14 @@ varDecl
     ;
 
 type
-    : name=INT '['']' #IntArrayType
-    | name=INT '...' #IntVarArg
-    | name= INT #Int
-    | name = BOOLEAN #BoolType
-    | name= STR LRECT RRECT #StringArrayType
-    | name= ID #CustomType
-    | name= STR #StringType
-    | name= VOID #VoidType
+    : name=INT '['']'
+    | name=INT '...'
+    | name= INT
+    | name = BOOLEAN
+    | name= STR LRECT RRECT
+    | name= ID
+    | name= STR
+    | name= VOID
     ;
 
 methodDecl locals[boolean isPublic=false]
@@ -76,7 +76,7 @@ methodDecl locals[boolean isPublic=false]
         LCURLY
             varDecl* stmt*
         RCURLY
-    | (PUBLIC)? STATIC VOID name=MAIN LPAREN (param)* RPAREN
+    | (PUBLIC)? STATIC type name=MAIN LPAREN (param)* RPAREN
         LCURLY
             ( varDecl)* ( stmt )*
         RCURLY
@@ -106,8 +106,8 @@ expr
     | expr (op= MUL | op=DIV)  expr #BinaryExpr //
     | expr (op= ADD | op=SUB) expr #BinaryExpr //
     | NOT expr #LogicalExpr
-    | expr (op=LT) expr #LogicalExpr
-    | expr (op=AND) expr #LogicalExpr
+    | expr (op=LT) expr #BinaryExpr
+    | expr (op=AND) expr #BinaryExpr
     //| expr OR expr #LogicalExpr
     | NEW INT LRECT expr RRECT #NewArrayExpr
     | NEW ID LPAREN RPAREN #NewClassExpr

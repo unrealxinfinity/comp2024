@@ -9,6 +9,7 @@ import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class JmmSymbolTable implements SymbolTable {
 
@@ -63,8 +64,9 @@ public class JmmSymbolTable implements SymbolTable {
 
     @Override
     public Type getReturnType(String methodSignature) {
-        // TODO: Simple implementation that needs to be expanded
-        return new Type(TypeUtils.getIntTypeName(), false);
+        //TODO Might be missing some types
+        //System.out.println(methodSignature);
+       return returnTypes.get(methodSignature);
     }
 
     @Override

@@ -39,13 +39,43 @@ public class JmmSymbolTableBuilder {
                 .map(method -> method.get("name"))
                 .toList();
     }
+    private static Type returnType(JmmNode type){
+        String typeName = type.get("name");
+        System.out.println(typeName);
+        if(typeName == TypeUtils.getIntTypeName()) {
+            return new Type(TypeUtils.getIntTypeName(), false);
+        }
+        else if(typeName == TypeUtils.getIntArrayTypeName()){
+            return new Type(TypeUtils.getIntTypeName(),true);
+        }
+        else if(typeName == TypeUtils.getBoolTypeName()){
+            return new Type(TypeUtils.getBoolTypeName(),false);
+        }
+        else if(typeName == TypeUtils.getStringArrayTypeName()) {
+            return new Type(TypeUtils.getStringTypeName(), true);
+        }
+        else if (typeName == TypeUtils.getStringTypeName()){
+            return new Type(TypeUtils.getStringTypeName(),true);
+        }
+        else if (typeName == TypeUtils.getVoidTypeName()){
+            return new Type(TypeUtils.getVoidTypeName(),false);
+        }
+        else{
+            return new Type(typeName,false);
+        }
+    }
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
         // TODO: Simple implementation that needs to be expanded
 
         Map<String, Type> map = new HashMap<>();
 
         classDecl.getChildren(METHOD_DECL).stream()
-                .forEach(method -> map.put(method.get("name"), new Type(TypeUtils.getIntTypeName(), false)));
+                .forEach(
+                    method -> map.put(
+                        method.get("name"),
+                        returnType( method.getChildren(TYPE).get(0))
+                    )
+                );
 
         return map;
     }
