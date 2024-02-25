@@ -8,7 +8,7 @@ public class TypeUtils {
 
     private static final String INT_TYPE_NAME = "int";
     private static final String BOOL_TYPE_NAME= "boolean";
-    private static final String INT_VAR_ARG_TYPE_NAME = "int ...";
+    private static final String INT_VAR_ARG_TYPE_NAME = "int...";
     private static final String INT_ARRAY_TYPE_NAME = "int[]";
     private static final String STRING_ARRAY_TYPE_NAME = "String[]";
     private static final String STRING_TYPE_NAME ="String";

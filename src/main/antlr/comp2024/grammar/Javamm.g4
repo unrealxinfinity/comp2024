@@ -36,6 +36,9 @@ ELSE:'else';
 WHILE: 'while';
 STR: 'String';
 INT: 'int';
+INTARRAY: 'int[]';
+STRINGARRAY:'String[]';
+INTVARARG:'int...';
 BOOLEAN:'boolean';
 NEW: 'new';
 
@@ -61,11 +64,11 @@ varDecl
     ;
 
 type
-    : name=INT '['']'
-    | name=INT '...'
+    : name=INTARRAY
+    | name=INTVARARG
     | name= INT
     | name = BOOLEAN
-    | name= STR LRECT RRECT
+    | name= STRINGARRAY
     | name= ID
     | name= STR
     | name= VOID

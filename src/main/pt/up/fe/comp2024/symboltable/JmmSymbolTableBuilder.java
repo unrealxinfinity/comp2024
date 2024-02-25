@@ -41,23 +41,22 @@ public class JmmSymbolTableBuilder {
     }
     private static Type returnType(JmmNode type){
         String typeName = type.get("name");
-        System.out.println(typeName);
-        if(typeName == TypeUtils.getIntTypeName()) {
+        if(typeName.equals(TypeUtils.getIntTypeName())) {
             return new Type(TypeUtils.getIntTypeName(), false);
         }
-        else if(typeName == TypeUtils.getIntArrayTypeName()){
+        else if(typeName.equals( TypeUtils.getIntArrayTypeName())){
             return new Type(TypeUtils.getIntTypeName(),true);
         }
-        else if(typeName == TypeUtils.getBoolTypeName()){
+        else if(typeName.equals(TypeUtils.getBoolTypeName())){
             return new Type(TypeUtils.getBoolTypeName(),false);
         }
-        else if(typeName == TypeUtils.getStringArrayTypeName()) {
+        else if(typeName.equals(TypeUtils.getStringArrayTypeName())) {
             return new Type(TypeUtils.getStringTypeName(), true);
         }
-        else if (typeName == TypeUtils.getStringTypeName()){
+        else if (typeName.equals( TypeUtils.getStringTypeName())){
             return new Type(TypeUtils.getStringTypeName(),true);
         }
-        else if (typeName == TypeUtils.getVoidTypeName()){
+        else if (typeName.equals(TypeUtils.getVoidTypeName())){
             return new Type(TypeUtils.getVoidTypeName(),false);
         }
         else{
