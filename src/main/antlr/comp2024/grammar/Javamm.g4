@@ -4,57 +4,59 @@ grammar Javamm;
     package pt.up.fe.comp2024;
 }
 
-EQUALS : '=';
+LENGTH: 'length';
+
+EQUALS: '=';
 SEMI : ';' ;
-PERIOD: '.';
-COMMA: ',';
-LCURLY : '{' ;
-RCURLY : '}' ;
-LPAREN : '(' ;
-RPAREN : ')' ;
-LRECT = '[';
-RRECT = ']';
-MUL : '*' ;
-ADD : '+' ;
-DIV : '/' ;
-MINUS: '-';
-IF : 'if' ;
-ELSE: 'else';
-WHILE: 'while';
-AND: '&&'
-OR: '||'
-BoolEQ: '=='
-LT: '<'
-LE: '<='
-GT: '>'
-GE:'>='
-NOT:'!'
+LRECT: '[';
+RRECT: ']';
+LCURLY: '{';
+RCURLY: '}';
+LPAREN: '(';
+RPAREN: ')';
+MUL: '*' ;
+ADD: '+' ;
+DIV: '/' ;
+SUB: '-' ;
+NOT: '!';
+AND: '&&';
+LT: '<';
 
-
-CLASS : 'class' ;
-INT : 'int' ;
-PUBLIC : 'public' ;
-NEW: 'new'
-THIS: 'this';
+PUBLIC : 'public';
+STATIC: 'static';
+CLASS: 'class';
+VOID: 'void';
+MAIN : 'main';
 RETURN : 'return' ;
+TRUE : 'true';
+FALSE: 'false';
+THIS : 'this';
+IF: 'if';
+ELSE:'else';
+WHILE: 'while';
+STR: 'String';
+INT: 'int';
+INTARRAY: 'int[]';
+STRINGARRAY:'String[]';
+INTVARARG:'int...';
+BOOLEAN:'boolean';
+NEW: 'new';
 
-INTEGER : [0-9] ;
-BOOLEAN : 'true'|'false' ;
-ID : [a-zA-Z]+INTEGER*[a-zA-Z]*INTEGER* ;
+INTEGER : [0-9]+ ;
+ID : [a-zA-Z]+INTEGER?[a-zA-Z]*INTEGER? ;
+STRING : [a-zA-Z]+;
 WS : [ \t\n\r\f]+ -> skip ;
 
 program
     : (importDecl)* classDecl EOF
     ;
-importDecl 
-    : ‘import’ ID ( ‘.’ ID )* SEMI
+
+importDecl : 'import' ( ID '.')* name=ID ';' ;
 
 classDecl
-    : 'class' name=ID ('extends' ID)?
-        LCURLY
-        varDecl*
-        methodDecl*
-        RCURLY 
+    : 'class' name=ID ('extends' superclass=ID)? '{'
+            (varDecl)* (methodDecl)*
+        '}'
     ;
 
 varDecl
@@ -62,62 +64,62 @@ varDecl
     ;
 
 type
-    : name= 'int' 
-    | name= 'int...'
-    | name= 'boolean'
-    | name= 'int' LRECT RRECT
+    : name=INTARRAY
+    | name=INTVARARG
+    | name= INT
+    | name = BOOLEAN
+    | name= STRINGARRAY
     | name= ID
+    | name= STR
+    | name= VOID
     ;
 
 methodDecl locals[boolean isPublic=false]
-    : ('public' {$isPublic=true;})?
-        type name=ID
-        LPAREN param RPAREN
-        LCURLY varDecl* stmt* RCURLY
+    : (PUBLIC {$isPublic=true;})? type name=ID LPAREN (param)* RPAREN
+        LCURLY
+            varDecl* stmt*
+        RCURLY
+    | (PUBLIC)? STATIC type name=MAIN LPAREN (param)* RPAREN
+        LCURLY
+            ( varDecl)* ( stmt )*
+        RCURLY
     ;
 
 param
-    : (type name=ID(',')?)*
+    : (type name=ID(',')?)
     ;
 
 stmt
-    : expr EQUALS expr SEMI #AssignStmt
-    | IF LPAREN expr RPAREN 
-        LCURLY 
-            stmt* 
-        RCURLY 
-      (
+    : LCURLY (stmt)* RCURLY #EncloseStatement
+    | IF LPAREN expr RPAREN
+        (stmt)*
       ELSE
-        LCURLY
-            stmt*
-        RCURLY
-      )? #IfStmt  
-    | WHILE LPAREN expr RPAREN
-        LCURLY
-            stmt*
-        RCURLY #WhileStmt
-    | expr SEMI #Just
-    | ID LRECT expr RRECT EQUALS expr SEMI 
-    | RETURN expr SEMI #ReturnStmt 
+        (stmt)* #IfStatement
+    | WHILE LPAREN expr RPAREN (stmt)* #WhileStatement
+    | expr SEMI #SimpleStatement
+    | ID '=' expr SEMI #AssignmentStatement
+    | ID LRECT expr RRECT '=' expr SEMI #ArrayAlterIndexStatement
+    | RETURN expr SEMI #ReturnStatemnt
     ;
 expr
-    : op=(NOT) expr #UnaryBoolExpr
-    | expr op=(MUL | DIV) expr #BinaryExpr 
-    | expr op=(ADD | MINUS) expr #BinaryExpr
-    | expr op=(BoolEQ | LE | LT | GE | GT ) expr #BinaryBoolExpr
-    | expr op=(AND|OR) expr #BinaryBoolExpr
-    | expr LRECT expr RRECT
-    | expr PERIOD 'length'
-    | expr PERIOD name=ID LPAREN (expr (COMMA expr)*)? RPAREN
-    | NEW 'int' LRECT expr RRECT
-    | NEW name=ID LPAREN RPAREN
-    | LPAREN expr RPAREN
-    | LRECT (expr (COMMA ex)*)? RRECT
-    | expr PERIOD name=ID LPAREN 
-    | value=INTEGER #IntegerLiteral 
-    | value=BOOLEAN #BooleanLiteral
-    | name=ID #VarRefExpr 
-    | THIS
+    : '(' expr ')' #ParensExpr
+    | expr '[' expr ']' #IndexedExpr
+    | expr '.' LENGTH #LengthFunctionExpr
+    | expr '.' ID LPAREN (expr ( ',' expr )*)? RPAREN #ClassFunctionCallExpr
+    | expr (op= MUL | op=DIV)  expr #BinaryExpr //
+    | expr (op= ADD | op=SUB) expr #BinaryExpr //
+    | NOT expr #LogicalExpr
+    | expr (op=LT) expr #BinaryExpr
+    | expr (op=AND) expr #BinaryExpr
+    //| expr OR expr #LogicalExpr
+    | NEW INT LRECT expr RRECT #NewArrayExpr
+    | NEW ID LPAREN RPAREN #NewClassExpr
+    | LRECT (expr ( ',' expr)* )? RRECT #ArrayExpr
+    | value=INTEGER #IntegerLiteral
+    | value=TRUE #BooleanLiteral
+    | value=FALSE #BooleanLiteral
+    | name=ID #VarRefLiteral //
+    | THIS #This
     ;
 
 
