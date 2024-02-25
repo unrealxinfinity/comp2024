@@ -39,7 +39,7 @@ public class JmmSymbolTableBuilder {
                 .map(method -> method.get("name"))
                 .toList();
     }
-    private static Type returnType(JmmNode type){
+    private static Type getType(JmmNode type){
         String typeName = type.get("name");
         if(typeName.equals(TypeUtils.getIntTypeName())) {
             return new Type(TypeUtils.getIntTypeName(), false);
@@ -72,7 +72,7 @@ public class JmmSymbolTableBuilder {
                 .forEach(
                     method -> map.put(
                         method.get("name"),
-                        returnType( method.getChildren(TYPE).get(0))
+                        getType(method.getChildren(TYPE).get(0))
                     )
                 );
 
@@ -128,11 +128,8 @@ public class JmmSymbolTableBuilder {
 
     private static List<Symbol> getLocalsList(JmmNode methodDecl) {
         // TODO: Simple implementation that needs to be expanded
-
-        var intType = new Type(TypeUtils.getIntTypeName(), false);
-
         return methodDecl.getChildren(VAR_DECL).stream()
-                .map(varDecl -> new Symbol(intType, varDecl.get("name")))
+                .map(varDecl -> new Symbol(getType(varDecl.getChildren(TYPE).get(0)), varDecl.get("name")))
                 .toList();
     }
 

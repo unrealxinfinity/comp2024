@@ -1,8 +1,11 @@
 package pt.up.fe.comp2024.ast;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+
+import java.util.List;
 
 public class TypeUtils {
 
@@ -60,8 +63,10 @@ public class TypeUtils {
 
     private static Type getVarExprType(JmmNode varRefExpr, SymbolTable table) {
         // TODO: Simple implementation that needs to be expanded
-
-        return new Type(INT_TYPE_NAME, false);
+        List<Symbol> fields = table.getFields();
+        return fields.stream().filter(field -> field.getName().equals(varRefExpr.get("name"))).map(
+                field -> field.getType()
+        ).toList().get(0);
     }
 
 
