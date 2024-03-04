@@ -26,7 +26,6 @@ PUBLIC : 'public';
 STATIC: 'static';
 CLASS: 'class';
 VOID: 'void';
-MAIN: 'main';
 RETURN: 'return';
 TRUE: 'true';
 FALSE: 'false';
@@ -45,7 +44,7 @@ SINGLE_COMMENT : '//' .*? '\n' -> skip ;
 MULTI_COMMENT : '/*' .*? '*/' -> skip ;
 
 INTEGER : [0-9] | [1-9][0-9]+ ;
-ID : [a-zA-Z_$][a-zA-Z_$0-9]* ;
+ID : [a-zA-Z_$][a-zA-Z_$0-9]*  ;
 STRING : [a-zA-Z]+;
 WS : [ \t\n\r\f]+ -> skip ;
 
@@ -81,7 +80,7 @@ methodDecl locals[boolean isPublic=false]
         LCURLY
             varDecl* stmt*
         RCURLY
-    | (PUBLIC)? STATIC type name=MAIN LPAREN (param)? (',' param)* RPAREN
+    | (PUBLIC)? STATIC type name=ID LPAREN (param)? (',' param)* RPAREN
         LCURLY
             ( varDecl)* ( stmt )*
         RCURLY

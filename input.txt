@@ -1,5 +1,5 @@
 class App {
-    static void main(String [                  ] args) {
-    int. . . a;
+    static void batatas(String [                  ] args) {
+    int... main;
     }
 }
