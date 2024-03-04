@@ -41,6 +41,9 @@ INTVARARG:'int...';
 BOOLEAN:'boolean';
 NEW: 'new';
 
+SINGLE_COMMENT : '//' .*? '\n' -> skip ;
+MULTI_COMMENT : '/*' .*? '*/' -> skip ;
+
 INTEGER : [0-9]+ ;
 ID : [a-zA-Z]+INTEGER?[a-zA-Z]*INTEGER? ;
 STRING : [a-zA-Z]+;
