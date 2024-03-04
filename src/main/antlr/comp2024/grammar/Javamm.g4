@@ -35,7 +35,8 @@ ELSE:'else';
 WHILE: 'while';
 STR: 'String';
 INT: 'int';
-INTARRAY: 'int[]';
+//INTARRAY: 'int[]';
+INTARRAY2: INT LRECT RRECT;
 STRINGARRAY:'String[]';
 INTVARARG:'int...';
 BOOLEAN:'boolean';
@@ -66,7 +67,7 @@ varDecl
     ;
 
 type
-    : name=INTARRAY
+    : name=INTARRAY2
     | name=INTVARARG
     | name= INT
     | name = BOOLEAN
