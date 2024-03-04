@@ -68,7 +68,7 @@ varDecl
     ;
 
 type
-    : name=INT LRECT RRECT
+    : name=INT array=LRECT RRECT
     | name=INTVARARG
     | name= INT
     | name = BOOLEAN
