@@ -42,6 +42,7 @@ public class Launcher {
 
 
         // Optimization stage
+        /*
         JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
         OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
         TestUtils.noErrors(ollirResult.getReports());
@@ -56,6 +57,8 @@ public class Launcher {
 
         // Print Jasmin code
         //System.out.println(jasminResult.getJasminCode());
+
+         */
     }
 
 }

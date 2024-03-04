@@ -1,3 +1,5 @@
 class App {
-    static void main(String[                    ] args) {}
+    static void main(String [                  ] args) {
+    int. . . a;
+    }
 }

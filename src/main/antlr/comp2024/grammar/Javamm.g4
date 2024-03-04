@@ -6,6 +6,7 @@ grammar Javamm;
 
 LENGTH: 'length';
 EQUALS: '=';
+DOT: '...';
 SEMI : ';' ;
 LRECT: '[';
 RRECT: ']';
@@ -35,11 +36,8 @@ ELSE:'else';
 WHILE: 'while';
 STR: 'String';
 INT: 'int';
-//INTARRAY: 'int[]';
-//INTARRAY2: INT LRECT RRECT;
-//STRINGARRAY:'String[]';
 //STRINGARRAY: STR LRECT RRECT;
-INTVARARG:'int...';
+//INTVARARG:'int...';
 BOOLEAN:'boolean';
 NEW: 'new';
 
@@ -69,10 +67,10 @@ varDecl
 
 type
     : name=INT array=LRECT RRECT
-    | name=INTVARARG
+    | name=INT DOT
     | name= INT
     | name = BOOLEAN
-    | name= STR LRECT RRECT
+    | name= STR array=LRECT RRECT
     | name= ID
     | name= STR
     | name= VOID
