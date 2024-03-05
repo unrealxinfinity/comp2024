@@ -6,6 +6,7 @@ grammar Javamm;
 
 LENGTH: 'length';
 EQUALS: '=';
+DOT: '...';
 SEMI : ';' ;
 LRECT: '[';
 RRECT: ']';
@@ -25,7 +26,6 @@ PUBLIC : 'public';
 STATIC: 'static';
 CLASS: 'class';
 VOID: 'void';
-MAIN: 'main';
 RETURN: 'return';
 TRUE: 'true';
 FALSE: 'false';
@@ -35,11 +35,8 @@ ELSE:'else';
 WHILE: 'while';
 STR: 'String';
 INT: 'int';
-//INTARRAY: 'int[]';
-//INTARRAY2: INT LRECT RRECT;
-//STRINGARRAY:'String[]';
 //STRINGARRAY: STR LRECT RRECT;
-INTVARARG:'int...';
+//INTVARARG:'int...';
 BOOLEAN:'boolean';
 NEW: 'new';
 
@@ -47,7 +44,7 @@ SINGLE_COMMENT : '//' .*? '\n' -> skip ;
 MULTI_COMMENT : '/*' .*? '*/' -> skip ;
 
 INTEGER : [0-9] | [1-9][0-9]+ ;
-ID : [a-zA-Z]+INTEGER?[a-zA-Z]*INTEGER? ;
+ID : [a-zA-Z_$][a-zA-Z_$0-9]*  ;
 STRING : [a-zA-Z]+;
 WS : [ \t\n\r\f]+ -> skip ;
 
@@ -69,10 +66,10 @@ varDecl
 
 type
     : name=INT array=LRECT RRECT
-    | name=INTVARARG
+    | name=INT DOT
     | name= INT
     | name = BOOLEAN
-    | name= STR LRECT RRECT
+    | name= STR array=LRECT RRECT
     | name= ID
     | name= STR
     | name= VOID
@@ -83,7 +80,7 @@ methodDecl locals[boolean isPublic=false]
         LCURLY
             varDecl* stmt*
         RCURLY
-    | (PUBLIC)? STATIC type name=MAIN LPAREN (param)? (',' param)* RPAREN
+    | (PUBLIC)? STATIC type name=ID LPAREN (param)? (',' param)* RPAREN
         LCURLY
             ( varDecl)* ( stmt )*
         RCURLY
