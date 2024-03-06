@@ -75,14 +75,10 @@ type
     | name= VOID
     ;
 
-methodDecl locals[boolean isPublic=false]
-    : (PUBLIC {$isPublic=true;})? type name=ID LPAREN (param)? (',' param)* RPAREN
+methodDecl locals[boolean isPublic=false, boolean isStatic=false]
+    : (PUBLIC {$isPublic=true;})? (STATIC {$isStatic=true;})? type name=ID LPAREN (param)? (',' param)* RPAREN
         LCURLY
             varDecl* stmt*
-        RCURLY
-    | (PUBLIC)? STATIC type name=ID LPAREN (param)? (',' param)* RPAREN
-        LCURLY
-            ( varDecl)* ( stmt )*
         RCURLY
     ;
 
