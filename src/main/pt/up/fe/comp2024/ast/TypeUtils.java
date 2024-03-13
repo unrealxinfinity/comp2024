@@ -38,7 +38,7 @@ public class TypeUtils {
 
         Type type = switch (kind) {
             case BINARY_EXPR -> getBinExprType(expr);
-            case VAR_REF_EXPR -> getVarExprType(expr, table);
+            case VAR_REF_LITERAL -> getVarExprType(expr, table);
             case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
             case BOOLEAN_LITERAL -> new Type(BOOL_TYPE_NAME,false);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
