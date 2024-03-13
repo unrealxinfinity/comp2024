@@ -41,10 +41,10 @@ public class JmmSymbolTableBuilder {
     }
     private static Type getType(JmmNode type){
         String typeName = type.get("name");
-        if(typeName.equals(TypeUtils.getIntTypeName())) {
+        if(typeName.equals(TypeUtils.getIntTypeName()) && !type.hasAttribute("array")) {
             return new Type(TypeUtils.getIntTypeName(), false);
         }
-        else if(typeName.equals( TypeUtils.getIntArrayTypeName())){
+        else if(typeName.equals( TypeUtils.getIntTypeName())){
             return new Type(TypeUtils.getIntTypeName(),true);
         }
         else if(typeName.equals(TypeUtils.getBoolTypeName())){

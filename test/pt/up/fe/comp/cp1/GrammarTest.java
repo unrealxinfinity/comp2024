@@ -254,4 +254,9 @@ public class GrammarTest {
         TestUtils.parseVerbose("[10, 20, 30]", EXPRESSION);
     }
 
+    @Test
+    public void testSpaciousIntArray() {
+        TestUtils.parseVerbose("int[                       ] spaciousArray ;", "varDecl");
+    }
+
 }

@@ -1,0 +1,5 @@
+class App {
+    static void batatas(String [                  ] args) {
+    int... main;
+    }
+}

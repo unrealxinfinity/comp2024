@@ -6,6 +6,7 @@ grammar Javamm;
 
 LENGTH: 'length';
 EQUALS: '=';
+DOT: '...';
 SEMI : ';' ;
 LRECT: '[';
 RRECT: ']';
@@ -25,7 +26,6 @@ PUBLIC : 'public';
 STATIC: 'static';
 CLASS: 'class';
 VOID: 'void';
-MAIN: 'main';
 RETURN: 'return';
 TRUE: 'true';
 FALSE: 'false';
@@ -35,14 +35,16 @@ ELSE:'else';
 WHILE: 'while';
 STR: 'String';
 INT: 'int';
-INTARRAY: 'int[]';
-STRINGARRAY:'String[]';
-INTVARARG:'int...';
+//STRINGARRAY: STR LRECT RRECT;
+//INTVARARG:'int...';
 BOOLEAN:'boolean';
 NEW: 'new';
 
-INTEGER : [0-9]+ ;
-ID : [a-zA-Z]+INTEGER?[a-zA-Z]*INTEGER? ;
+SINGLE_COMMENT : '//' .*? '\n' -> skip ;
+MULTI_COMMENT : '/*' .*? '*/' -> skip ;
+
+INTEGER : [0-9] | [1-9][0-9]+ ;
+ID : [a-zA-Z_$][a-zA-Z_$0-9]*  ;
 STRING : [a-zA-Z]+;
 WS : [ \t\n\r\f]+ -> skip ;
 
@@ -63,29 +65,25 @@ varDecl
     ;
 
 type
-    : name=INTARRAY
-    | name=INTVARARG
+    : name=INT array=LRECT RRECT
+    | name=INT DOT
     | name= INT
     | name = BOOLEAN
-    | name= STRINGARRAY
+    | name= STR array=LRECT RRECT
     | name= ID
     | name= STR
     | name= VOID
     ;
 
-methodDecl locals[boolean isPublic=false]
-    : (PUBLIC {$isPublic=true;})? type name=ID LPAREN (param)* RPAREN
+methodDecl locals[boolean isPublic=false, boolean isStatic=false]
+    : (PUBLIC {$isPublic=true;})? (STATIC {$isStatic=true;})? type name=ID LPAREN (param)? (',' param)* RPAREN
         LCURLY
             varDecl* stmt*
-        RCURLY
-    | (PUBLIC)? STATIC type name=MAIN LPAREN (param)* RPAREN
-        LCURLY
-            ( varDecl)* ( stmt )*
         RCURLY
     ;
 
 param
-    : (type name=ID(',')?)
+    : type name=ID
     ;
 
 stmt
