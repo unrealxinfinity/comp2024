@@ -52,7 +52,7 @@ program
     : (importDecl)* classDecl EOF
     ;
 
-importDecl : 'import' ( ID '.')* name=ID ';' ;
+importDecl : 'import' ( name+=ID '.')* name+=ID ';' ;
 
 classDecl
     : 'class' name=ID ('extends' superclass=ID)? '{'
@@ -64,12 +64,12 @@ varDecl
     : type name=ID SEMI
     ;
 
-type
-    : name=INT array=LRECT RRECT
+type locals[boolean isArray=false, boolean isVarargs=false]
+    : name=INT ((LRECT RRECT {$isArray=true;}) | (DOT {$isVarargs=false;}))?
     | name=INT DOT
     | name= INT
     | name = BOOLEAN
-    | name= STR array=LRECT RRECT
+    | name= STR LRECT RRECT {$isArray=true;}
     | name= ID
     | name= STR
     | name= VOID
@@ -89,10 +89,10 @@ param
 stmt
     : LCURLY (stmt)* RCURLY #EncvaloseStatement
     | IF LPAREN expr RPAREN
-        (stmt)*
+        stmt
       ELSE
-        (stmt)* #IfStatement
-    | WHILE LPAREN expr RPAREN (stmt)* #WhileStatement
+        stmt #IfStatement
+    | WHILE LPAREN expr RPAREN stmt #WhileStatement
     | expr SEMI #SimpleStatement
     | ID '=' expr SEMI #AssignmentStatement
     | ID LRECT expr RRECT '=' expr SEMI #ArrayAlterIndexStatement
