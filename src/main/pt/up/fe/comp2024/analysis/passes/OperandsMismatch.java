@@ -6,6 +6,6 @@ import pt.up.fe.comp2024.ast.Kind;
 public class OperandsMismatch extends AnalysisVisitor {
 
     public void buildVisitor(){
-        addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
+        addVisit(Kind.BINARY_EXPR, null); //this:.visitBinaryExpr
     }
 }
