@@ -41,27 +41,8 @@ public class JmmSymbolTableBuilder {
     }
     private static Type getType(JmmNode type){
         String typeName = type.get("name");
-        if(typeName.equals(TypeUtils.getIntTypeName()) && !type.hasAttribute("array")) {
-            return new Type(TypeUtils.getIntTypeName(), false);
-        }
-        else if(typeName.equals( TypeUtils.getIntTypeName())){
-            return new Type(TypeUtils.getIntTypeName(),true);
-        }
-        else if(typeName.equals(TypeUtils.getBoolTypeName())){
-            return new Type(TypeUtils.getBoolTypeName(),false);
-        }
-        else if(typeName.equals(TypeUtils.getStringArrayTypeName())) {
-            return new Type(TypeUtils.getStringTypeName(), true);
-        }
-        else if (typeName.equals( TypeUtils.getStringTypeName())){
-            return new Type(TypeUtils.getStringTypeName(),true);
-        }
-        else if (typeName.equals(TypeUtils.getVoidTypeName())){
-            return new Type(TypeUtils.getVoidTypeName(),false);
-        }
-        else{
-            return new Type(typeName,false);
-        }
+        Boolean isArray = type.getObject("isArray", Boolean.class);
+        return new Type(typeName, isArray);
     }
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
         // TODO: Simple implementation that needs to be expanded
