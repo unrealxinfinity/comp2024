@@ -65,7 +65,7 @@ varDecl
     ;
 
 type locals[boolean isArray=false, boolean isVarargs=false]
-    : name=INT ((LRECT RRECT {$isArray=true;}) | (DOT {$isVarargs=false;}))?
+    : name=INT ((LRECT RRECT {$isArray=true;}) | (DOT {$isVarargs=true;}))?
     | name=INT DOT
     | name= INT
     | name = BOOLEAN
@@ -103,6 +103,7 @@ expr
     | expr '[' expr ']' #IndexedExpr
     | expr '.' LENGTH #LengthFunctionExpr
     | expr '.' ID LPAREN (expr ( ',' expr )*)? RPAREN #ClassFunctionCallExpr
+    | ID LPAREN (expr ( ',' expr )*)? RPAREN #SameClassCallExpr
     | expr (op= MUL | op=DIV)  expr #BinaryExpr //
     | expr (op= ADD | op=SUB) expr #BinaryExpr //
     | NOT expr #LogicalExpr
