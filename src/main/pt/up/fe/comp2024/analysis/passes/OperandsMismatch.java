@@ -20,20 +20,6 @@ public class OperandsMismatch extends AnalysisVisitor {
 
     public void buildVisitor(){
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
-        addVisit(Kind.INTEGER_LITERAL, this::visitIntLit);
-        addVisit(Kind.BOOLEAN_LITERAL, this::visitBoolLit);
-    }
-
-    private Void visitBoolLit(JmmNode jmmNode, SymbolTable symbolTable) {
-        jmmNode.put("type", "boolean");
-
-        return null;
-    }
-
-    private Void visitIntLit(JmmNode jmmNode, SymbolTable symbolTable) {
-        jmmNode.put("type", "int");
-
-        return null;
     }
 
     private Void visitBinaryExpr(JmmNode jmmNode, SymbolTable symbolTable) {
@@ -46,22 +32,16 @@ public class OperandsMismatch extends AnalysisVisitor {
         String leftType = left.get("type");
         String rightType = right.get("type");
         String desiredType;
-        String returnedType;
 
         if (op.equals("+") || op.equals("-") || op.equals("*") || op.equals("/")) {
             desiredType = "int";
-            returnedType = "int";
         }
         else if (op.equals("<")) {
             desiredType = "int";
-            returnedType = "boolean";
         }
         else {
             desiredType = "boolean";
-            returnedType = "boolean";
         }
-
-        jmmNode.put("type", returnedType);
 
         if (!leftType.equals(desiredType)) {
             Report leftReport = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Left type");
