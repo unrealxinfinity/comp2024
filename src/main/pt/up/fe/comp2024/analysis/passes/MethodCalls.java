@@ -2,6 +2,7 @@ package pt.up.fe.comp2024.analysis.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
@@ -18,25 +19,54 @@ public class MethodCalls extends AnalysisVisitor {
         addVisit("SameClassCallExpr", this::checkSameClassTypes);
     }
 
+    private boolean isArrayOrVarargs(Symbol symbol) {
+        return symbol.getType().isArray() || symbol.getType().getObject("isVarargs", Boolean.class);
+    }
+
+    private boolean arrayCondition(Symbol symbol, JmmNode paramNode) {
+        if (symbol.getType().getObject("isVarargs", Boolean.class)) {
+            return true;
+        }
+        else {
+            return symbol.getType().isArray() == paramNode.getJmmChild(0).getObject("isArray", Boolean.class);
+        }
+    }
+
     private Void checkSameClassTypes(JmmNode jmmNode, SymbolTable symbolTable) {
-        Optional<List<Symbol>> params = symbolTable.getParametersTry(jmmNode.get("name"));
-        if (params.isEmpty()) {
+        Optional<List<Symbol>> maybeParams = symbolTable.getParametersTry(jmmNode.get("name"));
+        if (maybeParams.isEmpty()) {
             Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Method does not exist");
             addReport(report);
 
             return null;
         }
+        List<Symbol> params = maybeParams.get();
 
         List<JmmNode> paramNodes = jmmNode.getChildren();
+        if (paramNodes.isEmpty() && params.isEmpty()) {
+            return null;
+        }
 
-        for (int i = 0; i < paramNodes.size(); i++) {
-            Symbol param = params.get().get(i);
-            JmmNode paramNode = paramNodes.get(0);
+        for (int i = 0; i < params.size(); i++) {
+            Symbol param = params.get(i);
+            JmmNode paramNode = paramNodes.get(i);
 
-            if (!param.getType().getName().equals(paramNode.get("type"))) {
-                //|| param.getType().isArray() != paramNode.getJmmChild(0).getObject("isArray", Boolean.class)) {
+            if (!param.getType().getName().equals(paramNode.getObject("type", Type.class).getName()) || !arrayCondition(param, paramNode)) {
                 Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Parameter type mismatch");
                 addReport(report);
+            }
+        }
+
+        Symbol lastParam = params.get(params.size()-1);
+        if (lastParam.getType().getObject("isVarargs", Boolean.class)
+                && !paramNodes.get(params.size()-1).getObject("type", Type.class).isArray()) {
+            for (int i = params.size(); i < paramNodes.size(); i++) {
+                JmmNode paramNode = paramNodes.get(i);
+                if (!lastParam.getType().getName().equals(paramNode.getObject("type", Type.class).getName())
+                    || paramNode.getObject("type", Type.class).isArray()) {
+                    Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Varargs misuse");
+                    addReport(report);
+                }
             }
         }
 
