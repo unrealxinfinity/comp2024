@@ -14,6 +14,14 @@ public class TypePass extends AnalysisVisitor {
         addVisit("LengthFunctionExpr", this::visitLen);
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
         addVisit("LogicalExpr", this::visitBoolLit);
+        addVisit("NewArrayExpr", this::visitArrayExpr);
+        addVisit("ArrayExpr", this::visitArrayExpr);
+    }
+
+    private Void visitArrayExpr(JmmNode jmmNode, SymbolTable symbolTable) {
+        Type type = new Type("int", true);
+        jmmNode.putObject("type", type);
+        return null;
     }
 
     private Void visitBinaryExpr(JmmNode jmmNode, SymbolTable symbolTable) {
