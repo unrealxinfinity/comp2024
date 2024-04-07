@@ -94,8 +94,8 @@ stmt
         stmt #IfStatement
     | WHILE LPAREN expr RPAREN stmt #WhileStatement
     | expr SEMI #SimpleStatement
-    | ID '=' expr SEMI #AssignmentStatement
-    | ID LRECT expr RRECT '=' expr SEMI #ArrayAlterIndexStatement
+    | expr '=' expr SEMI #AssignmentStatement
+    | expr LRECT expr RRECT '=' expr SEMI #ArrayAlterIndexStatement
     | RETURN expr SEMI #ReturnStatemnt
     ;
 expr

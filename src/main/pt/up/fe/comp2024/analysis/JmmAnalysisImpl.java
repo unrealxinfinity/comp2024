@@ -22,7 +22,7 @@ public class JmmAnalysisImpl implements JmmAnalysis {
     public JmmAnalysisImpl() {
 
         this.analysisPasses = List.of(new TypePass(), new VarargPass(), new UndeclaredVariable(), new OperandsMismatch(),
-            new MethodCalls(), new ConditionTypes(), new ArrayExpressions());
+            new MethodCalls(), new ConditionTypes(), new ArrayExpressions(), new Assignments());
 
     }
 
