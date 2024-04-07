@@ -16,6 +16,7 @@ public class TypePass extends AnalysisVisitor {
         addVisit("LogicalExpr", this::visitBoolLit);
         addVisit("NewArrayExpr", this::visitArrayExpr);
         addVisit("ArrayExpr", this::visitArrayExpr);
+        addVisit("IndexedExpr", this::visitArrayExpr);
     }
 
     private Void visitArrayExpr(JmmNode jmmNode, SymbolTable symbolTable) {

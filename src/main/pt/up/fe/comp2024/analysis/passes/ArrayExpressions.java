@@ -13,6 +13,23 @@ public class ArrayExpressions extends AnalysisVisitor {
     protected void buildVisitor() {
         addVisit("NewArrayExpr", this::visitNewArray);
         addVisit("ArrayExpr", this::visitArrayInitializer);
+        addVisit("IndexedExpr", this::visitIndexedExpr);
+    }
+
+    private Void visitIndexedExpr(JmmNode jmmNode, SymbolTable symbolTable) {
+        Type varType = jmmNode.getJmmChild(0).getObject("type", Type.class);
+        Type indexType = jmmNode.getJmmChild(1).getObject("type", Type.class);
+
+        if (!varType.isArray()) {
+            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Variable is not an array");
+            addReport(report);
+        }
+        if (!indexType.getName().equals("int") || indexType.isArray()) {
+            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Index is not an int");
+            addReport(report);
+        }
+
+        return null;
     }
 
     private Void visitNewArray(JmmNode jmmNode, SymbolTable symbolTable) {
