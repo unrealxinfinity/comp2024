@@ -12,6 +12,7 @@ public class TypePass extends AnalysisVisitor {
         addVisit("ParensExpr", this::propagateType);
         addVisit("LengthFunctionExpr", this::visitLen);
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
+        addVisit("LogicalExpr", this::visitBoolLit);
     }
 
     private Void visitBinaryExpr(JmmNode jmmNode, SymbolTable symbolTable) {
