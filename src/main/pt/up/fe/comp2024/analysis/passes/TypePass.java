@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.analysis.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
@@ -19,17 +20,17 @@ public class TypePass extends AnalysisVisitor {
         String op = jmmNode.get("op");
 
         if (op.equals("+") || op.equals("-") || op.equals("*") || op.equals("/") || op.equals("<")) {
-            jmmNode.put("type", "int");
+            jmmNode.putObject("type", new Type("int", false));
         }
         else {
-            jmmNode.put("type", "boolean");
+            jmmNode.putObject("type", new Type("boolean", false));
         }
 
         return null;
     }
 
     private Void visitLen(JmmNode jmmNode, SymbolTable symbolTable) {
-        jmmNode.put("type", "int");
+        jmmNode.putObject("type", new Type("int", false));
 
         return null;
     }
@@ -37,19 +38,19 @@ public class TypePass extends AnalysisVisitor {
     private Void propagateType(JmmNode jmmNode, SymbolTable symbolTable) {
         visit(jmmNode.getJmmChild(0));
 
-        jmmNode.put("type", jmmNode.getJmmChild(0).get("type"));
+        jmmNode.putObject("type", jmmNode.getJmmChild(0).get("type"));
 
         return null;
     }
 
     private Void visitBoolLit(JmmNode jmmNode, SymbolTable symbolTable) {
-        jmmNode.put("type", "boolean");
+        jmmNode.putObject("type", new Type("boolean", false));
 
         return null;
     }
 
     private Void visitIntLit(JmmNode jmmNode, SymbolTable symbolTable) {
-        jmmNode.put("type", "int");
+        jmmNode.putObject("type", new Type("int", false));
 
         return null;
     }
