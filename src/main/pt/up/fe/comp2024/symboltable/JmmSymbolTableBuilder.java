@@ -64,7 +64,10 @@ public class JmmSymbolTableBuilder {
 
         List<Symbol> l = new ArrayList<>();
         for (JmmNode child : methodDecl.getChildren(PARAM)) {
-            l.add(new Symbol(new Type(child.getJmmChild(0).get("name"), false), child.get("name")));
+            Type type = new Type(child.getJmmChild(0).get("name"),
+                child.getJmmChild(0).getObject("isArray", Boolean.class));
+            type.putObject("isVarargs", child.getJmmChild(0).getObject("isVarargs", Boolean.class));
+            l.add(new Symbol(type, child.get("name")));
         }
         return l;
     }
