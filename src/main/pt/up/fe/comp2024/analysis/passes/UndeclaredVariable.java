@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.analysis.passes;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
@@ -35,23 +36,33 @@ public class UndeclaredVariable extends AnalysisVisitor {
         // Check if exists a parameter or variable declaration with the same name as the variable reference
         var varRefName = varRefExpr.get("name");
 
+        Symbol checkField = table.getFields().stream()
+                .filter(param -> param.getName().equals(varRefName)).findFirst().orElse(null);
+
         // Var is a field, return
-        if (table.getFields().stream()
-                .anyMatch(param -> param.getName().equals(varRefName))) {
+        if (checkField != null) {
+            varRefExpr.put("type", checkField.getType().getName());
             return null;
         }
+
+        Symbol checkParam = table.getParameters(currentMethod).stream()
+                .filter(param -> param.getName().equals(varRefName)).findFirst().orElse(null);
 
         // Var is a parameter, return
-        if (table.getParameters(currentMethod).stream()
-                .anyMatch(param -> param.getName().equals(varRefName))) {
+        if (checkParam != null) {
+            varRefExpr.put("type", checkParam.getType().getName());
             return null;
         }
 
+        Symbol checkLocal = table.getLocalVariables(currentMethod).stream()
+                .filter(param -> param.getName().equals(varRefName)).findFirst().orElse(null);
+
         // Var is a declared variable, return
-        if (table.getLocalVariables(currentMethod).stream()
-                .anyMatch(varDecl -> varDecl.getName().equals(varRefName))) {
+        if (checkLocal != null) {
+            varRefExpr.put("type", checkLocal.getType().getName());
             return null;
         }
+
 
         // Create error report
         var message = String.format("Variable '%s' does not exist.", varRefName);
