@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle.returnType;
+//import static jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle.returnType;
 
 /**
  * Generates Jasmin code from an OllirResult.
@@ -79,7 +79,6 @@ public class JasminGenerator {
         var imports = ollirResult.getOllirClass().getImports();
         System.out.println(imports);
         code.append(".class ").append(signature).append(" ").append(className).append(NL).append(NL);
-
         // TODO: Hardcoded to Object, needs to be expanded
         var superclass = ollirResult.getOllirClass().getSuperClass();
 
@@ -110,7 +109,6 @@ public class JasminGenerator {
             if (method.isConstructMethod()) {
                 continue;
             }
-            System.out.println(method.getMethodName());
             code.append(generators.apply(method));
         }
 
@@ -155,7 +153,7 @@ public class JasminGenerator {
         var methodParams = method.getParams();
         var returnElem = method.getReturnType().getTypeOfElement();
         var returnType = generateJasminType(returnElem);
-        var locals = method.getVarTable();
+
 
         // TODO: Hardcoded param types and return type, needs to be expanded
         //code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
@@ -174,7 +172,7 @@ public class JasminGenerator {
 
             code.append(instCode);
         }
-
+        System.out.println(code.toString());
         code.append(".end method\n");
 
         // unset method
