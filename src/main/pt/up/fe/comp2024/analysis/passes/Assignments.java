@@ -26,12 +26,15 @@ public class Assignments extends AnalysisVisitor {
             Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "LHS is not a variable");
             addReport(report);
         }
+        if (!indexType.getName().equals("int") || indexType.isArray()) {
+            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Index is not int");
+            addReport(report);
+        }
 
         //if (rhsType.getName().equals(lhsType.getName()) && !rhsType.isArray() && lhsType.isArray() && indexType.getName().equals("int")) {
         //    return null;
         //}
-        Type destination = new Type(lhsType.getName(), false);
-        if (TypeUtils.areTypesAssignable(rhsType, lhsType)) {
+        if (TypeUtils.areTypesAssignable(rhsType, lhsType, true)) {
             return null;
         }
 
@@ -52,7 +55,7 @@ public class Assignments extends AnalysisVisitor {
         //if (rhsType.getName().equals(lhsType.getName()) && rhsType.isArray() == lhsType.isArray()) {
         //    return null;
         //}
-        if (TypeUtils.areTypesAssignable(rhsType, lhsType)) {
+        if (TypeUtils.areTypesAssignable(rhsType, lhsType, false)) {
             return null;
         }
 

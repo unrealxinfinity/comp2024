@@ -102,6 +102,7 @@ expr
     : '(' expr ')' #ParensExpr
     | expr '[' expr ']' #IndexedExpr
     | expr '.' LENGTH #LengthFunctionExpr
+    | NEW name=ID LPAREN RPAREN #NewClassExpr
     | expr '.' name=ID LPAREN (expr ( ',' expr )*)? RPAREN #ClassFunctionCallExpr
     | name=ID LPAREN (expr ( ',' expr )*)? RPAREN #SameClassCallExpr
     | expr (op= MUL | op=DIV)  expr #BinaryExpr //
@@ -111,7 +112,6 @@ expr
     | expr (op=AND) expr #BinaryExpr
     //| expr OR expr #LogicalExpr
     | NEW INT LRECT expr RRECT #NewArrayExpr
-    | NEW name=ID LPAREN RPAREN #NewClassExpr
     | LRECT (expr ( ',' expr)* )? RRECT #ArrayExpr
     | value=INTEGER #IntegerLiteral
     | value=TRUE #BooleanLiteral
