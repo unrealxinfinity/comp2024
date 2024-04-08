@@ -2,6 +2,7 @@ package pt.up.fe.comp2024.analysis.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
@@ -29,8 +30,8 @@ public class OperandsMismatch extends AnalysisVisitor {
 
         visit(left, symbolTable);
         visit(right, symbolTable);
-        String leftType = left.get("type");
-        String rightType = right.get("type");
+        Type leftType = left.getObject("type", Type.class);
+        Type rightType = right.getObject("type", Type.class);
         String desiredType;
 
         if (op.equals("+") || op.equals("-") || op.equals("*") || op.equals("/")) {
@@ -43,11 +44,11 @@ public class OperandsMismatch extends AnalysisVisitor {
             desiredType = "boolean";
         }
 
-        if (!leftType.equals(desiredType)) {
+        if (!leftType.getName().equals(desiredType) || leftType.isArray()) {
             Report leftReport = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Left type");
             addReport(leftReport);
         }
-        if (!rightType.equals(desiredType)) {
+        if (!rightType.getName().equals(desiredType) || rightType.isArray()) {
             Report rightReport = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Right type");
             addReport(rightReport);
         }

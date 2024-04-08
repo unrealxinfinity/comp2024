@@ -60,11 +60,18 @@ public class JmmSymbolTableBuilder {
         return map;
     }
 
+    private static boolean isArrayOrVarargs(JmmNode node) {
+        return node.getObject("isArray", Boolean.class) || node.getObject("isVarargs", Boolean.class);
+    }
+
     private static List<Symbol> paramsAux(JmmNode methodDecl) {
 
         List<Symbol> l = new ArrayList<>();
         for (JmmNode child : methodDecl.getChildren(PARAM)) {
-            l.add(new Symbol(new Type(child.getJmmChild(0).get("name"), false), child.get("name")));
+            Type type = new Type(child.getJmmChild(0).get("name"),
+                isArrayOrVarargs(child.getJmmChild(0)));
+            type.putObject("isVarargs", child.getJmmChild(0).getObject("isVarargs", Boolean.class));
+            l.add(new Symbol(type, child.get("name")));
         }
         return l;
     }

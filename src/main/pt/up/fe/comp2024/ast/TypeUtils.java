@@ -47,6 +47,10 @@ public class TypeUtils {
         return type;
     }
 
+    public static boolean isPrimitive(Type type) {
+        return type.getName().equals(getIntTypeName()) || type.getName().equals(getBoolTypeName());
+    }
+
     private static Type getBinExprType(JmmNode binaryExpr) {
         // TODO: Simple implementation that needs to be expanded
 
@@ -75,8 +79,22 @@ public class TypeUtils {
      * @param destinationType
      * @return true if sourceType can be assigned to destinationType
      */
-    public static boolean areTypesAssignable(Type sourceType, Type destinationType) {
+    public static boolean areTypesAssignable(Type sourceType, Type destinationType, boolean toArray, SymbolTable symbolTable) {
         // TODO: Simple implementation that needs to be expanded
-        return sourceType.getName().equals(destinationType.getName());
+
+        if (!isPrimitive(sourceType) && !isPrimitive(destinationType)
+            && !sourceType.getName().equals(symbolTable.getClassName()) && !sourceType.getName().equals(symbolTable.getClassName())) {
+            return true;
+        }
+        if (sourceType.getName().equals(symbolTable.getClassName()) && destinationType.getName().equals(symbolTable.getSuper())) {
+            return true;
+        }
+        if (sourceType.getOptionalObject("assumedTypes").isPresent()) {
+            return true;
+        }
+        else if (toArray) {
+            return sourceType.getName().equals(destinationType.getName()) && !sourceType.isArray() && destinationType.isArray();
+        }
+        else return sourceType.getName().equals(destinationType.getName()) && sourceType.isArray() == destinationType.isArray();
     }
 }
