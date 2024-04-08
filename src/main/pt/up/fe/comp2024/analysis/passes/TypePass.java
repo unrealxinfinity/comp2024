@@ -17,6 +17,17 @@ public class TypePass extends AnalysisVisitor {
         addVisit("NewArrayExpr", this::visitArrayExpr);
         addVisit("ArrayExpr", this::visitArrayExpr);
         addVisit("IndexedExpr", this::visitArrayExpr);
+        addVisit("NewClassExpr", this::visitNewObject);
+    }
+
+    private Void visitNewObject(JmmNode jmmNode, SymbolTable symbolTable) {
+        Type type = new Type(jmmNode.get("name"), false);
+        if (!jmmNode.get("name").equals(symbolTable.getClassName())) {
+            type.putObject("assumedTypes", true);
+        }
+        jmmNode.putObject("type", type);
+
+        return null;
     }
 
     private Void visitArrayExpr(JmmNode jmmNode, SymbolTable symbolTable) {

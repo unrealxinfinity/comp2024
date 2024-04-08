@@ -111,7 +111,7 @@ expr
     | expr (op=AND) expr #BinaryExpr
     //| expr OR expr #LogicalExpr
     | NEW INT LRECT expr RRECT #NewArrayExpr
-    | NEW ID LPAREN RPAREN #NewClassExpr
+    | NEW name=ID LPAREN RPAREN #NewClassExpr
     | LRECT (expr ( ',' expr)* )? RRECT #ArrayExpr
     | value=INTEGER #IntegerLiteral
     | value=TRUE #BooleanLiteral

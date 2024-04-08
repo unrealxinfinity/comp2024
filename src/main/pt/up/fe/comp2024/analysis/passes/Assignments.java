@@ -8,6 +8,7 @@ import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
+import pt.up.fe.comp2024.ast.TypeUtils;
 
 public class Assignments extends AnalysisVisitor {
 
@@ -26,7 +27,11 @@ public class Assignments extends AnalysisVisitor {
             addReport(report);
         }
 
-        if (rhsType.getName().equals(lhsType.getName()) && !rhsType.isArray() && lhsType.isArray() && indexType.getName().equals("int")) {
+        //if (rhsType.getName().equals(lhsType.getName()) && !rhsType.isArray() && lhsType.isArray() && indexType.getName().equals("int")) {
+        //    return null;
+        //}
+        Type destination = new Type(lhsType.getName(), false);
+        if (TypeUtils.areTypesAssignable(rhsType, lhsType)) {
             return null;
         }
 
@@ -44,7 +49,10 @@ public class Assignments extends AnalysisVisitor {
             addReport(report);
         }
 
-        if (rhsType.getName().equals(lhsType.getName()) && rhsType.isArray() == lhsType.isArray()) {
+        //if (rhsType.getName().equals(lhsType.getName()) && rhsType.isArray() == lhsType.isArray()) {
+        //    return null;
+        //}
+        if (TypeUtils.areTypesAssignable(rhsType, lhsType)) {
             return null;
         }
 

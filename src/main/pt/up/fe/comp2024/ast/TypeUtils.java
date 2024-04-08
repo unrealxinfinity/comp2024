@@ -77,6 +77,9 @@ public class TypeUtils {
      */
     public static boolean areTypesAssignable(Type sourceType, Type destinationType) {
         // TODO: Simple implementation that needs to be expanded
-        return sourceType.getName().equals(destinationType.getName());
+        if (sourceType.getOptionalObject("assumedTypes").isPresent()) {
+            return true;
+        }
+        else return sourceType.getName().equals(destinationType.getName()) && sourceType.isArray() == destinationType.isArray();
     }
 }
