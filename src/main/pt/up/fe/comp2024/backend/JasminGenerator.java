@@ -2,8 +2,12 @@ package pt.up.fe.comp2024.backend;
 
 import org.specs.comp.ollir.*;
 import org.specs.comp.ollir.tree.TreeNode;
+import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.jmm.report.ReportType;
+import pt.up.fe.comp.jmm.report.Stage;
+import pt.up.fe.comp2024.analysis.JmmAnalysisImpl;
 import pt.up.fe.specs.util.classmap.FunctionClassMap;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
@@ -32,11 +36,15 @@ public class JasminGenerator {
 
     Method currentMethod;
 
+    String superClass;
+    String thisClass;
+    private final SymbolTable symbolTable;
+
     private final FunctionClassMap<TreeNode, String> generators;
 
     public JasminGenerator(OllirResult ollirResult) {
         this.ollirResult = ollirResult;
-
+        this.symbolTable = ollirResult.getSymbolTable();
         reports = new ArrayList<>();
         code = null;
         currentMethod = null;
@@ -50,6 +58,7 @@ public class JasminGenerator {
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
+        generators.put(CallInstruction.class,this::generateCall);
     }
 
     public List<Report> getReports() {
@@ -65,7 +74,9 @@ public class JasminGenerator {
 
         return code;
     }
-
+    private String getImportedPackage(String p){
+        return "";
+    }
 
     private String generateClassUnit(ClassUnit classUnit) {
 
@@ -73,23 +84,35 @@ public class JasminGenerator {
 
         // generate class name
         var className = ollirResult.getOllirClass().getClassName();
-        var signature = ollirResult.getOllirClass().getClassAccessModifier().name().toLowerCase();
+        var signatureTemp = ollirResult.getOllirClass().getClassAccessModifier().name().toLowerCase();
+        var signature = signatureTemp.equals("default") ? "" : signatureTemp + " ";
         var packageName = ollirResult.getOllirClass().getPackage();
-        var pkg = (packageName == null) ? "" : packageName;
+        var pkg = (packageName == null) ? "" : packageName+"/";
         var imports = ollirResult.getOllirClass().getImports();
-        System.out.println(imports);
-        code.append(".class ").append(signature).append(" ").append(className).append(NL).append(NL);
+        var fields = ollirResult.getOllirClass().getFields();
+        System.out.println(signature);
+        code.append(".class ").append(signature).append(pkg).append(className).append(NL);
+        this.thisClass = pkg + className;
         // TODO: Hardcoded to Object, needs to be expanded
+        //Appends the class and superclass according to their package
         var superclass = ollirResult.getOllirClass().getSuperClass();
-
         if(superclass != null){
-            code.append(".super "+ pkg + "/"+ superclass).append(NL);
+            code.append(".super "+ pkg + superclass).append(NL);
+            superClass=pkg + superclass;
         }
         else{
             code.append(".super java/lang/Object").append(NL);
         }
-
-
+        //Appends the class fields to the jasmin code
+        for(var field: fields){
+            var accessModifier = field.getFieldAccessModifier().toString().toLowerCase();
+            var isFinal = field.isFinalField()?"final":"";
+            var isStatic = field.isStaticField()?"static":"";
+            var type = generateJasminType(field.getFieldType().getTypeOfElement());
+            var isInitialized = field.isInitialized()? " = " + field.getInitialValue():"";
+            code.append(".field "+ accessModifier + " " + isStatic + " " + isFinal + " " + type + isInitialized).append(NL);
+        }
+        System.out.println(code.toString());
         // generate a single constructor method
         var defaultConstructor = """
                 ;default constructor
@@ -115,27 +138,59 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generateJasminType(ElementType type){
-        switch (type){
-            case INT32:
-                return "I";
-            case BOOLEAN:
-                return  "Z";
-            case ARRAYREF:
-                return "[";
-            case OBJECTREF:
-                return "Ljava/lang/Object";
-            case CLASS:
-                return "L";
-            case THIS:
-                return "L";
-            case STRING:
-                return "Ljava/lang/String";
-            case VOID:
-                return "V";
-            default:
+    private String storeLoadInstWithType(ElementType type,Boolean isStore){
+        if (isStore){
+            return switch (type) {
+                case INT32,BOOLEAN -> "istore";
+                case ARRAYREF,OBJECTREF,CLASS,THIS,STRING-> "astore";
+                default -> "error"; // need to add to the list of reports
+            };
         }
-        return "0" ;
+        else{
+            return switch (type) {
+                case INT32,BOOLEAN -> "iload";
+                case ARRAYREF,OBJECTREF,CLASS,THIS,STRING-> "aload";
+                default -> "error"; // need to add to the list of reports
+            };
+        }
+
+    }
+    private String instWithType(ElementType type,OperationType opType){
+         switch (type) {
+            case INT32:  switch (opType){
+                case ADD: return "iadd";
+                case SUB: return "isub";
+                case MUL: return "imul";
+                case DIV: return "idiv" ;
+            };
+            case BOOLEAN: switch (opType){
+                case EQ:
+                case SUB:
+                case AND:
+                case OR:
+                case XOR: break;
+            };
+            case ARRAYREF:
+            case OBJECTREF:
+            case CLASS:
+            case THIS:
+            case STRING: break;
+            default: return "error"; // need to add to the list of reports
+        };
+         return "error";
+    }
+    private String generateJasminType(ElementType type){
+        return switch (type) {
+            case INT32 -> "I";
+            case BOOLEAN -> "Z";
+            case ARRAYREF -> "[";
+            case OBJECTREF -> "Ljava/lang/Object";
+            case CLASS -> "L";
+            case THIS -> "L";
+            case STRING -> "Ljava/lang/String";
+            case VOID -> "V";
+            default -> "error";
+        };
     }
     private String generateMethod(Method method) {
 
@@ -157,6 +212,7 @@ public class JasminGenerator {
 
         // TODO: Hardcoded param types and return type, needs to be expanded
         //code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
+        //not hardcoded anymore i think?
         code.append("\n.method ").append(modifier).append(methodName).append("(");
         for(var param:methodParams){
             code.append(generateJasminType(param.getType().getTypeOfElement()));
@@ -167,12 +223,12 @@ public class JasminGenerator {
         code.append(TAB).append(".limit locals 99").append(NL);
 
         for (var inst : method.getInstructions()) {
+            System.out.println(inst);
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
             code.append(instCode);
         }
-        System.out.println(code.toString());
         code.append(".end method\n");
 
         // unset method
@@ -180,7 +236,43 @@ public class JasminGenerator {
 
         return code.toString();
     }
-
+    private String generateCall(CallInstruction call){
+        var code = new StringBuilder();
+        //Gets the call instruction
+        //generates the type of invokation instruction
+        code.append(call.getInvocationType().toString().toLowerCase()).append(" ");
+        System.out.println(call.getMethodName().equals(null));
+        var func = (LiteralElement) call.getMethodName();
+        var funcToCall="";
+        var caller = call.getCaller().getType().getTypeOfElement();
+        if(caller.equals(ElementType.THIS)){
+            if(func != null){
+                funcToCall = this.thisClass+ "/" + func.getLiteral();
+            }
+            else{
+                funcToCall = this.thisClass+ "/" + "<init>";
+            }
+        }
+        else{
+            if(func != null){
+                funcToCall  = this.superClass + "/" + func.getLiteral();
+            }
+            else{
+                funcToCall = this.superClass+ "/" + "<init>";
+            }
+        }
+        funcToCall = funcToCall.replace("\"", "");
+        System.out.println(funcToCall);
+        code.append(funcToCall).append("(");
+        //translates the list of args
+        var arguments = "";
+        for(var arg : call.getArguments()){
+            arguments += generateJasminType(arg.getType().getTypeOfElement());
+        }
+        code.append(arguments).append(")").append(generateJasminType(call.getReturnType().getTypeOfElement()));
+        System.out.println(code.toString());
+        return code.toString();
+    }
     private String generateAssign(AssignInstruction assign) {
         var code = new StringBuilder();
 
@@ -189,7 +281,6 @@ public class JasminGenerator {
 
         // store value in the stack in destination
         var lhs = assign.getDest();
-
         if (!(lhs instanceof Operand)) {
             throw new NotImplementedException(lhs.getClass());
         }
@@ -200,7 +291,11 @@ public class JasminGenerator {
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
         // TODO: Hardcoded for int type, needs to be expanded
-        code.append("istore ").append(reg).append(NL);
+        var type = currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement();
+        // not hardcoded anymore
+        var inst = storeLoadInstWithType(type,true);
+        code.append(inst+"_").append(reg).append(NL);
+        System.out.println(reg);
 
         return code.toString();
     }
@@ -216,7 +311,10 @@ public class JasminGenerator {
     private String generateOperand(Operand operand) {
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-        return "iload " + reg + NL;
+        //changed the hardcoded version with integer
+        var type = currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement();
+        var inst = storeLoadInstWithType(type,false);
+        return inst + "_" + reg + NL;
     }
 
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
@@ -225,14 +323,16 @@ public class JasminGenerator {
         // load values on the left and on the right
         code.append(generators.apply(binaryOp.getLeftOperand()));
         code.append(generators.apply(binaryOp.getRightOperand()));
+        var type1 = binaryOp.getLeftOperand().getType().getTypeOfElement();
+        var type2 = binaryOp.getRightOperand().getType().getTypeOfElement();
+
+        if (!type1.equals(type2)){
+            //Add error report here
+        }
 
         // apply operation
-        var op = switch (binaryOp.getOperation().getOpType()) {
-            case ADD -> "iadd";
-            case MUL -> "imul";
-            default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
-        };
-
+        var op = instWithType(type1,binaryOp.getOperation().getOpType());
+        if (op.equals("error")) throw new NotImplementedException(binaryOp.getOperation().getOpType());
         code.append(op).append(NL);
 
         return code.toString();
@@ -242,7 +342,7 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         // TODO: Hardcoded to int return type, needs to be expanded
-
+        //not hardcoded anymore
         code.append(generators.apply(returnInst.getOperand()));
         code.append("ireturn").append(NL);
 

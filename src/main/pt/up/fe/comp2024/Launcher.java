@@ -35,17 +35,17 @@ public class Launcher {
         // Parsing stage
         JmmParserImpl parser = new JmmParserImpl();
         JmmParserResult parserResult = parser.parse(code, config);
-        TestUtils.noErrors(parserResult.getReports());
+        //TestUtils.noErrors(parserResult.getReports());
 
         // Print AST
         System.out.println(parserResult.getRootNode().toTree());
 
-        /*
+
         // Semantic Analysis stage
         JmmAnalysisImpl sema = new JmmAnalysisImpl();
         JmmSemanticsResult semanticsResult = sema.semanticAnalysis(parserResult);
-        TestUtils.noErrors(semanticsResult.getReports());
-
+        //TestUtils.noErrors(semanticsResult.getReports());
+        /*
 
         // Optimization stage
         JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
@@ -58,7 +58,6 @@ public class Launcher {
 
         // Code generation stage
         String ollircode = """
-                import io;
                 Simple extends Object {
                                 
                     .method public add(a.i32, b.i32).i32 {
@@ -99,7 +98,7 @@ public class Launcher {
                 }
                            
                 """;
-        OllirResult ollirResult = new OllirResult(ollircode,config);
+        OllirResult ollirResult = new OllirResult(semanticsResult,ollircode,Collections.emptyList());
         JasminBackendImpl jasminGen = new JasminBackendImpl();
         JasminResult jasminResult = jasminGen.toJasmin(ollirResult);
         TestUtils.noErrors(jasminResult.getReports());
