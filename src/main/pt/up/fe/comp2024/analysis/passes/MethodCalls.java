@@ -49,8 +49,7 @@ public class MethodCalls extends AnalysisVisitor {
     }
 
     private Void checkSameClassTypes(JmmNode jmmNode, SymbolTable symbolTable) {
-        Optional<List<Symbol>> maybeParams = symbolTable.getParametersTry("nonexistent");
-        if (maybeParams.isEmpty()) {
+        if (!symbolTable.getMethods().contains(jmmNode.get("name"))) {
             if (symbolTable.getSuper() == null) {
                 Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Method does not exist");
                 addReport(report);
@@ -58,7 +57,7 @@ public class MethodCalls extends AnalysisVisitor {
 
             return null;
         }
-        List<Symbol> params = maybeParams.get();
+        List<Symbol> params = symbolTable.getParameters(jmmNode.get("name"));
 
         List<JmmNode> paramNodes = jmmNode.getChildren();
         if (isChecking) {
