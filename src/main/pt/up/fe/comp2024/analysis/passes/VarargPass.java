@@ -7,6 +7,7 @@ import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
+import pt.up.fe.comp2024.ast.NodeUtils;
 
 import java.util.List;
 
@@ -23,7 +24,11 @@ public class VarargPass extends AnalysisVisitor {
 
         for (int i = 0; i < params.size() - 1; i++) {
             if (params.get(i).getJmmChild(0).getObject("isVarargs", Boolean.class)) {
-                Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Only last parameter can be varargs");
+                String message = String.format("Only last parameter of %s can be varargs", jmmNode.get("name"));
+                Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                        NodeUtils.getLine(jmmNode),
+                        NodeUtils.getColumn(jmmNode),
+                        message);
                 addReport(report);
             }
         }
@@ -33,7 +38,11 @@ public class VarargPass extends AnalysisVisitor {
 
     private Void visitVarDecl(JmmNode jmmNode, SymbolTable symbolTable) {
         if (jmmNode.getJmmChild(0).getObject("isVarargs", Boolean.class)) {
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Variable cannot be varargs");
+            String message = String.format("Variable %s cannot be varargs", jmmNode.get("name"));
+            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                    NodeUtils.getLine(jmmNode),
+                    NodeUtils.getColumn(jmmNode),
+                    message);
             addReport(report);
         }
 

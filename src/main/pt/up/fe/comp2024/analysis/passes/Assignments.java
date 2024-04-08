@@ -8,6 +8,7 @@ import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
+import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 public class Assignments extends AnalysisVisitor {
@@ -17,18 +18,32 @@ public class Assignments extends AnalysisVisitor {
         addVisit("ArrayAlterIndexStatement", this::visitArrayAssign);
     }
 
+    private void checkLHS(JmmNode jmmNode) {
+        if (jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_EXPR)) {
+            String message = "LHS of assignment is not a variable";
+            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                    NodeUtils.getLine(jmmNode),
+                    NodeUtils.getColumn(jmmNode),
+                    message);
+            addReport(report);
+        }
+    }
+
     private Void visitArrayAssign(JmmNode jmmNode, SymbolTable symbolTable) {
         Type lhsType = jmmNode.getJmmChild(0).getObject("type", Type.class);
         Type rhsType = jmmNode.getJmmChild(2).getObject("type", Type.class);
         Type indexType = jmmNode.getJmmChild(1).getObject("type", Type.class);
 
-        if (jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_EXPR)) {
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "LHS is not a variable");
-            addReport(report);
-        }
+        checkLHS(jmmNode);
+
         if (!indexType.getName().equals("int") || indexType.isArray()) {
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Index is not int");
+            String message = String.format("Index expression is of type %s", indexType.getName());
+            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                    NodeUtils.getLine(jmmNode),
+                    NodeUtils.getColumn(jmmNode),
+                    message);
             addReport(report);
+            return null;
         }
 
         //if (rhsType.getName().equals(lhsType.getName()) && !rhsType.isArray() && lhsType.isArray() && indexType.getName().equals("int")) {
@@ -38,7 +53,11 @@ public class Assignments extends AnalysisVisitor {
             return null;
         }
 
-        Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Invalid assignment");
+        String message = String.format("Invalid assignment from type %s to %s", rhsType.getName(), lhsType.getName());
+        Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                NodeUtils.getLine(jmmNode),
+                NodeUtils.getColumn(jmmNode),
+                message);
         addReport(report);
         return null;
     }
@@ -47,10 +66,7 @@ public class Assignments extends AnalysisVisitor {
         Type lhsType = jmmNode.getJmmChild(0).getObject("type", Type.class);
         Type rhsType = jmmNode.getJmmChild(1).getObject("type", Type.class);
 
-        if (jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_EXPR)) {
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "LHS is not a variable");
-            addReport(report);
-        }
+        checkLHS(jmmNode);
 
         //if (rhsType.getName().equals(lhsType.getName()) && rhsType.isArray() == lhsType.isArray()) {
         //    return null;
@@ -59,7 +75,11 @@ public class Assignments extends AnalysisVisitor {
             return null;
         }
 
-        Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Invalid assignment");
+        String message = String.format("Invalid assignment from type %s to %s", rhsType.getName(), lhsType.getName());
+        Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                NodeUtils.getLine(jmmNode),
+                NodeUtils.getColumn(jmmNode),
+                message);
         addReport(report);
         return null;
     }

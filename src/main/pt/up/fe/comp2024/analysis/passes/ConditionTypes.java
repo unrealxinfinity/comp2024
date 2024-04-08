@@ -6,6 +6,7 @@ import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
+import pt.up.fe.comp2024.ast.NodeUtils;
 
 public class ConditionTypes extends AnalysisVisitor {
 
@@ -19,7 +20,11 @@ public class ConditionTypes extends AnalysisVisitor {
             return null;
         }
 
-        Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Condition is not boolean");
+        String message = "Condition expression is not boolean";
+        Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                NodeUtils.getLine(jmmNode),
+                NodeUtils.getColumn(jmmNode),
+                message);
         addReport(report);
 
         return null;

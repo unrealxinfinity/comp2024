@@ -9,6 +9,7 @@ import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
+import pt.up.fe.comp2024.ast.NodeUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -51,7 +52,11 @@ public class MethodCalls extends AnalysisVisitor {
     private Void checkSameClassTypes(JmmNode jmmNode, SymbolTable symbolTable) {
         if (!symbolTable.getMethods().contains(jmmNode.get("name"))) {
             if (symbolTable.getSuper() == null) {
-                Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Method does not exist");
+                String message = String.format("Method %s does not exist", jmmNode.get("name"));
+                Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                        NodeUtils.getLine(jmmNode),
+                        NodeUtils.getColumn(jmmNode),
+                        message);
                 addReport(report);
             }
 
@@ -72,7 +77,11 @@ public class MethodCalls extends AnalysisVisitor {
             JmmNode paramNode = paramNodes.get(i);
 
             if (!param.getType().getName().equals(paramNode.getObject("type", Type.class).getName()) || !arrayCondition(param, paramNode)) {
-                Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Parameter type mismatch");
+                String message = String.format("Parameter type mismatch in call to %s", jmmNode.get("name"));
+                Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                        NodeUtils.getLine(jmmNode),
+                        NodeUtils.getColumn(jmmNode),
+                        message);
                 addReport(report);
             }
         }
@@ -84,7 +93,11 @@ public class MethodCalls extends AnalysisVisitor {
                 JmmNode paramNode = paramNodes.get(i);
                 if (!lastParam.getType().getName().equals(paramNode.getObject("type", Type.class).getName())
                     || paramNode.getObject("type", Type.class).isArray()) {
-                    Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Varargs misuse");
+                    String message = String.format("Varargs misuse in method %s", jmmNode.get("name"));
+                    Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                            NodeUtils.getLine(jmmNode),
+                            NodeUtils.getColumn(jmmNode),
+                            message);
                     addReport(report);
                 }
             }

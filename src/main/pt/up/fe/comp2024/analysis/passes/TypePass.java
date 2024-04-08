@@ -8,6 +8,7 @@ import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
+import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 import java.util.Optional;
@@ -32,7 +33,11 @@ public class TypePass extends AnalysisVisitor {
     private boolean checkReturnType(JmmNode jmmNode, SymbolTable symbolTable) {
         Optional<Type> returnType = symbolTable.getReturnTypeTry(jmmNode.get("name"));
         if (returnType.isEmpty()) {
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Method does not exist");
+            String message = String.format("Method %s does not exist", jmmNode.get("name"));
+            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                    NodeUtils.getLine(jmmNode),
+                    NodeUtils.getColumn(jmmNode),
+                    message);
             addReport(report);
             return false;
         }
@@ -64,7 +69,11 @@ public class TypePass extends AnalysisVisitor {
         Type objType = jmmNode.getJmmChild(0).getObject("type", Type.class);
 
         if (TypeUtils.isPrimitive(objType)) {
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Calling method on primitive type");
+            String message = String.format("Calling method %s on primitive type %s", jmmNode.get("name"), objType.getName());
+            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                    NodeUtils.getLine(jmmNode),
+                    NodeUtils.getColumn(jmmNode),
+                    message);
             addReport(report);
         }
         else if (objType.getName().equals(symbolTable.getClassName()) && symbolTable.getSuper() == null) {

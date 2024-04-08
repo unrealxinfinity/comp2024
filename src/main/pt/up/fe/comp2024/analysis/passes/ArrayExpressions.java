@@ -7,6 +7,7 @@ import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
+import pt.up.fe.comp2024.ast.NodeUtils;
 
 public class ArrayExpressions extends AnalysisVisitor {
 
@@ -21,11 +22,19 @@ public class ArrayExpressions extends AnalysisVisitor {
         Type indexType = jmmNode.getJmmChild(1).getObject("type", Type.class);
 
         if (!varType.isArray()) {
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Variable is not an array");
+            String message = "Indexed variable is not an array";
+            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                    NodeUtils.getLine(jmmNode),
+                    NodeUtils.getColumn(jmmNode),
+                    message);
             addReport(report);
         }
         if (!indexType.getName().equals("int") || indexType.isArray()) {
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Index is not an int");
+            String message = String.format("Index expression is of type %s", indexType.getName());
+            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                    NodeUtils.getLine(jmmNode),
+                    NodeUtils.getColumn(jmmNode),
+                    message);
             addReport(report);
         }
 
@@ -35,7 +44,11 @@ public class ArrayExpressions extends AnalysisVisitor {
     private Void visitNewArray(JmmNode jmmNode, SymbolTable symbolTable) {
         Type type = jmmNode.getJmmChild(0).getObject("type", Type.class);
         if (!type.getName().equals("int") || type.isArray()) {
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Invalid expression in array initializer");
+            String message = "Invalid expression in array initializer";
+            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                    NodeUtils.getLine(jmmNode),
+                    NodeUtils.getColumn(jmmNode),
+                    message);
             addReport(report);
         }
 
@@ -46,8 +59,13 @@ public class ArrayExpressions extends AnalysisVisitor {
         for (JmmNode child : jmmNode.getChildren()) {
             Type type = child.getObject("type", Type.class);
             if (!type.getName().equals("int") || type.isArray()) {
-                Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Invalid expression in array initializer");
+                String message = "Invalid expression in array initializer";
+                Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                        NodeUtils.getLine(jmmNode),
+                        NodeUtils.getColumn(jmmNode),
+                        message);
                 addReport(report);
+                return null;
             }
         }
 
