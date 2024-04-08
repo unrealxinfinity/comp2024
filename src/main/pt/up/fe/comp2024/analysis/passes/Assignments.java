@@ -34,7 +34,7 @@ public class Assignments extends AnalysisVisitor {
         //if (rhsType.getName().equals(lhsType.getName()) && !rhsType.isArray() && lhsType.isArray() && indexType.getName().equals("int")) {
         //    return null;
         //}
-        if (TypeUtils.areTypesAssignable(rhsType, lhsType, true)) {
+        if (TypeUtils.areTypesAssignable(rhsType, lhsType, true, symbolTable)) {
             return null;
         }
 
@@ -55,7 +55,7 @@ public class Assignments extends AnalysisVisitor {
         //if (rhsType.getName().equals(lhsType.getName()) && rhsType.isArray() == lhsType.isArray()) {
         //    return null;
         //}
-        if (TypeUtils.areTypesAssignable(rhsType, lhsType, false)) {
+        if (TypeUtils.areTypesAssignable(rhsType, lhsType, false, symbolTable)) {
             return null;
         }
 

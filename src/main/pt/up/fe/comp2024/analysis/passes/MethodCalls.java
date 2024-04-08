@@ -11,12 +11,28 @@ import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class MethodCalls extends AnalysisVisitor {
 
+    private boolean isChecking = false;
+
     protected void buildVisitor() {
         addVisit("SameClassCallExpr", this::checkSameClassTypes);
+        addVisit("ClassFunctionCallExpr", this::checkClassTypes);
+    }
+
+    private Void checkClassTypes(JmmNode jmmNode, SymbolTable symbolTable) {
+        Type objType = jmmNode.getJmmChild(0).getObject("type", Type.class);
+
+        if (objType.getName().equals(symbolTable.getClassName())) {
+            isChecking = true;
+            checkSameClassTypes(jmmNode, symbolTable);
+            isChecking = false;
+        }
+
+        return null;
     }
 
     private boolean isArrayOrVarargs(Symbol symbol) {
@@ -33,16 +49,21 @@ public class MethodCalls extends AnalysisVisitor {
     }
 
     private Void checkSameClassTypes(JmmNode jmmNode, SymbolTable symbolTable) {
-        Optional<List<Symbol>> maybeParams = symbolTable.getParametersTry(jmmNode.get("name"));
+        Optional<List<Symbol>> maybeParams = symbolTable.getParametersTry("nonexistent");
         if (maybeParams.isEmpty()) {
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Method does not exist");
-            addReport(report);
+            if (symbolTable.getSuper() == null) {
+                Report report = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Method does not exist");
+                addReport(report);
+            }
 
             return null;
         }
         List<Symbol> params = maybeParams.get();
 
         List<JmmNode> paramNodes = jmmNode.getChildren();
+        if (isChecking) {
+            paramNodes.remove(0);
+        }
         if (paramNodes.isEmpty() && params.isEmpty()) {
             return null;
         }

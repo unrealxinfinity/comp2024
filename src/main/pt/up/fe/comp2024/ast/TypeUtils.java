@@ -79,8 +79,16 @@ public class TypeUtils {
      * @param destinationType
      * @return true if sourceType can be assigned to destinationType
      */
-    public static boolean areTypesAssignable(Type sourceType, Type destinationType, boolean toArray) {
+    public static boolean areTypesAssignable(Type sourceType, Type destinationType, boolean toArray, SymbolTable symbolTable) {
         // TODO: Simple implementation that needs to be expanded
+
+        if (!isPrimitive(sourceType) && !isPrimitive(destinationType)
+            && !sourceType.getName().equals(symbolTable.getClassName()) && !sourceType.getName().equals(symbolTable.getClassName())) {
+            return true;
+        }
+        if (sourceType.getName().equals(symbolTable.getClassName()) && destinationType.getName().equals(symbolTable.getSuper())) {
+            return true;
+        }
         if (sourceType.getOptionalObject("assumedTypes").isPresent()) {
             return true;
         }
