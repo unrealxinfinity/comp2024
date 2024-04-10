@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.optimization;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
@@ -41,11 +42,18 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(PARAM, this::visitParam);
         addVisit(RETURN_STMT, this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
-
+        addVisit(VAR_DECL, this::visitVarDecl);
         setDefaultVisit(this::defaultVisit);
     }
+    private String visitVarDecl(JmmNode node, Void unused) {
+        StringBuilder codeBuilder = new StringBuilder();
+        codeBuilder.append(" public ");
+        String varName = node.get("name");
+        String ollirType = OptUtils.toOllirType(node.getJmmChild(0));
+        codeBuilder.append(varName).append(ollirType).append(END_STMT);
 
-
+        return codeBuilder.toString();
+    }
     private String visitAssignStmt(JmmNode node, Void unused) {
 
         var lhs = exprVisitor.visit(node.getJmmChild(0));
@@ -79,7 +87,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
 
     private String visitReturn(JmmNode node, Void unused) {
-
+        System.out.println("Entered Visit Return");
         String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
         Type retType = table.getReturnType(methodName);
 
@@ -108,15 +116,19 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         var typeCode = OptUtils.toOllirType(node.getJmmChild(0));
         var id = node.get("name");
-
-        String code = id + typeCode;
-
+        String code="";
+        if (node.getJmmChild(0).getObject("isArray", Boolean.class)) {
+             code = id + ".array"+ typeCode;
+        }
+        else{
+            code = id + typeCode;
+        }
         return code;
     }
 
 
-    private String visitMethodDecl(JmmNode node, Void unused) {
 
+    private String visitMethodDecl(JmmNode node, Void unused) {
         StringBuilder code = new StringBuilder(".method ");
 
         boolean isPublic = NodeUtils.getBooleanAttribute(node, "isPublic", "false");
@@ -125,34 +137,37 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             code.append("public ");
         }
 
-        // name
+        // Method name
         var name = node.get("name");
         code.append(name);
 
-        // param
-        var paramCode = visit(node.getJmmChild(1));
-        code.append("(" + paramCode + ")");
+        // Parameters
+        StringBuilder paramCode = new StringBuilder();
+        var paramNodes = node.getChildren("Param");
+        for (int i = 0; i < paramNodes.size(); i++) {
+            var paramNode = paramNodes.get(i);
+            var paramCodeStr = visit(paramNode);
+            paramCode.append(paramCodeStr);
+            if (i < paramNodes.size() - 1) {
+                paramCode.append(",");
+            }
+        }
 
-        // type
+        // Return type
         var retType = OptUtils.toOllirType(node.getJmmChild(0));
-        code.append(retType);
-        code.append(L_BRACKET);
+        code.append("(").append(paramCode).append(")").append(retType).append(L_BRACKET);
 
-
-        // rest of its children stmts
-        var afterParam = 2;
-        for (int i = afterParam; i < node.getNumChildren(); i++) {
+        // Method body
+        for (int i = 2; i < node.getNumChildren(); i++) {
             var child = node.getJmmChild(i);
             var childCode = visit(child);
             code.append(childCode);
         }
 
-        code.append(R_BRACKET);
-        code.append(NL);
+        code.append(R_BRACKET).append(NL);
 
         return code.toString();
     }
-
 
     private String visitClass(JmmNode node, Void unused) {
 
@@ -162,16 +177,20 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(L_BRACKET);
 
         code.append(NL);
-        var needNl = true;
+
 
         for (var child : node.getChildren()) {
             var result = visit(child);
-
+            var needNl = true;
             if (METHOD_DECL.check(child) && needNl) {
                 code.append(NL);
                 needNl = false;
             }
+            if (VAR_DECL.check(child) && needNl){
+                code.append(".field ");
 
+
+            }
             code.append(result);
         }
 
