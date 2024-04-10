@@ -12,9 +12,7 @@ import pt.up.fe.specs.util.classmap.FunctionClassMap;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 //import static jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle.returnType;
@@ -53,11 +51,14 @@ public class JasminGenerator {
     private String getPackageFromImport(String name){
         var imports = symbolTable.getImports();
         for (var imp: imports){
-            var path= imp.split("\\.");
-            path = Arrays.copyOf(path,path.length-1);
-            var evaluatedClass = path[path.length-1];
-            if(name.equals(evaluatedClass)){
-                return String.join("/",path) + "/";
+            var path = imp.split("\\.");
+            if(path.length>1){
+                path = Arrays.copyOf(path,path.length-1);
+                var evaluatedClass = path[path.length-1];
+                evaluatedClass = evaluatedClass.replaceAll("\\[\\]", "");
+                if(name.equals(evaluatedClass)){
+                    return String.join("/",path).replaceAll("\\[\\]", "") + "/";
+                }
             }
         }
         return "" ;
@@ -96,11 +97,12 @@ public class JasminGenerator {
             var temp = ((ArrayType)type).getElementType();
             return "[" + generateJasminType(temp);
         } else if (t.equals(ElementType.OBJECTREF)) {
-            return "Ljava/lang/Object";
+            var temp = getPackageFromImport(((ClassType)type).getName()) + ((ClassType)type).getName();
+            return temp;
         } else if (t.equals(ElementType.CLASS)) {
             return "L";
         } else if (t.equals(ElementType.THIS)) {
-            return "L";
+            return symbolTable.getClassName();
         } else if (t.equals(ElementType.STRING)) {
             return "Ljava/lang/String;";
         } else if (t.equals(ElementType.VOID)) {
@@ -162,10 +164,6 @@ public class JasminGenerator {
 
         return code;
     }
-    private String getImportedPackage(String p){
-        return "";
-    }
-
     private String generateClassUnit(ClassUnit classUnit) {
 
         var code = new StringBuilder();
@@ -176,7 +174,6 @@ public class JasminGenerator {
         var signature = signatureTemp.equals("default") ? "" : signatureTemp + " ";
         var pkg = "";
         var fields = ollirResult.getOllirClass().getFields();
-        System.out.println(signature);
         code.append(".class ").append(signature).append(pkg).append(className).append(NL);
         // TODO: Hardcoded to Object, needs to be expanded
         //Appends the class and superclass according to their package
@@ -197,7 +194,6 @@ public class JasminGenerator {
             var isInitialized = field.isInitialized()? " = " + field.getInitialValue():"";
             code.append(".field "+ accessModifier + " " + isStatic + " " + isFinal + " " + type + isInitialized).append(NL);
         }
-        System.out.println(code.toString());
         // generate a single constructor method
         var defaultConstructor = """
                 ;default constructor
@@ -257,7 +253,6 @@ public class JasminGenerator {
         code.append(TAB).append(".limit locals 99").append(NL);
 
         for (var inst : method.getInstructions()) {
-            System.out.println(inst);
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
@@ -280,8 +275,25 @@ public class JasminGenerator {
         var funcToCall="";
         var caller = call.getCaller().getType();
         if(call.getInvocationType().equals(CallType.NEW)){
-            if(caller.getTypeOfElement().equals(ElementType.THIS)){
-                funcToCall += symbolTable.getClassName()+"/"+"<init>";
+            funcToCall += generateJasminType(call.getReturnType());
+            funcToCall = funcToCall.replace("\"", "");
+            code.append(funcToCall).append(NL);
+            code.append("dup").append(NL);
+            var descriptors = currentMethod.getVarTable().values();
+            var not_used_reg=0;
+            for (var entry:descriptors){
+                if(entry.getVirtualReg() == not_used_reg){
+                    not_used_reg++;
+                }
+            }
+            for(var entry: currentMethod.getVarTable().entrySet()){
+                var descriptor = entry.getValue();
+                Boolean equal = descriptor.getVarType().getTypeOfElement().equals(call.getReturnType().getTypeOfElement()) && ((ClassType) descriptor.getVarType()).getName().equals(((ClassType)call.getReturnType()).getName());
+                if(equal){
+                    code.append(storeLoadInstWithType(call.getReturnType().getTypeOfElement(),true)).append("_"+not_used_reg).append(NL);
+                    code.append(storeLoadInstWithType(call.getReturnType().getTypeOfElement(),false)).append("_"+not_used_reg).append(NL);
+                    break;
+                }
             }
         }
         else{
@@ -292,17 +304,16 @@ public class JasminGenerator {
             else{
                 funcToCall += getPackageFromImport(symbolTable.getSuper()) + symbolTable.getSuper() + "/"+func;
             }
+            funcToCall = funcToCall.replace("\"", "");
+            code.append(funcToCall).append("(");
+            //translates the list of args
+            var arguments = "";
+            for(var arg : call.getArguments()){
+                arguments += generateJasminType(arg.getType());
+            }
+            code.append(arguments).append(")").append(generateJasminType(call.getReturnType())).append(NL);
         }
-        funcToCall = funcToCall.replace("\"", "");
-        System.out.println(funcToCall);
-        code.append(funcToCall).append("(");
-        //translates the list of args
-        var arguments = "";
-        for(var arg : call.getArguments()){
-            arguments += generateJasminType(arg.getType());
-        }
-        code.append(arguments).append(")").append(generateJasminType(call.getReturnType())).append(NL);
-        System.out.println(code.toString());
+
         return code.toString();
     }
     private String generateAssign(AssignInstruction assign) {
@@ -327,7 +338,6 @@ public class JasminGenerator {
         // not hardcoded anymore
         var inst = storeLoadInstWithType(type,true);
         code.append(inst+"_").append(reg).append(NL);
-        System.out.println(reg);
 
         return code.toString();
     }
@@ -375,6 +385,10 @@ public class JasminGenerator {
 
         // TODO: Hardcoded to int return type, needs to be expanded
         //not hardcoded anymore
+        if(returnInst.getReturnType().getTypeOfElement().equals(ElementType.VOID)){
+            code.append("return").append(NL);
+            return code.toString();
+        }
         code.append(generators.apply(returnInst.getOperand()));
         code.append("ireturn").append(NL);
 
