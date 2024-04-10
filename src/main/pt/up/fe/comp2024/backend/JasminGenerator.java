@@ -273,7 +273,7 @@ public class JasminGenerator {
 
         var func="";
         var funcToCall="";
-        var caller = call.getCaller().getType();
+        var caller = ((ClassType)call.getCaller().getType()).getName();
         if(call.getInvocationType().equals(CallType.NEW)){
             funcToCall += generateJasminType(call.getReturnType());
             funcToCall = funcToCall.replace("\"", "");
@@ -298,12 +298,10 @@ public class JasminGenerator {
         }
         else{
             func = ((LiteralElement) call.getMethodName()).getLiteral();
-            if(caller.getTypeOfElement().equals(ElementType.THIS)){
-                funcToCall +=  symbolTable.getClassName() + "/" + func;
-            }
-            else{
-                funcToCall += getPackageFromImport(symbolTable.getSuper()) + symbolTable.getSuper() + "/"+func;
-            }
+            func = func.replaceAll("\\\"\\\"", ""); // Assigning the result back to func
+            func = func.equals("") ? "<init>" : func;
+
+            funcToCall+= getPackageFromImport(caller) + caller + "/" + func;
             funcToCall = funcToCall.replace("\"", "");
             code.append(funcToCall).append("(");
             //translates the list of args
