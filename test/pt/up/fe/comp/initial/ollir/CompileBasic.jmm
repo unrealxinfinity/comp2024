@@ -1,14 +1,23 @@
-class CompileBasic {
+import io;
+import Quicksort;
 
+class CompileBasic extends Quicksort {
 
-    public int methodOne(int a) {
-        int intLocal;
+    int intField;
+    boolean boolField;
+
+    public int method1() {
+        int intLocal1;
+        boolean boolLocal1;
 
         return 0;
     }
 
-    public int methodTwo(int intParam) {
-        return intParam;
+    public boolean method2(int intParam1, boolean boolParam1) {
+        return boolParam1;
     }
 
+
+    public static void main(String[] args) {
+    }
 }
