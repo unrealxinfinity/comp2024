@@ -258,7 +258,6 @@ public class JasminGenerator {
         code.append(TAB).append(".limit locals 99").append(NL);
 
         for (var inst : method.getInstructions()) {
-            System.out.println(inst);
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
@@ -276,7 +275,7 @@ public class JasminGenerator {
         //Gets the call instruction
         //generates the type of invokation instruction
 
-        if(!call.getInvocationType().equals(CallType.NEW)){
+        if(!call.getInvocationType().equals(CallType.NEW) && !call.getInvocationType().equals(CallType.invokestatic)){
             var get_caller_reference = generators.apply(call.getCaller());
             code.append(get_caller_reference).append(NL);
         }
@@ -284,7 +283,16 @@ public class JasminGenerator {
 
         var func="";
         var funcToCall="";
-        var caller = ((ClassType)call.getCaller().getType()).getName();
+        var path="";
+        var caller = ((Operand)call.getCaller()); // need to change here since i want to add the imported functions
+        var mapEntry = currentMethod.getVarTable().get(caller.getName());
+        if(mapEntry!=null){
+            path = getPackageFromImport(((ClassType)mapEntry.getVarType()).getName()) + ((ClassType)mapEntry.getVarType()).getName();
+        }
+        else{
+            path = getPackageFromImport(caller.getName())+caller.getName();
+        }
+        var temp = ((ClassType)call.getCaller().getType()).toString();
         if(call.getInvocationType().equals(CallType.NEW)){
             funcToCall += generateJasminType(call.getReturnType());
             funcToCall = funcToCall.replace("\"", "");
@@ -295,7 +303,7 @@ public class JasminGenerator {
             func = ((LiteralElement) call.getMethodName()).getLiteral();
             func = func.replaceAll("\\\"\\\"", ""); // Assigning the result back to func
             func = func.equals("") ? "<init>" : func;
-            funcToCall+= getPackageFromImport(caller) + caller + "/" + func;
+            funcToCall+= path + "/" + func; //HERE !!!!!!
             funcToCall = funcToCall.replace("\"", "");
             code.append(funcToCall).append("(");
             //translates the list of args
