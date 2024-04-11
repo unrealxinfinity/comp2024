@@ -169,8 +169,12 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             if (PARAM.check(child)){continue;}
             //if (VAR_DECL.check(child)){continue;}
             System.out.println(child.getKind());
+            if (child.getKind()=="ReturnStatemnt"){
+                hasreturn=true;
+            }
             if( i== node.getNumChildren()-1){
                 JmmNode childofchild= child.getJmmChild(0);
+
                 childCode= visitReturn(childofchild,unused);
             }
             else {
