@@ -49,7 +49,7 @@ public class JasminGenerator {
     }
 
     private String getPackageFromImport(String name){
-        var imports = symbolTable.getImports();
+        var imports = ollirResult.getOllirClass().getImports();
         for (var imp: imports){
             var path = imp.split("\\.");
             if(path.length>1){
@@ -102,7 +102,7 @@ public class JasminGenerator {
         } else if (t.equals(ElementType.CLASS)) {
             return "L";
         } else if (t.equals(ElementType.THIS)) {
-            return symbolTable.getClassName();
+            return this.thisClass;
         } else if (t.equals(ElementType.STRING)) {
             return "Ljava/lang/String;";
         } else if (t.equals(ElementType.VOID)) {
@@ -132,8 +132,8 @@ public class JasminGenerator {
     public JasminGenerator(OllirResult ollirResult) {
         this.ollirResult = ollirResult;
         this.symbolTable = ollirResult.getSymbolTable();
-        this.thisClass = symbolTable.getClassName();
-        this.superClass = symbolTable.getSuper();
+        this.thisClass = ollirResult.getOllirClass().getClassName();
+        this.superClass = ollirResult.getOllirClass().getSuperClass();
 
         reports = new ArrayList<>();
         code = null;
@@ -149,6 +149,7 @@ public class JasminGenerator {
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
         generators.put(CallInstruction.class,this::generateCall);
+        generators.put(FieldInstruction.class,this::generateFieldInst);
     }
 
     public List<Report> getReports() {
@@ -169,7 +170,7 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         // generate class name
-        var className = symbolTable.getClassName();
+        var className = this.thisClass;
         var signatureTemp = ollirResult.getOllirClass().getClassAccessModifier().name().toLowerCase();
         var signature = signatureTemp.equals("default") ? "" : signatureTemp + " ";
         var pkg = "";
@@ -177,22 +178,30 @@ public class JasminGenerator {
         code.append(".class ").append(signature).append(pkg).append(className).append(NL);
         // TODO: Hardcoded to Object, needs to be expanded
         //Appends the class and superclass according to their package
-        var superclass = symbolTable.getSuper();
+        var superclass = this.superClass;
         if(superclass != null){
-            pkg = getPackageFromImport(superclass);
-            code.append(".super "+ pkg + superclass).append(NL);
+            if(superClass.equals("Object")){
+                code.append(".super java/lang/Object").append(NL);
+            }
+            else{
+                pkg = getPackageFromImport(superclass);
+                code.append(".super "+ pkg + superclass).append(NL);
+            }
         }
         else{
             code.append(".super java/lang/Object").append(NL);
         }
+
         //Appends the class fields to the jasmin code
         for(var field: fields){
-            var accessModifier = field.getFieldAccessModifier().toString().toLowerCase();
-            var isFinal = field.isFinalField()?"final":"";
-            var isStatic = field.isStaticField()?"static":"";
+            var accessModifier = field.getFieldAccessModifier().toString().toLowerCase()+" ";
+            if(field.getFieldAccessModifier().toString().toLowerCase().equals("default")) accessModifier="";
+            var fieldName = field.getFieldName();
+            var isFinal = field.isFinalField()?"final ":"";
+            var isStatic = field.isStaticField()?"static ":"";
             var type = generateJasminType(field.getFieldType());
             var isInitialized = field.isInitialized()? " = " + field.getInitialValue():"";
-            code.append(".field "+ accessModifier + " " + isStatic + " " + isFinal + " " + type + isInitialized).append(NL);
+            code.append(".field "+ accessModifier + isStatic +  isFinal+ fieldName + " " + type + isInitialized).append(NL);
         }
         // generate a single constructor method
         var defaultConstructor = """
@@ -233,6 +242,8 @@ public class JasminGenerator {
         var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
                 method.getMethodAccessModifier().name().toLowerCase() + " " :
                 "";
+        var st = method.isStaticMethod()? "static " : "";
+        var f = method.isFinalMethod()? "final ":"";
 
         var methodName = method.getMethodName();
         var methodParams = method.getParams();
@@ -243,7 +254,7 @@ public class JasminGenerator {
         // TODO: Hardcoded param types and return type, needs to be expanded
         //code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
         //not hardcoded anymore i think?
-        code.append("\n.method ").append(modifier).append(methodName).append("(");
+        code.append("\n.method ").append(modifier).append(st).append(f).append(methodName).append("(");
         for(var param:methodParams){
             code.append(generateJasminType(param.getType()));
         }
@@ -253,6 +264,7 @@ public class JasminGenerator {
         code.append(TAB).append(".limit locals 99").append(NL);
 
         for (var inst : method.getInstructions()) {
+            System.out.println(inst);
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
@@ -269,6 +281,11 @@ public class JasminGenerator {
         var code = new StringBuilder();
         //Gets the call instruction
         //generates the type of invokation instruction
+
+        if(!call.getInvocationType().equals(CallType.NEW)){
+            var get_caller_reference = generators.apply(call.getCaller());
+            code.append(get_caller_reference).append(NL);
+        }
         code.append(call.getInvocationType().toString().toLowerCase()).append(" ");
 
         var func="";
@@ -279,28 +296,11 @@ public class JasminGenerator {
             funcToCall = funcToCall.replace("\"", "");
             code.append(funcToCall).append(NL);
             code.append("dup").append(NL);
-            var descriptors = currentMethod.getVarTable().values();
-            var not_used_reg=0;
-            for (var entry:descriptors){
-                if(entry.getVirtualReg() == not_used_reg){
-                    not_used_reg++;
-                }
-            }
-            for(var entry: currentMethod.getVarTable().entrySet()){
-                var descriptor = entry.getValue();
-                Boolean equal = descriptor.getVarType().getTypeOfElement().equals(call.getReturnType().getTypeOfElement()) && ((ClassType) descriptor.getVarType()).getName().equals(((ClassType)call.getReturnType()).getName());
-                if(equal){
-                    code.append(storeLoadInstWithType(call.getReturnType().getTypeOfElement(),true)).append("_"+not_used_reg).append(NL);
-                    code.append(storeLoadInstWithType(call.getReturnType().getTypeOfElement(),false)).append("_"+not_used_reg).append(NL);
-                    break;
-                }
-            }
         }
         else{
             func = ((LiteralElement) call.getMethodName()).getLiteral();
             func = func.replaceAll("\\\"\\\"", ""); // Assigning the result back to func
             func = func.equals("") ? "<init>" : func;
-
             funcToCall+= getPackageFromImport(caller) + caller + "/" + func;
             funcToCall = funcToCall.replace("\"", "");
             code.append(funcToCall).append("(");
@@ -310,8 +310,29 @@ public class JasminGenerator {
                 arguments += generateJasminType(arg.getType());
             }
             code.append(arguments).append(")").append(generateJasminType(call.getReturnType())).append(NL);
+            //if its a init constructor, pops the reference to this since its not needed anywhere and returns void.
         }
 
+        return code.toString();
+    }
+    private String generateFieldInst(FieldInstruction fieldInst){
+        var code = new StringBuilder();
+        var instType = fieldInst.getInstType();
+        var getFieldVal = instType.equals(InstructionType.PUTFIELD) ? generators.apply(fieldInst.getOperands().get(2)) :  null;
+        var getObjRef = generators.apply(fieldInst.getObject());
+
+        code.append(getObjRef);
+        if(getFieldVal!=null){
+            code.append(getFieldVal);
+        }
+        var callObjName = ((ClassType)fieldInst.getObject().getType()).getName();
+        var fieldName = fieldInst.getField().getName();
+        var pkg = getPackageFromImport(callObjName);
+
+        var callObjRef = pkg + callObjName+"/"+fieldName;
+        var fieldType = generateJasminType(fieldInst.getField().getType());
+
+        code.append(instType.toString().toLowerCase()).append(" "+ callObjRef).append(" "+fieldType).append(NL);
         return code.toString();
     }
     private String generateAssign(AssignInstruction assign) {
