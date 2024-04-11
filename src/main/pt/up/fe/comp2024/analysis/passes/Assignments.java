@@ -53,13 +53,24 @@ public class Assignments extends AnalysisVisitor {
             return null;
         }
 
-        String message = String.format("Invalid assignment from type %s to %s", rhsType.getName(), lhsType.getName());
+        String message = String.format("Invalid assignment from type %s to %s", getFullName(rhsType), getFullName(lhsType));
         Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
                 NodeUtils.getLine(jmmNode),
                 NodeUtils.getColumn(jmmNode),
                 message);
         addReport(report);
         return null;
+    }
+
+    private String getFullName(Type type) {
+        String name;
+        if (type.isArray()) {
+            name = type.getName() + "[]";
+        }
+        else {
+            name = type.getName();
+        }
+        return name;
     }
 
     private Void visitAssign(JmmNode jmmNode, SymbolTable symbolTable) {
@@ -75,7 +86,8 @@ public class Assignments extends AnalysisVisitor {
             return null;
         }
 
-        String message = String.format("Invalid assignment from type %s to %s", rhsType.getName(), lhsType.getName());
+
+        String message = String.format("Invalid assignment from type %s to %s", getFullName(rhsType), getFullName(lhsType));
         Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
                 NodeUtils.getLine(jmmNode),
                 NodeUtils.getColumn(jmmNode),

@@ -23,7 +23,7 @@ public class TypePass extends AnalysisVisitor {
         addVisit("LogicalExpr", this::visitBoolLit);
         addVisit("NewArrayExpr", this::visitArrayExpr);
         addVisit("ArrayExpr", this::visitArrayExpr);
-        addVisit("IndexedExpr", this::visitArrayExpr);
+        addVisit("IndexedExpr", this::visitIndexedExpr);
         addVisit("NewClassExpr", this::visitNewObject);
         addVisit("This", this::visitThis);
         addVisit("ClassFunctionCallExpr", this::visitMethodCall);
@@ -93,7 +93,7 @@ public class TypePass extends AnalysisVisitor {
     private Void visitNewObject(JmmNode jmmNode, SymbolTable symbolTable) {
         Type type = new Type(jmmNode.get("name"), false);
         if (!jmmNode.get("name").equals(symbolTable.getClassName())) {
-            type.putObject("assumedTypes", true);
+            type.putObject("assumedType", true);
             if (!symbolTable.getImports().contains(jmmNode.get("name"))) {
                 String message = String.format("Could not find class %s", jmmNode.get("name"));
                 Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
@@ -110,6 +110,12 @@ public class TypePass extends AnalysisVisitor {
 
     private Void visitArrayExpr(JmmNode jmmNode, SymbolTable symbolTable) {
         Type type = new Type("int", true);
+        jmmNode.putObject("type", type);
+        return null;
+    }
+
+    private Void visitIndexedExpr(JmmNode jmmNode, SymbolTable symbolTable) {
+        Type type = new Type("int", false);
         jmmNode.putObject("type", type);
         return null;
     }

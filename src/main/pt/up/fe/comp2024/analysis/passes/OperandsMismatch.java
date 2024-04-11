@@ -64,7 +64,14 @@ public class OperandsMismatch extends AnalysisVisitor {
         }
 
         if (!leftType.getName().equals(desiredType) || leftType.isArray()) {
-            String message = String.format("Expected type %s in left operand, got %s", desiredType, leftType.getName());
+            String leftName;
+            if (leftType.isArray()) {
+                leftName = leftType.getName() + "[]";
+            }
+            else {
+                leftName = leftType.getName();
+            }
+            String message = String.format("Expected type %s in left operand, got %s", desiredType, leftName);
             Report leftReport = new Report(ReportType.ERROR, Stage.SEMANTIC,
                     NodeUtils.getLine(jmmNode),
                     NodeUtils.getColumn(jmmNode),
