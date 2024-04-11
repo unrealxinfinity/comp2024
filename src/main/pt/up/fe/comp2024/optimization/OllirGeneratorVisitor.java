@@ -48,6 +48,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String visitVarDecl(JmmNode node, Void unused) {
         //System.out.println("Entered Visit VarDecl");
         StringBuilder codeBuilder = new StringBuilder();
+        //if (METHOD_DECL.check(node.getParent()) ){return "";}
         if (CLASS_DECL.check(node.getParent())) {
             codeBuilder.append(" public ");
         }
@@ -101,16 +102,19 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         if (node.getNumChildren() > 0) {
             expr = exprVisitor.visit(node.getJmmChild(0));
         }
+        if (retType.getName()=="void"){
+            code.append("ret.V;");
+        }
+        else {
+            code.append(expr.getComputation());
+            code.append("ret");
+            code.append(OptUtils.toOllirType(retType));
+            code.append(SPACE);
 
-        code.append(expr.getComputation());
-        code.append("ret");
-        code.append(OptUtils.toOllirType(retType));
-        code.append(SPACE);
+            code.append(expr.getCode());
 
-        code.append(expr.getCode());
-
-        code.append(END_STMT);
-
+            code.append(END_STMT);
+        }
         return code.toString();
     }
 
@@ -135,11 +139,11 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         StringBuilder code = new StringBuilder(".method ");
 
         boolean isPublic = NodeUtils.getBooleanAttribute(node, "isPublic", "false");
-
+        boolean hasreturn = false;
         if (isPublic) {
             code.append("public ");
         }
-
+        var childCode="";
         // Method name
         var name = node.get("name");
         code.append(name);
@@ -159,16 +163,23 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         // Return type
         var retType = OptUtils.toOllirType(node.getJmmChild(0));
         code.append("(").append(paramCode).append(")").append(retType).append(L_BRACKET);
-
+        int i=0;
         // Method body
-        for (int i = 2; i < node.getNumChildren(); i++) {
-            System.out.println("Enter Here");
-            var child = node.getJmmChild(i);
+        for (var child: node.getChildren()) {
+            if (PARAM.check(child)){continue;}
+            //if (VAR_DECL.check(child)){continue;}
             System.out.println(child.getKind());
-            var childCode = visit(child);
+            if( i== node.getNumChildren()-1){
+                JmmNode childofchild= child.getJmmChild(0);
+                childCode= visitReturn(childofchild,unused);
+            }
+            else {
+                childCode = visit(child);
+            }
             code.append(childCode);
+            i++;
         }
-
+        if(!hasreturn){code.append("ret.V;");}
         code.append(R_BRACKET).append(NL);
 
         return code.toString();
