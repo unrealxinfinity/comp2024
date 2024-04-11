@@ -46,8 +46,11 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         setDefaultVisit(this::defaultVisit);
     }
     private String visitVarDecl(JmmNode node, Void unused) {
+        //System.out.println("Entered Visit VarDecl");
         StringBuilder codeBuilder = new StringBuilder();
-        codeBuilder.append(" public ");
+        if (CLASS_DECL.check(node.getParent())) {
+            codeBuilder.append(" public ");
+        }
         String varName = node.get("name");
         String ollirType = OptUtils.toOllirType(node.getJmmChild(0));
         codeBuilder.append(varName).append(ollirType).append(END_STMT);
@@ -159,7 +162,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         // Method body
         for (int i = 2; i < node.getNumChildren(); i++) {
+            System.out.println("Enter Here");
             var child = node.getJmmChild(i);
+            System.out.println(child.getKind());
             var childCode = visit(child);
             code.append(childCode);
         }
