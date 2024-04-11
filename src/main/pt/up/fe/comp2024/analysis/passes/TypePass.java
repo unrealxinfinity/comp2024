@@ -27,6 +27,20 @@ public class TypePass extends AnalysisVisitor {
         addVisit("NewClassExpr", this::visitNewObject);
         addVisit("This", this::visitThis);
         addVisit("ClassFunctionCallExpr", this::visitMethodCall);
+        addVisit("ClassType", this::checkImportedClass);
+    }
+
+    private Void checkImportedClass(JmmNode jmmNode, SymbolTable symbolTable) {
+        if (!jmmNode.get("name").equals(symbolTable.getClassName()) && !symbolTable.getImports().contains(jmmNode.get("name"))) {
+            String message = String.format("Could not find class %s", jmmNode.get("name"));
+            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                    NodeUtils.getLine(jmmNode),
+                    NodeUtils.getColumn(jmmNode),
+                    message);
+            addReport(report);
+        }
+
+        return null;
     }
 
     private boolean checkReturnType(JmmNode jmmNode, SymbolTable symbolTable) {
@@ -80,6 +94,14 @@ public class TypePass extends AnalysisVisitor {
         Type type = new Type(jmmNode.get("name"), false);
         if (!jmmNode.get("name").equals(symbolTable.getClassName())) {
             type.putObject("assumedTypes", true);
+            if (!symbolTable.getImports().contains(jmmNode.get("name"))) {
+                String message = String.format("Could not find class %s", jmmNode.get("name"));
+                Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
+                        NodeUtils.getLine(jmmNode),
+                        NodeUtils.getColumn(jmmNode),
+                        message);
+                addReport(report);
+            }
         }
         jmmNode.putObject("type", type);
 
