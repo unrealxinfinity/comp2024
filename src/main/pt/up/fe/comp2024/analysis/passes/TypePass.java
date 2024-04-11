@@ -25,9 +25,8 @@ public class TypePass extends AnalysisVisitor {
         addVisit("ArrayExpr", this::visitArrayExpr);
         addVisit("IndexedExpr", this::visitArrayExpr);
         addVisit("NewClassExpr", this::visitNewObject);
-        addVisit("ClassFunctionCallExpr", this::visitMethodCall);
         addVisit("This", this::visitThis);
-        addVisit("SameClassCallExpr", this::visitThisCall);
+        addVisit("ClassFunctionCallExpr", this::visitMethodCall);
     }
 
     private boolean checkReturnType(JmmNode jmmNode, SymbolTable symbolTable) {
@@ -46,26 +45,13 @@ public class TypePass extends AnalysisVisitor {
             return true;
         }
     }
-
-    private Void visitThisCall(JmmNode jmmNode, SymbolTable symbolTable) {
-        if (symbolTable.getSuper() != null && !symbolTable.getMethods().contains(jmmNode.get("name"))) {
-            Type assumed = new Type("assumed", false);
-            assumed.putObject("assumedTypes", true);
-            jmmNode.putObject("type", assumed);
-            return null;
-        }
-
-        checkReturnType(jmmNode, symbolTable);
-
-        return null;
-    }
-
     private Void visitThis(JmmNode jmmNode, SymbolTable symbolTable) {
         jmmNode.putObject("type", new Type(symbolTable.getClassName(), false));
         return null;
     }
 
     private Void visitMethodCall(JmmNode jmmNode, SymbolTable symbolTable) {
+        visit(jmmNode.getJmmChild(0), symbolTable);
         Type objType = jmmNode.getJmmChild(0).getObject("type", Type.class);
 
         if (TypeUtils.isPrimitive(objType)) {
