@@ -45,7 +45,7 @@ public class MethodCalls extends AnalysisVisitor {
             return true;
         }
         else {
-            return symbol.getType().isArray() == paramNode.getJmmChild(0).getObject("isArray", Boolean.class);
+            return symbol.getType().isArray() == paramNode.getObject("type", Type.class).isArray();
         }
     }
 

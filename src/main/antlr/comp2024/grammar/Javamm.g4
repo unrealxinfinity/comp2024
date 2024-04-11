@@ -96,7 +96,7 @@ stmt
     | expr SEMI #SimpleStatement
     | expr '=' expr SEMI #AssignmentStatement
     | expr LRECT expr RRECT '=' expr SEMI #ArrayAlterIndexStatement
-    | RETURN expr SEMI #ReturnStatemnt
+    | RETURN expr SEMI #ReturnStatement
     ;
 expr
     : '(' expr ')' #ParensExpr
