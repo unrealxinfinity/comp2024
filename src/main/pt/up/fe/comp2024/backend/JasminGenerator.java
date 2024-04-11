@@ -189,6 +189,8 @@ public class JasminGenerator {
             }
         }
         else{
+            superclass="Object";
+            pkg="java/lang/";
             code.append(".super java/lang/Object").append(NL);
         }
 
@@ -204,15 +206,7 @@ public class JasminGenerator {
             code.append(".field "+ accessModifier + isStatic +  isFinal+ fieldName + " " + type + isInitialized).append(NL);
         }
         // generate a single constructor method
-        var defaultConstructor = """
-                ;default constructor
-                .method public <init>()V
-                    aload_0
-                    invokespecial java/lang/Object/<init>()V
-                    return
-                .end method
-                """;
-        code.append(defaultConstructor);
+        code.append(";default constructor").append(NL).append(".method public <init>()V").append(NL).append("   aload_0").append(NL).append("   invokespecial ").append(pkg).append(superclass).append("/").append("<init>()V").append(NL).append("   return\n"+".end method\n" );
         // generate code for all other methods
         for (var method : ollirResult.getOllirClass().getMethods()) {
 
