@@ -45,14 +45,25 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(RETURN_STMT, this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
         addVisit(VAR_DECL, this::visitVarDecl);
+        //addVisit(IMPORT_DECL, this::visitImportDecl);
         setDefaultVisit(this::defaultVisit);
     }
+    /*
+    private String visitImportDecl(JmmNode node, Void unused){
+         StringBuilder codeBuilder = new StringBuilder();
+
+    }
+
+     */
     private String visitVarDecl(JmmNode node, Void unused) {
         //System.out.println("Entered Visit VarDecl");
         StringBuilder codeBuilder = new StringBuilder();
         //if (METHOD_DECL.check(node.getParent()) ){return "";}
         if (CLASS_DECL.check(node.getParent())) {
             codeBuilder.append(" public ");
+        }
+        if (METHOD_DECL.check(node.getParent())){
+            return codeBuilder.toString();
         }
         String varName = node.get("name");
         String ollirType = OptUtils.toOllirType(node.getJmmChild(0));
@@ -104,7 +115,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         if (node.getNumChildren() > 0) {
             expr = exprVisitor.visit(node.getJmmChild(0));
         }
-        if (retType.getName()=="void"){
+        if (retType.getName().equals("void")){
             code.append("ret.V;");
         }
         else {
@@ -171,7 +182,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             if (PARAM.check(child)){continue;}
             //if (VAR_DECL.check(child)){continue;}
             System.out.println(child.getKind());
-            if (Objects.equals(child.getKind(), "ReturnStatemnt")){
+            if (Objects.equals(child.getKind(), "ReturnStmt")){
                 hasreturn=true;
             }
             childCode = visit(child);
@@ -188,7 +199,16 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         StringBuilder code = new StringBuilder();
 
+        for (String importedName : table.getImports()) {
+
+            importedName = importedName.substring(1, importedName.length() - 1);
+            code.append("import ").append(importedName).append(";");
+            code.append(NL);
+        }
         code.append(table.getClassName());
+        if(node.hasAttribute("superclass")){
+            code.append(" extends " + node.getObject("superclass"));
+        }
         code.append(L_BRACKET);
 
         code.append(NL);

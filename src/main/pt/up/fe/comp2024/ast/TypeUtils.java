@@ -73,7 +73,6 @@ public class TypeUtils {
         ).toList().get(0);
     }
 
-
     /**
      * @param sourceType
      * @param destinationType
