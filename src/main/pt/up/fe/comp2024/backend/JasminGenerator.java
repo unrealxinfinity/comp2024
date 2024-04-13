@@ -277,7 +277,7 @@ public class JasminGenerator {
 
         if(!call.getInvocationType().equals(CallType.NEW) && !call.getInvocationType().equals(CallType.invokestatic)){
             var get_caller_reference = generators.apply(call.getCaller());
-            code.append(get_caller_reference).append(NL);
+            code.append(get_caller_reference);
         }
         code.append(call.getInvocationType().toString().toLowerCase()).append(" ");
 
