@@ -19,10 +19,7 @@ public class StaticPass extends AnalysisVisitor {
         JmmNode methodDecl = jmmNode.getAncestor(Kind.METHOD_DECL).get();
         if (methodDecl.getObject("isStatic", Boolean.class)) {
             String message = String.format("'this' used in a non-static context in method %s", methodDecl.get("name"));
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
         }
 

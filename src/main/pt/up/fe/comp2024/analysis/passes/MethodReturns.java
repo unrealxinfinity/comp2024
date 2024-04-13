@@ -29,10 +29,7 @@ public class MethodReturns extends AnalysisVisitor {
         }
 
         String message = String.format("Incompatible return types in method %s", methodDecl.get("name"));
-        Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                NodeUtils.getLine(jmmNode),
-                NodeUtils.getColumn(jmmNode),
-                message);
+        Report report = NodeUtils.createSemanticError(jmmNode, message);
         addReport(report);
         return null;
     }

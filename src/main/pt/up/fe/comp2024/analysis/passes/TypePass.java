@@ -33,10 +33,7 @@ public class TypePass extends AnalysisVisitor {
     private Void checkImportedClass(JmmNode jmmNode, SymbolTable symbolTable) {
         if (!jmmNode.get("name").equals(symbolTable.getClassName()) && !symbolTable.getImports().contains(jmmNode.get("name"))) {
             String message = String.format("Could not find class %s", jmmNode.get("name"));
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
         }
 
@@ -47,10 +44,7 @@ public class TypePass extends AnalysisVisitor {
         Optional<Type> returnType = symbolTable.getReturnTypeTry(jmmNode.get("name"));
         if (returnType.isEmpty()) {
             String message = String.format("Method %s does not exist", jmmNode.get("name"));
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
             return false;
         }
@@ -70,10 +64,7 @@ public class TypePass extends AnalysisVisitor {
 
         if (TypeUtils.isPrimitive(objType)) {
             String message = String.format("Calling method %s on primitive type %s", jmmNode.get("name"), objType.getName());
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
         }
         else if (objType.getName().equals(symbolTable.getClassName()) && symbolTable.getSuper() == null) {
@@ -96,10 +87,7 @@ public class TypePass extends AnalysisVisitor {
             type.putObject("assumedType", true);
             if (!symbolTable.getImports().contains(jmmNode.get("name"))) {
                 String message = String.format("Could not find class %s", jmmNode.get("name"));
-                Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                        NodeUtils.getLine(jmmNode),
-                        NodeUtils.getColumn(jmmNode),
-                        message);
+                Report report = NodeUtils.createSemanticError(jmmNode, message);
                 addReport(report);
             }
         }

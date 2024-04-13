@@ -53,10 +53,7 @@ public class MethodCalls extends AnalysisVisitor {
         if (!symbolTable.getMethods().contains(jmmNode.get("name"))) {
             if (symbolTable.getSuper() == null) {
                 String message = String.format("Method %s does not exist", jmmNode.get("name"));
-                Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                        NodeUtils.getLine(jmmNode),
-                        NodeUtils.getColumn(jmmNode),
-                        message);
+                Report report = NodeUtils.createSemanticError(jmmNode, message);
                 addReport(report);
             }
 
@@ -78,10 +75,7 @@ public class MethodCalls extends AnalysisVisitor {
 
             if (!param.getType().getName().equals(paramNode.getObject("type", Type.class).getName()) || !arrayCondition(param, paramNode)) {
                 String message = String.format("Parameter type mismatch in call to %s", jmmNode.get("name"));
-                Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                        NodeUtils.getLine(jmmNode),
-                        NodeUtils.getColumn(jmmNode),
-                        message);
+                Report report = NodeUtils.createSemanticError(jmmNode, message);
                 addReport(report);
             }
         }
@@ -94,10 +88,7 @@ public class MethodCalls extends AnalysisVisitor {
                 if (!lastParam.getType().getName().equals(paramNode.getObject("type", Type.class).getName())
                     || paramNode.getObject("type", Type.class).isArray()) {
                     String message = String.format("Varargs misuse in method %s", jmmNode.get("name"));
-                    Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                            NodeUtils.getLine(jmmNode),
-                            NodeUtils.getColumn(jmmNode),
-                            message);
+                    Report report = NodeUtils.createSemanticError(jmmNode, message);
                     addReport(report);
                 }
             }

@@ -21,10 +21,7 @@ public class Assignments extends AnalysisVisitor {
     private void checkLHS(JmmNode jmmNode) {
         if (jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_EXPR)) {
             String message = "LHS of assignment is not a variable";
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
         }
     }
@@ -38,10 +35,7 @@ public class Assignments extends AnalysisVisitor {
 
         if (!indexType.getName().equals("int") || indexType.isArray()) {
             String message = String.format("Index expression is of type %s", indexType.getName());
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
             return null;
         }
@@ -54,10 +48,7 @@ public class Assignments extends AnalysisVisitor {
         }
 
         String message = String.format("Invalid assignment from type %s to %s", getFullName(rhsType), getFullName(lhsType));
-        Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                NodeUtils.getLine(jmmNode),
-                NodeUtils.getColumn(jmmNode),
-                message);
+        Report report = NodeUtils.createSemanticError(jmmNode, message);
         addReport(report);
         return null;
     }
@@ -88,10 +79,7 @@ public class Assignments extends AnalysisVisitor {
 
 
         String message = String.format("Invalid assignment from type %s to %s", getFullName(rhsType), getFullName(lhsType));
-        Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                NodeUtils.getLine(jmmNode),
-                NodeUtils.getColumn(jmmNode),
-                message);
+        Report report = NodeUtils.createSemanticError(jmmNode, message);
         addReport(report);
         return null;
     }
