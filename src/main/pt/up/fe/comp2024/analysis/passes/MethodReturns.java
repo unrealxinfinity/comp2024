@@ -14,7 +14,7 @@ import pt.up.fe.comp2024.ast.TypeUtils;
 public class MethodReturns extends AnalysisVisitor {
 
     protected void buildVisitor() {
-        addVisit("ReturnStatement", this::visitReturn);
+        addVisit("ReturnStmt", this::visitReturn);
     }
 
     private Void visitReturn(JmmNode jmmNode, SymbolTable symbolTable) {
