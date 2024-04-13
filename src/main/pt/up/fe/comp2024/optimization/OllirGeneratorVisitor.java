@@ -8,6 +8,8 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.Objects;
+
 import static pt.up.fe.comp2024.ast.Kind.*;
 
 /**
@@ -169,17 +171,10 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             if (PARAM.check(child)){continue;}
             //if (VAR_DECL.check(child)){continue;}
             System.out.println(child.getKind());
-            if (child.getKind()=="ReturnStatemnt"){
+            if (Objects.equals(child.getKind(), "ReturnStatemnt")){
                 hasreturn=true;
             }
-            if( i== node.getNumChildren()-1){
-                JmmNode childofchild= child.getJmmChild(0);
-
-                childCode= visitReturn(childofchild,unused);
-            }
-            else {
-                childCode = visit(child);
-            }
+            childCode = visit(child);
             code.append(childCode);
             i++;
         }
