@@ -44,6 +44,9 @@ public class Assignments extends AnalysisVisitor {
         //    return null;
         //}
         if (TypeUtils.areTypesAssignable(rhsType, lhsType, true, symbolTable)) {
+            if (rhsType.getOptionalObject("assumedType").isPresent()) {
+                jmmNode.getJmmChild(1).putObject("type", new Type(lhsType.getName(), false));
+            }
             return null;
         }
 
@@ -74,6 +77,9 @@ public class Assignments extends AnalysisVisitor {
         //    return null;
         //}
         if (TypeUtils.areTypesAssignable(rhsType, lhsType, false, symbolTable)) {
+            if (rhsType.getOptionalObject("assumedType").isPresent()) {
+                jmmNode.getJmmChild(1).putObject("type", new Type(lhsType.getName(), lhsType.isArray()));
+            }
             return null;
         }
 
