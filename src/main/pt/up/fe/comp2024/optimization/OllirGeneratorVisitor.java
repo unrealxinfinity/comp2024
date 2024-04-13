@@ -45,6 +45,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(RETURN_STMT, this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
         addVisit(VAR_DECL, this::visitVarDecl);
+        addVisit(SIMPLE_STATEMENT, this::visitSimpleStatement);
         //addVisit(IMPORT_DECL, this::visitImportDecl);
         setDefaultVisit(this::defaultVisit);
     }
@@ -55,6 +56,10 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     }
 
      */
+    private String visitSimpleStatement(JmmNode node, Void unused){
+        StringBuilder codeBuilder = new StringBuilder();
+        return codeBuilder.toString();
+    }
     private String visitVarDecl(JmmNode node, Void unused) {
         //System.out.println("Entered Visit VarDecl");
         StringBuilder codeBuilder = new StringBuilder();
@@ -84,7 +89,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         // code to compute self
         // statement has type of lhs
-        Type thisType = TypeUtils.getExprType(node.getJmmChild(0), table);
+        Type thisType = node.getJmmChild(0).getObject("type",Type.class);
         String typeString = OptUtils.toOllirType(thisType);
 
 
