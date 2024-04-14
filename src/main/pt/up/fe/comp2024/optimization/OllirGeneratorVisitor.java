@@ -81,9 +81,13 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             return codeBuilder.toString();
         }
         String varName = node.get("name");
+        boolean is_array= node.getJmmChild(0).getObject("isArray", Boolean.class);
         String ollirType = OptUtils.toOllirType(node.getJmmChild(0));
-        codeBuilder.append(varName).append(ollirType).append(END_STMT);
-
+        if(is_array) {
+            codeBuilder.append(varName).append(".array").append(ollirType).append(END_STMT);
+        } else {
+            codeBuilder.append(varName).append(ollirType).append(END_STMT);
+        }
         return codeBuilder.toString();
     }
     private String visitAssignStmt(JmmNode node, Void unused) {
@@ -152,6 +156,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         var typeCode = OptUtils.toOllirType(node.getJmmChild(0));
         var id = node.get("name");
         String code="";
+
         if (node.getJmmChild(0).getObject("isArray", Boolean.class)) {
              code = id + ".array"+ typeCode;
         }

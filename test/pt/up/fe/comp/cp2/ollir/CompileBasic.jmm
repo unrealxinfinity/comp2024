@@ -1,5 +1,6 @@
 import io;
 import Quicksort;
+
 class CompileBasic extends Quicksort {
 
     int intField;
