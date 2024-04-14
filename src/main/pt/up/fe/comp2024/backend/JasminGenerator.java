@@ -320,8 +320,9 @@ public class JasminGenerator {
         }
         else{
             func = ((LiteralElement) call.getMethodName()).getLiteral();
-            func = func.replaceAll("\\\"\\\"", ""); // Assigning the result back to func
+            func = func.replaceAll("\\\"", ""); // Assigning the result back to func
             func = func.equals("") ? "<init>" : func;
+
             funcToCall+= path + "/" + func;
             funcToCall = funcToCall.replace("\"", "");
             code.append(funcToCall).append("(");
@@ -336,6 +337,10 @@ public class JasminGenerator {
             }
             else{
                 code.append(arguments).append(")").append(generateJasminType(call.getReturnType())).append(NL);
+            }
+            //invokespecial calls dont consume the reference so I popped it at the end of invoking.
+            if(call.getInvocationType().equals(CallType.invokespecial)){
+                code.append("pop").append(NL);
             }
         }
 
