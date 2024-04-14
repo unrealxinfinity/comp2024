@@ -119,7 +119,7 @@ public class TypePass extends AnalysisVisitor {
     private Void visitBinaryExpr(JmmNode jmmNode, SymbolTable symbolTable) {
         String op = jmmNode.get("op");
 
-        if (op.equals("+") || op.equals("-") || op.equals("*") || op.equals("/") || op.equals("<")) {
+        if (op.equals("+") || op.equals("-") || op.equals("*") || op.equals("/")) {
             jmmNode.putObject("type", new Type("int", false));
         }
         else {
@@ -141,9 +141,9 @@ public class TypePass extends AnalysisVisitor {
     }
 
     private Void propagateType(JmmNode jmmNode, SymbolTable symbolTable) {
-        visit(jmmNode.getJmmChild(0));
+        visit(jmmNode.getJmmChild(0), symbolTable);
 
-        jmmNode.putObject("type", jmmNode.getJmmChild(0).get("type"));
+        jmmNode.putObject("type", jmmNode.getJmmChild(0).getObject("type", Type.class));
 
         return null;
     }
