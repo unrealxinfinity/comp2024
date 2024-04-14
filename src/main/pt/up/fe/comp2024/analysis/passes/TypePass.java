@@ -74,6 +74,11 @@ public class TypePass extends AnalysisVisitor {
             if (checkReturnType(jmmNode, symbolTable)) {
                 return null;
             }
+            else {
+                Type assumed = new Type("void", false);
+                assumed.putObject("assumedType", true);
+                jmmNode.putObject("type", assumed);
+            }
         }
         else {
             Type assumed = new Type("void", false);
