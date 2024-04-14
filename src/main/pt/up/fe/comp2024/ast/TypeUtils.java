@@ -85,8 +85,9 @@ public class TypeUtils {
     public static boolean areTypesAssignable(Type sourceType, Type destinationType, boolean toArray, SymbolTable symbolTable) {
         // TODO: Simple implementation that needs to be expanded
 
+        boolean hasSuper = symbolTable.getSuper() != null;
         if (!isPrimitive(sourceType) && !isPrimitive(destinationType)
-            && !sourceType.getName().equals(symbolTable.getClassName()) && !sourceType.getName().equals(symbolTable.getClassName())) {
+            && (!sourceType.getName().equals(symbolTable.getClassName()) || hasSuper)) {
             return true;
         }
         if (sourceType.getName().equals(symbolTable.getClassName()) && destinationType.getName().equals(symbolTable.getSuper())) {
