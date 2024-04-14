@@ -288,7 +288,7 @@ public class JasminGenerator {
     private String generateCall(CallInstruction call){
         var code = new StringBuilder();
         //Does the register operations to get the callee reference
-        if(!call.getInvocationType().equals(CallType.NEW)  &&!call.getInvocationType().equals(CallType.invokestatic) && !call.getInvocationType().equals(CallType.ldc) && ! call.getInvocationType().equals(CallType.arraylength)){
+        if(!call.getInvocationType().equals(CallType.NEW)  && !call.getInvocationType().equals(CallType.invokestatic) && !call.getInvocationType().equals(CallType.ldc) && ! call.getInvocationType().equals(CallType.arraylength)){
             var get_caller_reference = generators.apply(call.getCaller());
             code.append(get_caller_reference);
         }
@@ -387,7 +387,13 @@ public class JasminGenerator {
         var type = currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement();
         // not hardcoded anymore
         var inst = storeLoadInstWithType(type,true);
-        code.append(inst+"_").append(reg).append(NL);
+        if(reg<=3){
+            code.append(inst+"_").append(reg).append(NL);
+        }
+        else{
+            code.append(inst+" ").append(reg).append(NL);
+        }
+
 
         return code.toString();
     }
@@ -397,7 +403,8 @@ public class JasminGenerator {
     }
 
     private String generateLiteral(LiteralElement literal) {
-        return distinguishLiteral(literal.getLiteral()) + literal.getLiteral() + NL;
+        var lit = literal.getLiteral().equals("-1")? "m1" : literal.getLiteral();
+        return distinguishLiteral(literal.getLiteral()) + lit + NL;
     }
 
     private String generateOperand(Operand operand) {
@@ -406,6 +413,9 @@ public class JasminGenerator {
         //changed the hardcoded version with integer
         var type = currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement();
         var inst = storeLoadInstWithType(type,false);
+        if(reg>3){
+            return inst + " " + reg + NL;
+        }
         return inst + "_" + reg + NL;
     }
 
