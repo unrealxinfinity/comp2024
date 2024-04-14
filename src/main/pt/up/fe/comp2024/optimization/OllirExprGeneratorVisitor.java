@@ -33,9 +33,9 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(INTEGER_LITERAL, this::visitInteger);
         addVisit(BOOLEAN_LITERAL, this::visitBoolean);
         addVisit(VAR_REF_LITERAL, this::visitVarRefLiteral);
-        addVisit("ClassFunctionCallExpr", this::visitMethodCall);
-        addVisit("This", this::visitThis);
-        addVisit("NewClassExpr", this::visitNewObj);
+        addVisit(CLASS_FUNCTION_CALL_EXPR, this::visitMethodCall);
+        addVisit(THIS, this::visitThis);
+        addVisit(NEW_CLASS_EXPR, this::visitNewObj);
         setDefaultVisit(this::defaultVisit);
     }
 

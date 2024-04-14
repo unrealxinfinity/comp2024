@@ -23,6 +23,11 @@ public enum Kind {
 
     SIMPLE_STATEMENT,
 
+    NEW_CLASS_EXPR,
+
+    CLASS_FUNCTION_CALL_EXPR,
+
+    THIS,
     BOOLEAN_LITERAL;
 
 
