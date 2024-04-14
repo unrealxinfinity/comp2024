@@ -9,6 +9,8 @@ import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static pt.up.fe.comp2024.ast.Kind.*;
 
@@ -206,8 +208,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String visitClass(JmmNode node, Void unused) {
 
         StringBuilder code = new StringBuilder();
-
-        for (String importedName : table.getImports()) {
+        Set<String> set = new TreeSet<>(table.getImports());
+        for (String importedName : set) {
 
             //importedName = importedName.substring(1, importedName.length() - 1);
             code.append("import ").append(importedName).append(";");
