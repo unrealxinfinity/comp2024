@@ -206,7 +206,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         for (String importedName : table.getImports()) {
 
-            importedName = importedName.substring(1, importedName.length() - 1);
+            //importedName = importedName.substring(1, importedName.length() - 1);
             code.append("import ").append(importedName).append(";");
             code.append(NL);
         }
