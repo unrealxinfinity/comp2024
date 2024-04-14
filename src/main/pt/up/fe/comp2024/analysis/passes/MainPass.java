@@ -31,8 +31,8 @@ public class MainPass extends AnalysisVisitor {
             addReport(report);
         }
 
-        Type argType = symbolTable.getReturnType("main");
-        if (!argType.getName().equals("String") || !argType.isArray()) {
+        JmmNode param = jmmNode.getJmmChild(1).getJmmChild(0);
+        if (!param.isInstance("StringArrType")) {
             String message = "main method argument should be String[]";
             Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
