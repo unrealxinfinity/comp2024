@@ -41,7 +41,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
         // Var is a field, return
         if (checkField != null) {
-            varRefExpr.put("type", checkField.getType().getName());
+            varRefExpr.putObject("type", checkField.getType());
             return null;
         }
 
@@ -50,7 +50,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
         // Var is a parameter, return
         if (checkParam != null) {
-            varRefExpr.put("type", checkParam.getType().getName());
+            varRefExpr.putObject("type", checkParam.getType());
             return null;
         }
 
@@ -59,7 +59,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
         // Var is a declared variable, return
         if (checkLocal != null) {
-            varRefExpr.put("type", checkLocal.getType().getName());
+            varRefExpr.putObject("type", checkLocal.getType());
             return null;
         }
 

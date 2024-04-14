@@ -2,12 +2,14 @@ package pt.up.fe.comp2024.analysis.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
+import pt.up.fe.comp2024.ast.NodeUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -20,6 +22,21 @@ public class OperandsMismatch extends AnalysisVisitor {
 
     public void buildVisitor(){
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
+        addVisit("LogicalExpr", this::visitLogicalExpr);
+    }
+
+    private Void visitLogicalExpr(JmmNode jmmNode, SymbolTable symbolTable) {
+        Type exprType = jmmNode.getObject("type", Type.class);
+
+        if (exprType.getName().equals("boolean")) {
+            return null;
+        }
+
+        String message = String.format("Expected type boolean, got %s", exprType.getName());
+        Report report = NodeUtils.createSemanticError(jmmNode, message);
+        addReport(report);
+
+        return null;
     }
 
     private Void visitBinaryExpr(JmmNode jmmNode, SymbolTable symbolTable) {
@@ -29,8 +46,8 @@ public class OperandsMismatch extends AnalysisVisitor {
 
         visit(left, symbolTable);
         visit(right, symbolTable);
-        String leftType = left.get("type");
-        String rightType = right.get("type");
+        Type leftType = left.getObject("type", Type.class);
+        Type rightType = right.getObject("type", Type.class);
         String desiredType;
 
         if (op.equals("+") || op.equals("-") || op.equals("*") || op.equals("/")) {
@@ -43,12 +60,21 @@ public class OperandsMismatch extends AnalysisVisitor {
             desiredType = "boolean";
         }
 
-        if (!leftType.equals(desiredType)) {
-            Report leftReport = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Left type");
+        if (!leftType.getName().equals(desiredType) || leftType.isArray()) {
+            String leftName;
+            if (leftType.isArray()) {
+                leftName = leftType.getName() + "[]";
+            }
+            else {
+                leftName = leftType.getName();
+            }
+            String message = String.format("Expected type %s in left operand, got %s", desiredType, leftName);
+            Report leftReport = NodeUtils.createSemanticError(jmmNode, message);
             addReport(leftReport);
         }
-        if (!rightType.equals(desiredType)) {
-            Report rightReport = new Report(ReportType.ERROR, Stage.SEMANTIC, 0, 0, "Right type");
+        if (!rightType.getName().equals(desiredType) || rightType.isArray()) {
+            String message = String.format("Expected type %s in right operand, got %s", desiredType, rightType.getName());
+            Report rightReport = NodeUtils.createSemanticError(jmmNode, message);
             addReport(rightReport);
         }
 

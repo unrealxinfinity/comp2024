@@ -65,14 +65,14 @@ varDecl
     ;
 
 type locals[boolean isArray=false, boolean isVarargs=false]
-    : name=INT ((LRECT RRECT {$isArray=true;}) | (DOT {$isVarargs=true;}))?
-    | name=INT DOT
-    | name= INT
-    | name = BOOLEAN
-    | name= STR LRECT RRECT {$isArray=true;}
-    | name= ID
-    | name= STR
-    | name= VOID
+    : name=INT ((LRECT RRECT {$isArray=true;}) | (DOT {$isVarargs=true;}))? #IntTypes
+    | name=INT DOT #IntVarType
+    | name= INT #IntType
+    | name = BOOLEAN #BoolType
+    | name= STR LRECT RRECT {$isArray=true;} #StringArrType
+    | name= ID #ClassType
+    | name= STR #StringType
+    | name= VOID #VoidType
     ;
 
 methodDecl locals[boolean isPublic=false, boolean isStatic=false]
@@ -94,16 +94,16 @@ stmt
         stmt #IfStatement
     | WHILE LPAREN expr RPAREN stmt #WhileStatement
     | expr SEMI #SimpleStatement
-    | ID '=' expr SEMI #AssignmentStatement
-    | ID LRECT expr RRECT '=' expr SEMI #ArrayAlterIndexStatement
-    | RETURN expr SEMI #ReturnStatemnt
+    | expr '=' expr SEMI #AssignmentStmt
+    | expr LRECT expr RRECT '=' expr SEMI #ArrayAlterIndexStatement
+    | RETURN expr SEMI #ReturnStmt
     ;
 expr
     : '(' expr ')' #ParensExpr
     | expr '[' expr ']' #IndexedExpr
     | expr '.' LENGTH #LengthFunctionExpr
-    | expr '.' ID LPAREN (expr ( ',' expr )*)? RPAREN #ClassFunctionCallExpr
-    | ID LPAREN (expr ( ',' expr )*)? RPAREN #SameClassCallExpr
+    | NEW name=ID LPAREN RPAREN #NewClassExpr
+    | expr '.' name=ID LPAREN (expr ( ',' expr )*)? RPAREN #ClassFunctionCallExpr
     | expr (op= MUL | op=DIV)  expr #BinaryExpr //
     | expr (op= ADD | op=SUB) expr #BinaryExpr //
     | NOT expr #LogicalExpr
@@ -111,7 +111,6 @@ expr
     | expr (op=AND) expr #BinaryExpr
     //| expr OR expr #LogicalExpr
     | NEW INT LRECT expr RRECT #NewArrayExpr
-    | NEW ID LPAREN RPAREN #NewClassExpr
     | LRECT (expr ( ',' expr)* )? RRECT #ArrayExpr
     | value=INTEGER #IntegerLiteral
     | value=TRUE #BooleanLiteral
