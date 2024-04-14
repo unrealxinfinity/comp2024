@@ -14,7 +14,7 @@ import pt.up.fe.comp2024.ast.TypeUtils;
 public class Assignments extends AnalysisVisitor {
 
     protected void buildVisitor() {
-        addVisit("AssignmentStmt", this::visitAssign);
+        addVisit("AssignStmt", this::visitAssign);
         addVisit("ArrayAlterIndexStatement", this::visitArrayAssign);
     }
 
