@@ -16,8 +16,25 @@ import java.util.Optional;
 public class StaticPass extends AnalysisVisitor {
     
     protected void buildVisitor() {
+        addVisit(Kind.VAR_REF_LITERAL, this::checkFieldUsage);
         addVisit("This", this::checkThisUsage);
         addVisit("ClassFunctionCallExpr", this::checkCalls);
+    }
+
+    private Void checkFieldUsage(JmmNode jmmNode, SymbolTable symbolTable) {
+        Type varType = jmmNode.getObject("type", Type.class);
+        if (varType.getOptionalObject("level").isEmpty()) {
+            return null;
+        }
+
+        int level = varType.getObject("level", Integer.class);
+        JmmNode methodDecl = jmmNode.getAncestor(Kind.METHOD_DECL).get();
+        if (level == 0 && methodDecl.getObject("isStatic", Boolean.class)) {
+            String message = String.format("Field %s used in static method %s", jmmNode.get("name"), methodDecl.get("name"));
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
+            addReport(report);
+        }
+        return null;
     }
 
     private Void checkCalls(JmmNode jmmNode, SymbolTable symbolTable) {
