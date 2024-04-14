@@ -67,12 +67,13 @@ public class DupPass extends AnalysisVisitor {
         boolean foundReturn = false;
 
         for (JmmNode stmt : jmmNode.getChildren("Stmt")) {
-            if (!stmt.isInstance(Kind.RETURN_STMT)) continue;
             if (foundReturn) {
                 String message = String.format("Misplaced or duplicate return statement in method %s", jmmNode.get("name"));
                 Report report = NodeUtils.createSemanticError(jmmNode, message);
                 addReport(report);
             }
+            if (!stmt.isInstance(Kind.RETURN_STMT)) continue;
+
             foundReturn = true;
         }
         if (!foundReturn && !isVoid) {
