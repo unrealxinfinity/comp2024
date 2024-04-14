@@ -67,7 +67,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
         if (varRefExpr.getJmmParent().isInstance("ClassFunctionCallExpr")
                 && TypeUtils.isValidClass(varRefName, table)) {
-            Type type = new Type("static", false);
+            Type type = new Type(varRefName, false);
             type.putObject("isStatic", true);
             varRefExpr.putObject("type", type);
             return null;
