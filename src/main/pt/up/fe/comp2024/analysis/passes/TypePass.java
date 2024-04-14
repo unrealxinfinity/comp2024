@@ -43,6 +43,9 @@ public class TypePass extends AnalysisVisitor {
     private boolean checkReturnType(JmmNode jmmNode, SymbolTable symbolTable) {
         Optional<Type> returnType = symbolTable.getReturnTypeTry(jmmNode.get("name"));
         if (returnType.isEmpty()) {
+            if (symbolTable.getSuper() != null) {
+                return false;
+            }
             String message = String.format("Method %s does not exist", jmmNode.get("name"));
             Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
@@ -67,7 +70,7 @@ public class TypePass extends AnalysisVisitor {
             Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
         }
-        else if (objType.getName().equals(symbolTable.getClassName()) && symbolTable.getSuper() == null) {
+        else if (objType.getName().equals(symbolTable.getClassName())) {
             if (checkReturnType(jmmNode, symbolTable)) {
                 return null;
             }
