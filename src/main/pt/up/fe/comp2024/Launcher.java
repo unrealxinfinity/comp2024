@@ -94,7 +94,9 @@ public class Launcher {
                 c.i32 :=.i32 10.i32;
                 ret.i32 c.i32;
                 }
+                                
                 }
+                                
                 """;
         OllirResult ollirResult = new OllirResult(semanticsResult,ollircode,Collections.emptyList());
         JasminBackendImpl jasminGen = new JasminBackendImpl();
