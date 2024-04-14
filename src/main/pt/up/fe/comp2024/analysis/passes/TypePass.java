@@ -73,7 +73,7 @@ public class TypePass extends AnalysisVisitor {
             }
         }
         else {
-            Type assumed = new Type("assumed", false);
+            Type assumed = new Type("void", false);
             assumed.putObject("assumedType", true);
             jmmNode.putObject("type", assumed);
         }
@@ -83,13 +83,13 @@ public class TypePass extends AnalysisVisitor {
 
     private Void visitNewObject(JmmNode jmmNode, SymbolTable symbolTable) {
         Type type = new Type(jmmNode.get("name"), false);
-        if (!jmmNode.get("name").equals(symbolTable.getClassName())) {
+        if (!TypeUtils.isValidClass(jmmNode.get("name"), symbolTable)) {
+            String message = String.format("Could not find class %s", jmmNode.get("name"));
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
+            addReport(report);
+        }
+        else if (symbolTable.getImports().contains(jmmNode.get("name"))) {
             type.putObject("assumedType", true);
-            if (!symbolTable.getImports().contains(jmmNode.get("name"))) {
-                String message = String.format("Could not find class %s", jmmNode.get("name"));
-                Report report = NodeUtils.createSemanticError(jmmNode, message);
-                addReport(report);
-            }
         }
         jmmNode.putObject("type", type);
 

@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.analysis.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
@@ -8,6 +9,7 @@ import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
+import pt.up.fe.comp2024.symboltable.JmmSymbolTable;
 
 import java.util.Optional;
 
@@ -15,6 +17,26 @@ public class StaticPass extends AnalysisVisitor {
     
     protected void buildVisitor() {
         addVisit("This", this::checkThisUsage);
+        addVisit("ClassFunctionCallExpr", this::checkCalls);
+    }
+
+    private Void checkCalls(JmmNode jmmNode, SymbolTable symbolTable) {
+        Type objType = jmmNode.getJmmChild(0).getObject("type", Type.class);
+        Boolean isStatic = ((JmmSymbolTable) symbolTable).isMethodStatic(jmmNode.get("name"));
+        if (isStatic == null) {
+            return null;
+        }
+        if (objType.getOptionalObject("isStatic").isPresent() && !isStatic) {
+            String message = String.format("Non-static method called on class %s", objType.getName());
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
+            addReport(report);
+        }
+        else if (objType.getOptionalObject("isStatic").isEmpty() && isStatic) {
+            String message = String.format("Static method called on variable of type %s", objType.getName());
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
+            addReport(report);
+        }
+        return null;
     }
 
     private Void checkThisUsage(JmmNode jmmNode, SymbolTable symbolTable) {
