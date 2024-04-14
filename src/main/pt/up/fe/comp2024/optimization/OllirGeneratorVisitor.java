@@ -48,16 +48,24 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
         addVisit(VAR_DECL, this::visitVarDecl);
         addVisit(SIMPLE_STATEMENT, this::visitSimpleStatement);
-        //addVisit(IMPORT_DECL, this::visitImportDecl);
+        addVisit(IMPORT_DECL, this::visitImportDecl);
         setDefaultVisit(this::defaultVisit);
     }
-    /*
-    private String visitImportDecl(JmmNode node, Void unused){
-         StringBuilder codeBuilder = new StringBuilder();
 
+    private String visitImportDecl(JmmNode node, Void unused) {
+        StringBuilder codeBuilder = new StringBuilder();
+
+        // Append each child's name with a dot if there are multiple children
+        codeBuilder.append("import ");
+        String importname = node.get("name");
+        codeBuilder.append(((importname.substring(1, importname.length()-1)).replace(',','.').trim()).replaceAll("\\s+", ""));
+        codeBuilder.append(';');
+        codeBuilder.append(NL); // Append newline character
+
+        return codeBuilder.toString();
     }
 
-     */
+
     private String visitSimpleStatement(JmmNode node, Void unused){
         //StringBuilder codeBuilder = new StringBuilder();
         return exprVisitor.visit(node.getJmmChild(0)).getComputation();
@@ -208,13 +216,15 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String visitClass(JmmNode node, Void unused) {
 
         StringBuilder code = new StringBuilder();
-        Set<String> set = new TreeSet<>(table.getImports());
-        for (String importedName : set) {
+        /*
+        for (String importedName : table.getImports()) {
 
             //importedName = importedName.substring(1, importedName.length() - 1);
             code.append("import ").append(importedName).append(";");
             code.append(NL);
         }
+
+         */
         code.append(table.getClassName());
         if(node.hasAttribute("superclass")){
             code.append(" extends " + node.getObject("superclass"));
