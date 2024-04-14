@@ -73,7 +73,7 @@ public class TypePass extends AnalysisVisitor {
             }
         }
         else {
-            Type assumed = new Type("assumed", false);
+            Type assumed = new Type("void", false);
             assumed.putObject("assumedType", true);
             jmmNode.putObject("type", assumed);
         }

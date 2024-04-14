@@ -57,8 +57,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
      */
     private String visitSimpleStatement(JmmNode node, Void unused){
-        StringBuilder codeBuilder = new StringBuilder();
-        return codeBuilder.toString();
+        //StringBuilder codeBuilder = new StringBuilder();
+        return exprVisitor.visit(node.getJmmChild(0)).getComputation();
     }
     private String visitVarDecl(JmmNode node, Void unused) {
         //System.out.println("Entered Visit VarDecl");
