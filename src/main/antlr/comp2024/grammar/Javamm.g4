@@ -100,7 +100,7 @@ stmt
 expr
     : '(' expr ')' #ParensExpr
     | expr '[' expr ']' #IndexedExpr
-    | expr '.' 'length' #LengthFunctionExpr
+    | expr '.' name=ID #LengthFunctionExpr
     | NEW name=ID LPAREN RPAREN #NewClassExpr
     | expr '.' name=ID LPAREN (expr ( ',' expr )*)? RPAREN #ClassFunctionCallExpr
     | name=ID LPAREN (expr ( ',' expr )*)? RPAREN #SameClassCallExpr

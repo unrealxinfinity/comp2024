@@ -122,6 +122,11 @@ public class TypePass extends AnalysisVisitor {
     }
 
     private Void visitLen(JmmNode jmmNode, SymbolTable symbolTable) {
+        if (!jmmNode.get("name").equals("length")) {
+            String message = String.format("Expected length, got %s", jmmNode.get("name"));
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
+            addReport(report);
+        }
         jmmNode.putObject("type", new Type("int", false));
 
         return null;
