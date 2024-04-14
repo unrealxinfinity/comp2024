@@ -1,6 +1,9 @@
 package pt.up.fe.comp2024.ast;
 
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.jmm.report.ReportType;
+import pt.up.fe.comp.jmm.report.Stage;
 
 public class NodeUtils {
 
@@ -24,5 +27,8 @@ public class NodeUtils {
         return Boolean.parseBoolean(line);
     }
 
+    public static Report createSemanticError(JmmNode node, String message) {
+        return new Report(ReportType.ERROR, Stage.SEMANTIC, getLine(node), getColumn(node), message);
+    }
 
 }
