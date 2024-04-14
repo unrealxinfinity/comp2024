@@ -103,7 +103,7 @@ expr
     | expr '.' name=ID #LengthFunctionExpr
     | NEW name=ID LPAREN RPAREN #NewClassExpr
     | expr '.' name=ID LPAREN (expr ( ',' expr )*)? RPAREN #ClassFunctionCallExpr
-    | name=ID LPAREN (expr ( ',' expr )*)? RPAREN #SameClassCallExpr
+    //| name=ID LPAREN (expr ( ',' expr )*)? RPAREN #SameClassCallExpr
     | expr (op= MUL | op=DIV)  expr #BinaryExpr //
     | expr (op= ADD | op=SUB) expr #BinaryExpr //
     | NOT expr #LogicalExpr
