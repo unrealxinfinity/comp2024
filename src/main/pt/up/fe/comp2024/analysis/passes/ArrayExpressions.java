@@ -23,18 +23,12 @@ public class ArrayExpressions extends AnalysisVisitor {
 
         if (!varType.isArray()) {
             String message = "Indexed variable is not an array";
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
         }
         if (!indexType.getName().equals("int") || indexType.isArray()) {
             String message = String.format("Index expression is of type %s", indexType.getName());
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
         }
 
@@ -45,10 +39,7 @@ public class ArrayExpressions extends AnalysisVisitor {
         Type type = jmmNode.getJmmChild(0).getObject("type", Type.class);
         if (!type.getName().equals("int") || type.isArray()) {
             String message = "Invalid expression in array initializer";
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
         }
 
@@ -60,10 +51,7 @@ public class ArrayExpressions extends AnalysisVisitor {
             Type type = child.getObject("type", Type.class);
             if (!type.getName().equals("int") || type.isArray()) {
                 String message = "Invalid expression in array initializer";
-                Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                        NodeUtils.getLine(jmmNode),
-                        NodeUtils.getColumn(jmmNode),
-                        message);
+                Report report = NodeUtils.createSemanticError(jmmNode, message);
                 addReport(report);
                 return null;
             }

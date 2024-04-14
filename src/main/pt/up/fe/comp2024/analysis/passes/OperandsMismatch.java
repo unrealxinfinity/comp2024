@@ -33,10 +33,7 @@ public class OperandsMismatch extends AnalysisVisitor {
         }
 
         String message = String.format("Expected type boolean, got %s", exprType.getName());
-        Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                NodeUtils.getLine(jmmNode),
-                NodeUtils.getColumn(jmmNode),
-                message);
+        Report report = NodeUtils.createSemanticError(jmmNode, message);
         addReport(report);
 
         return null;
@@ -64,19 +61,20 @@ public class OperandsMismatch extends AnalysisVisitor {
         }
 
         if (!leftType.getName().equals(desiredType) || leftType.isArray()) {
-            String message = String.format("Expected type %s in left operand, got %s", desiredType, leftType.getName());
-            Report leftReport = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            String leftName;
+            if (leftType.isArray()) {
+                leftName = leftType.getName() + "[]";
+            }
+            else {
+                leftName = leftType.getName();
+            }
+            String message = String.format("Expected type %s in left operand, got %s", desiredType, leftName);
+            Report leftReport = NodeUtils.createSemanticError(jmmNode, message);
             addReport(leftReport);
         }
         if (!rightType.getName().equals(desiredType) || rightType.isArray()) {
             String message = String.format("Expected type %s in right operand, got %s", desiredType, rightType.getName());
-            Report rightReport = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            Report rightReport = NodeUtils.createSemanticError(jmmNode, message);
             addReport(rightReport);
         }
 

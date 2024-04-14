@@ -34,9 +34,14 @@ public class JmmSymbolTableBuilder {
         return new JmmSymbolTable(className, superName, methods, imports, returnTypes, params, locals, fields);
     }
 
+    private static String getImportName(JmmNode method) {
+        List<String> full = method.getObjectAsList("name", String.class);
+        return full.get(full.size()-1);
+    }
+
     private static List<String> buildImports(JmmNode root) {
         return root.getChildren(IMPORT_DECL).stream()
-                .map(method -> method.get("name"))
+                .map(JmmSymbolTableBuilder::getImportName)
                 .toList();
     }
     private static Type getType(JmmNode type){

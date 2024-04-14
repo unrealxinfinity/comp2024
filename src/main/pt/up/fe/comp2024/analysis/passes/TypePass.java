@@ -23,21 +23,28 @@ public class TypePass extends AnalysisVisitor {
         addVisit("LogicalExpr", this::visitBoolLit);
         addVisit("NewArrayExpr", this::visitArrayExpr);
         addVisit("ArrayExpr", this::visitArrayExpr);
-        addVisit("IndexedExpr", this::visitArrayExpr);
+        addVisit("IndexedExpr", this::visitIndexedExpr);
         addVisit("NewClassExpr", this::visitNewObject);
-        addVisit("ClassFunctionCallExpr", this::visitMethodCall);
         addVisit("This", this::visitThis);
-        addVisit("SameClassCallExpr", this::visitThisCall);
+        addVisit("ClassFunctionCallExpr", this::visitMethodCall);
+        addVisit("ClassType", this::checkImportedClass);
+    }
+
+    private Void checkImportedClass(JmmNode jmmNode, SymbolTable symbolTable) {
+        if (!jmmNode.get("name").equals(symbolTable.getClassName()) && !symbolTable.getImports().contains(jmmNode.get("name"))) {
+            String message = String.format("Could not find class %s", jmmNode.get("name"));
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
+            addReport(report);
+        }
+
+        return null;
     }
 
     private boolean checkReturnType(JmmNode jmmNode, SymbolTable symbolTable) {
         Optional<Type> returnType = symbolTable.getReturnTypeTry(jmmNode.get("name"));
         if (returnType.isEmpty()) {
             String message = String.format("Method %s does not exist", jmmNode.get("name"));
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
             return false;
         }
@@ -46,34 +53,18 @@ public class TypePass extends AnalysisVisitor {
             return true;
         }
     }
-
-    private Void visitThisCall(JmmNode jmmNode, SymbolTable symbolTable) {
-        if (symbolTable.getSuper() != null && !symbolTable.getMethods().contains(jmmNode.get("name"))) {
-            Type assumed = new Type("assumed", false);
-            assumed.putObject("assumedTypes", true);
-            jmmNode.putObject("type", assumed);
-            return null;
-        }
-
-        checkReturnType(jmmNode, symbolTable);
-
-        return null;
-    }
-
     private Void visitThis(JmmNode jmmNode, SymbolTable symbolTable) {
         jmmNode.putObject("type", new Type(symbolTable.getClassName(), false));
         return null;
     }
 
     private Void visitMethodCall(JmmNode jmmNode, SymbolTable symbolTable) {
+        visit(jmmNode.getJmmChild(0), symbolTable);
         Type objType = jmmNode.getJmmChild(0).getObject("type", Type.class);
 
         if (TypeUtils.isPrimitive(objType)) {
             String message = String.format("Calling method %s on primitive type %s", jmmNode.get("name"), objType.getName());
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
         }
         else if (objType.getName().equals(symbolTable.getClassName()) && symbolTable.getSuper() == null) {
@@ -93,7 +84,12 @@ public class TypePass extends AnalysisVisitor {
     private Void visitNewObject(JmmNode jmmNode, SymbolTable symbolTable) {
         Type type = new Type(jmmNode.get("name"), false);
         if (!jmmNode.get("name").equals(symbolTable.getClassName())) {
-            type.putObject("assumedTypes", true);
+            type.putObject("assumedType", true);
+            if (!symbolTable.getImports().contains(jmmNode.get("name"))) {
+                String message = String.format("Could not find class %s", jmmNode.get("name"));
+                Report report = NodeUtils.createSemanticError(jmmNode, message);
+                addReport(report);
+            }
         }
         jmmNode.putObject("type", type);
 
@@ -102,6 +98,12 @@ public class TypePass extends AnalysisVisitor {
 
     private Void visitArrayExpr(JmmNode jmmNode, SymbolTable symbolTable) {
         Type type = new Type("int", true);
+        jmmNode.putObject("type", type);
+        return null;
+    }
+
+    private Void visitIndexedExpr(JmmNode jmmNode, SymbolTable symbolTable) {
+        Type type = new Type("int", false);
         jmmNode.putObject("type", type);
         return null;
     }

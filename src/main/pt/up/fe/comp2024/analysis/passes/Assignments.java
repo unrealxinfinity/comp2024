@@ -14,17 +14,14 @@ import pt.up.fe.comp2024.ast.TypeUtils;
 public class Assignments extends AnalysisVisitor {
 
     protected void buildVisitor() {
-        addVisit("AssignmentStatement", this::visitAssign);
+        addVisit("AssignmentStmt", this::visitAssign);
         addVisit("ArrayAlterIndexStatement", this::visitArrayAssign);
     }
 
     private void checkLHS(JmmNode jmmNode) {
         if (jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_EXPR)) {
             String message = "LHS of assignment is not a variable";
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
         }
     }
@@ -38,10 +35,7 @@ public class Assignments extends AnalysisVisitor {
 
         if (!indexType.getName().equals("int") || indexType.isArray()) {
             String message = String.format("Index expression is of type %s", indexType.getName());
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
             return null;
         }
@@ -50,16 +44,27 @@ public class Assignments extends AnalysisVisitor {
         //    return null;
         //}
         if (TypeUtils.areTypesAssignable(rhsType, lhsType, true, symbolTable)) {
+            if (rhsType.getOptionalObject("assumedType").isPresent()) {
+                jmmNode.getJmmChild(1).putObject("type", new Type(lhsType.getName(), false));
+            }
             return null;
         }
 
-        String message = String.format("Invalid assignment from type %s to %s", rhsType.getName(), lhsType.getName());
-        Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                NodeUtils.getLine(jmmNode),
-                NodeUtils.getColumn(jmmNode),
-                message);
+        String message = String.format("Invalid assignment from type %s to %s", getFullName(rhsType), getFullName(lhsType));
+        Report report = NodeUtils.createSemanticError(jmmNode, message);
         addReport(report);
         return null;
+    }
+
+    private String getFullName(Type type) {
+        String name;
+        if (type.isArray()) {
+            name = type.getName() + "[]";
+        }
+        else {
+            name = type.getName();
+        }
+        return name;
     }
 
     private Void visitAssign(JmmNode jmmNode, SymbolTable symbolTable) {
@@ -72,14 +77,15 @@ public class Assignments extends AnalysisVisitor {
         //    return null;
         //}
         if (TypeUtils.areTypesAssignable(rhsType, lhsType, false, symbolTable)) {
+            if (rhsType.getOptionalObject("assumedType").isPresent()) {
+                jmmNode.getJmmChild(1).putObject("type", new Type(lhsType.getName(), lhsType.isArray()));
+            }
             return null;
         }
 
-        String message = String.format("Invalid assignment from type %s to %s", rhsType.getName(), lhsType.getName());
-        Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                NodeUtils.getLine(jmmNode),
-                NodeUtils.getColumn(jmmNode),
-                message);
+
+        String message = String.format("Invalid assignment from type %s to %s", getFullName(rhsType), getFullName(lhsType));
+        Report report = NodeUtils.createSemanticError(jmmNode, message);
         addReport(report);
         return null;
     }

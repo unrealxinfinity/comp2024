@@ -21,10 +21,7 @@ public class ConditionTypes extends AnalysisVisitor {
         }
 
         String message = "Condition expression is not boolean";
-        Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                NodeUtils.getLine(jmmNode),
-                NodeUtils.getColumn(jmmNode),
-                message);
+        Report report = NodeUtils.createSemanticError(jmmNode, message);
         addReport(report);
 
         return null;

@@ -65,14 +65,14 @@ varDecl
     ;
 
 type locals[boolean isArray=false, boolean isVarargs=false]
-    : name=INT ((LRECT RRECT {$isArray=true;}) | (DOT {$isVarargs=true;}))?
-    | name=INT DOT
-    | name= INT
-    | name = BOOLEAN
-    | name= STR LRECT RRECT {$isArray=true;}
-    | name= ID
-    | name= STR
-    | name= VOID
+    : name=INT ((LRECT RRECT {$isArray=true;}) | (DOT {$isVarargs=true;}))? #IntTypes
+    | name=INT DOT #IntVarType
+    | name= INT #IntType
+    | name = BOOLEAN #BoolType
+    | name= STR LRECT RRECT {$isArray=true;} #StringArrType
+    | name= ID #ClassType
+    | name= STR #StringType
+    | name= VOID #VoidType
     ;
 
 methodDecl locals[boolean isPublic=false, boolean isStatic=false]

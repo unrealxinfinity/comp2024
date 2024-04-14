@@ -25,10 +25,7 @@ public class VarargPass extends AnalysisVisitor {
         for (int i = 0; i < params.size() - 1; i++) {
             if (params.get(i).getJmmChild(0).getObject("isVarargs", Boolean.class)) {
                 String message = String.format("Only last parameter of %s can be varargs", jmmNode.get("name"));
-                Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                        NodeUtils.getLine(jmmNode),
-                        NodeUtils.getColumn(jmmNode),
-                        message);
+                Report report = NodeUtils.createSemanticError(jmmNode, message);
                 addReport(report);
             }
         }
@@ -39,10 +36,7 @@ public class VarargPass extends AnalysisVisitor {
     private Void visitVarDecl(JmmNode jmmNode, SymbolTable symbolTable) {
         if (jmmNode.getJmmChild(0).getObject("isVarargs", Boolean.class)) {
             String message = String.format("Variable %s cannot be varargs", jmmNode.get("name"));
-            Report report = new Report(ReportType.ERROR, Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    message);
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
         }
 
