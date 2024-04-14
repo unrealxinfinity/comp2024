@@ -51,6 +51,10 @@ public class TypeUtils {
         return type.getName().equals(getIntTypeName()) || type.getName().equals(getBoolTypeName());
     }
 
+    public static boolean isValidClass(String type, SymbolTable table) {
+        return type.equals(table.getClassName()) || type.equals(table.getSuper()) || table.getImports().contains(type);
+    }
+
     private static Type getBinExprType(JmmNode binaryExpr) {
         // TODO: Simple implementation that needs to be expanded
 
@@ -72,7 +76,6 @@ public class TypeUtils {
                 field -> field.getType()
         ).toList().get(0);
     }
-
 
     /**
      * @param sourceType

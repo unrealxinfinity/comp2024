@@ -2,12 +2,14 @@ package pt.up.fe.comp2024.analysis.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
+import pt.up.fe.comp2024.ast.TypeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
 /**
@@ -63,9 +65,16 @@ public class UndeclaredVariable extends AnalysisVisitor {
             return null;
         }
 
+        if (varRefExpr.getJmmParent().isInstance("ClassFunctionCallExpr")
+                && TypeUtils.isValidClass(varRefName, table)) {
+            Type type = new Type(varRefName, false);
+            type.putObject("isStatic", true);
+            varRefExpr.putObject("type", type);
+            return null;
+        }
 
         // Create error report
-        var message = String.format("Variable '%s' does not exist.", varRefName);
+        var message = String.format("Variable or class '%s' does not exist.", varRefName);
         addReport(Report.newError(
                 Stage.SEMANTIC,
                 NodeUtils.getLine(varRefExpr),

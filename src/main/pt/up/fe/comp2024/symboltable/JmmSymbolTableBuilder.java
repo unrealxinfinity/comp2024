@@ -30,8 +30,9 @@ public class JmmSymbolTableBuilder {
         var locals = buildLocals(classDecl);
         var fields = buildFields(classDecl);
         var imports = buildImports(root);
+        var statics = buildStatics(root);
 
-        return new JmmSymbolTable(className, superName, methods, imports, returnTypes, params, locals, fields);
+        return new JmmSymbolTable(className, superName, methods, imports, returnTypes, params, locals, fields, statics);
     }
 
     private static String getImportName(JmmNode method) {
@@ -49,6 +50,21 @@ public class JmmSymbolTableBuilder {
         Boolean isArray = type.getObject("isArray", Boolean.class);
         return new Type(typeName, isArray);
     }
+
+    private static Map<String, Boolean> buildStatics(JmmNode classDecl) {
+        Map<String, Boolean> map = new HashMap<>();
+
+        classDecl.getChildren(METHOD_DECL).stream()
+                .forEach(
+                        method -> map.put(
+                                method.get("name"),
+                                method.getObject("isStatic", Boolean.class)
+                        )
+                );
+
+        return map;
+    }
+
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
         // TODO: Simple implementation that needs to be expanded
 
