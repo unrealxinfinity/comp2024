@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.analysis.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
@@ -47,6 +48,7 @@ public class DupPass extends AnalysisVisitor {
             imports.add(className);
         }
 
+        checkDuplicates(fields, "Duplicated method %s in class %s", jmmNode.getChildren(Kind.METHOD_DECL), jmmNode);
         checkDuplicates(fields, "Duplicated field %s in class %s", jmmNode.getChildren(Kind.VAR_DECL), jmmNode);
 
         return null;
@@ -59,6 +61,25 @@ public class DupPass extends AnalysisVisitor {
         checkDuplicates(params, "Duplicated parameter %s in method %s", jmmNode.getChildren(Kind.PARAM), jmmNode);
 
         checkDuplicates(locals, "Duplicated local %s in method %s", jmmNode.getChildren(Kind.VAR_DECL), jmmNode);
+
+        Type retType = symbolTable.getReturnType(jmmNode.get("name"));
+        boolean isVoid = retType.getName().equals("void");
+        boolean foundReturn = false;
+
+        for (JmmNode stmt : jmmNode.getChildren("Stmt")) {
+            if (!stmt.isInstance(Kind.RETURN_STMT)) continue;
+            if (foundReturn) {
+                String message = String.format("Misplaced or duplicate return statement in method %s", jmmNode.get("name"));
+                Report report = NodeUtils.createSemanticError(jmmNode, message);
+                addReport(report);
+            }
+            foundReturn = true;
+        }
+        if (!foundReturn && !isVoid) {
+            String message = String.format("Method %s is lacking a return statement", jmmNode.get("name"));
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
+            addReport(report);
+        }
 
         return null;
     }
