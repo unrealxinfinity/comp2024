@@ -19,7 +19,10 @@ public class Assignments extends AnalysisVisitor {
     }
 
     private void checkLHS(JmmNode jmmNode) {
-        if (!jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_LITERAL)) {
+        boolean isRef = jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_LITERAL);
+        boolean isIndexedRef = jmmNode.getJmmChild(0).isInstance("IndexedExpr")
+                && jmmNode.getJmmChild(0).getJmmChild(0).isInstance(Kind.VAR_REF_LITERAL);
+        if (!isRef && !isIndexedRef) {
             String message = "LHS of assignment is not a variable";
             Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
