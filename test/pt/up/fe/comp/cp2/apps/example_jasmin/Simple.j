@@ -7,9 +7,6 @@ invokespecial java/lang/Object/<init>()V
 return
 .end method
 
-
-
-
 .method public add(II)I
 .limit stack 2
 .limit locals 5

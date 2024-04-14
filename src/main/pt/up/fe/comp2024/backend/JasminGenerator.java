@@ -129,6 +129,21 @@ public class JasminGenerator {
 
     }
 
+    private String distinguishLiteral(String literal){
+        boolean isNumber = literal.matches("\\d+");
+        if(isNumber) {
+            if(Integer.parseInt(literal)>=-1 && Integer.parseInt(literal)<=5){
+                return "iconst_";
+            }
+            else if(Integer.parseInt(literal)>=-128 && Integer.parseInt(literal)<=127){
+                return "bipush ";
+            }
+            else if(Integer.parseInt(literal)>=-32768 && Integer.parseInt(literal)<=32767){
+                return "sipush ";
+            }
+        }
+        return "ldc ";
+    }
     public JasminGenerator(OllirResult ollirResult) {
         this.ollirResult = ollirResult;
         this.symbolTable = ollirResult.getSymbolTable();
@@ -272,27 +287,31 @@ public class JasminGenerator {
     }
     private String generateCall(CallInstruction call){
         var code = new StringBuilder();
-        //Gets the call instruction
-        //generates the type of invokation instruction
-
-        if(!call.getInvocationType().equals(CallType.NEW) && !call.getInvocationType().equals(CallType.invokestatic)){
+        //Does the register operations to get the callee reference
+        if(!call.getInvocationType().equals(CallType.NEW)  && !call.getInvocationType().equals(CallType.invokestatic) && !call.getInvocationType().equals(CallType.ldc) && ! call.getInvocationType().equals(CallType.arraylength)){
             var get_caller_reference = generators.apply(call.getCaller());
             code.append(get_caller_reference);
         }
+        //Does the register operatiosn to load the argument values to the stack
+        for (var arg:call.getArguments()){
+            code.append(generators.apply(arg));
+        }
+        //generates the type of invokation instruction
         code.append(call.getInvocationType().toString().toLowerCase()).append(" ");
 
         var func="";
         var funcToCall="";
         var path="";
-        var caller = ((Operand)call.getCaller()); // need to change here since i want to add the imported functions
+        var caller = ((Operand)call.getCaller());
         var mapEntry = currentMethod.getVarTable().get(caller.getName());
+        //gets the package for the caller
         if(mapEntry!=null){
             path = getPackageFromImport(((ClassType)mapEntry.getVarType()).getName()) + ((ClassType)mapEntry.getVarType()).getName();
         }
         else{
             path = getPackageFromImport(caller.getName())+caller.getName();
         }
-        var temp = ((ClassType)call.getCaller().getType()).toString();
+
         if(call.getInvocationType().equals(CallType.NEW)){
             funcToCall += generateJasminType(call.getReturnType());
             funcToCall = funcToCall.replace("\"", "");
@@ -301,9 +320,10 @@ public class JasminGenerator {
         }
         else{
             func = ((LiteralElement) call.getMethodName()).getLiteral();
-            func = func.replaceAll("\\\"\\\"", ""); // Assigning the result back to func
+            func = func.replaceAll("\\\"", ""); // Assigning the result back to func
             func = func.equals("") ? "<init>" : func;
-            funcToCall+= path + "/" + func; //HERE !!!!!!
+
+            funcToCall+= path + "/" + func;
             funcToCall = funcToCall.replace("\"", "");
             code.append(funcToCall).append("(");
             //translates the list of args
@@ -311,8 +331,17 @@ public class JasminGenerator {
             for(var arg : call.getArguments()){
                 arguments += generateJasminType(arg.getType());
             }
-            code.append(arguments).append(")").append(generateJasminType(call.getReturnType())).append(NL);
-            //if its a init constructor, pops the reference to this since its not needed anywhere and returns void.
+            if(call.getInvocationType().equals(CallType.invokeinterface)){
+                //Appends the number of arguments if its invokeInterface
+                code.append(arguments).append(")").append(generateJasminType(call.getReturnType())).append(" ").append(call.getArguments().size()).append(NL);
+            }
+            else{
+                code.append(arguments).append(")").append(generateJasminType(call.getReturnType())).append(NL);
+            }
+            //invokespecial calls dont consume the reference so I popped it at the end of invoking.
+            if(call.getInvocationType().equals(CallType.invokespecial)){
+                code.append("pop").append(NL);
+            }
         }
 
         return code.toString();
@@ -358,7 +387,13 @@ public class JasminGenerator {
         var type = currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement();
         // not hardcoded anymore
         var inst = storeLoadInstWithType(type,true);
-        code.append(inst+"_").append(reg).append(NL);
+        if(reg<=3){
+            code.append(inst+"_").append(reg).append(NL);
+        }
+        else{
+            code.append(inst+" ").append(reg).append(NL);
+        }
+
 
         return code.toString();
     }
@@ -368,7 +403,8 @@ public class JasminGenerator {
     }
 
     private String generateLiteral(LiteralElement literal) {
-        return "ldc " + literal.getLiteral() + NL;
+        var lit = literal.getLiteral().equals("-1")? "m1" : literal.getLiteral();
+        return distinguishLiteral(literal.getLiteral()) + lit + NL;
     }
 
     private String generateOperand(Operand operand) {
@@ -377,6 +413,9 @@ public class JasminGenerator {
         //changed the hardcoded version with integer
         var type = currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement();
         var inst = storeLoadInstWithType(type,false);
+        if(reg>3){
+            return inst + " " + reg + NL;
+        }
         return inst + "_" + reg + NL;
     }
 
