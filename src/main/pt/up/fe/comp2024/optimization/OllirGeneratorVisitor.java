@@ -161,6 +161,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         if (isPublic) {
             code.append("public ");
         }
+        if (node.getObject("isStatic", Boolean.class)) {
+            code.append("static ");
+        }
         var childCode="";
         // Method name
         var name = node.get("name");
