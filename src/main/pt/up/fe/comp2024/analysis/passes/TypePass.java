@@ -141,9 +141,9 @@ public class TypePass extends AnalysisVisitor {
     }
 
     private Void propagateType(JmmNode jmmNode, SymbolTable symbolTable) {
-        visit(jmmNode.getJmmChild(0));
+        visit(jmmNode.getJmmChild(0), symbolTable);
 
-        jmmNode.putObject("type", jmmNode.getJmmChild(0).get("type"));
+        jmmNode.putObject("type", jmmNode.getJmmChild(0).getObject("type", Type.class));
 
         return null;
     }
