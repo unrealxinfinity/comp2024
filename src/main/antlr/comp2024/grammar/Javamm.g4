@@ -4,7 +4,6 @@ grammar Javamm;
     package pt.up.fe.comp2024;
 }
 
-LENGTH: 'length';
 EQUALS: '=';
 DOT: '...';
 SEMI : ';' ;
@@ -101,7 +100,7 @@ stmt
 expr
     : '(' expr ')' #ParensExpr
     | expr '[' expr ']' #IndexedExpr
-    | expr '.' LENGTH #LengthFunctionExpr
+    | expr '.' 'length' #LengthFunctionExpr
     | NEW name=ID LPAREN RPAREN #NewClassExpr
     | expr '.' name=ID LPAREN (expr ( ',' expr )*)? RPAREN #ClassFunctionCallExpr
     | name=ID LPAREN (expr ( ',' expr )*)? RPAREN #SameClassCallExpr
