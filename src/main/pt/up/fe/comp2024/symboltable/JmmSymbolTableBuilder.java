@@ -106,7 +106,6 @@ public class JmmSymbolTableBuilder {
 
         classDecl.getChildren(METHOD_DECL).stream()
                 .forEach(method -> map.put(method.get("name"), paramsAux(method)));
-
         return map;
     }
 
