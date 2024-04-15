@@ -93,6 +93,11 @@ public class MethodCalls extends AnalysisVisitor {
                 }
             }
         }
+        else if (paramNodes.size() != params.size()) {
+            String message = String.format("Incorrect number of parameters passed to method %s", jmmNode.get("name"));
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
+            addReport(report);
+        }
 
         return null;
     }
