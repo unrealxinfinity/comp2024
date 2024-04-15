@@ -37,7 +37,7 @@ public class JasminGenerator {
 
     String superClass;
     String thisClass;
-
+    Integer extraRerence=0;
     private final SymbolTable symbolTable;
 
     private final FunctionClassMap<TreeNode, String> generators;
@@ -51,10 +51,10 @@ public class JasminGenerator {
     private String getPackageFromImport(String name){
         var imports = ollirResult.getOllirClass().getImports();
         for (var imp: imports){
-            var path = imp.split("\\.");
-            if(path.length>1){
-                path = Arrays.copyOf(path,path.length-1);
-                var evaluatedClass = path[path.length-1];
+            var temp = imp.split("\\.");
+            if(temp.length>1){
+                var path = Arrays.copyOf(temp,temp.length-1);
+                var evaluatedClass = temp[temp.length-1];
                 evaluatedClass = evaluatedClass.replaceAll("\\[\\]", "");
                 if(name.equals(evaluatedClass)){
                     return String.join("/",path).replaceAll("\\[\\]", "") + "/";
@@ -128,7 +128,13 @@ public class JasminGenerator {
         }
 
     }
-
+    private String returnInstWithType(Type type){
+        return switch (type.getTypeOfElement()) {
+            case INT32,BOOLEAN -> "ireturn";
+            case ARRAYREF,OBJECTREF,CLASS,THIS,STRING-> "areturn";
+            default -> "error"; // need to add to the list of reports
+        };
+    }
     private String distinguishLiteral(String literal){
         boolean isNumber = literal.matches("\\d+");
         if(isNumber) {
@@ -277,6 +283,13 @@ public class JasminGenerator {
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
             code.append(instCode);
+            if(inst instanceof CallInstruction && ((CallInstruction)inst).getReturnType().getTypeOfElement() != ElementType.VOID){
+                code.append(TAB).append("pop").append(NL);
+            }
+            else if (inst instanceof CallInstruction && this.extraRerence != 0 ){
+                code.append(TAB).append("pop").append(NL);
+                this.extraRerence-=1;
+            }
         }
         code.append(".end method\n");
 
@@ -317,31 +330,36 @@ public class JasminGenerator {
             funcToCall = funcToCall.replace("\"", "");
             code.append(funcToCall).append(NL);
             code.append("dup").append(NL);
+            //has to be popped later since i will only use one of the duplicated references
+            this.extraRerence+=1;
         }
         else{
+            //Appends the function spec / name and package
             func = ((LiteralElement) call.getMethodName()).getLiteral();
             func = func.replaceAll("\\\"", ""); // Assigning the result back to func
             func = func.equals("") ? "<init>" : func;
-
             funcToCall+= path + "/" + func;
             funcToCall = funcToCall.replace("\"", "");
+
+            //Appends the list of args
             code.append(funcToCall).append("(");
-            //translates the list of args
             var arguments = "";
-            for(var arg : call.getArguments()){
-                arguments += generateJasminType(arg.getType());
+            for (var arg : call.getArguments()) {
+                arguments += generateJasminType(arg.getType()).equals("V") ? "" : generateJasminType(arg.getType());
             }
+            code.append(arguments).append(")");
+
+            //Generates the return type for the calL
+            code.append(generateJasminType(call.getReturnType()));
+            //Generates the number of arguments at the end if its invokeinterface
             if(call.getInvocationType().equals(CallType.invokeinterface)){
-                //Appends the number of arguments if its invokeInterface
-                code.append(arguments).append(")").append(generateJasminType(call.getReturnType())).append(" ").append(call.getArguments().size()).append(NL);
+                code.append(" ").append(call.getArguments().size());
             }
-            else{
-                code.append(arguments).append(")").append(generateJasminType(call.getReturnType())).append(NL);
-            }
-            //invokespecial calls dont consume the reference so I popped it at the end of invoking.
-            if(call.getInvocationType().equals(CallType.invokespecial)){
+            code.append(NL);
+            /*//all except invokestatic calls dont consume the reference so I popped it at the end of invoking or if parent Assignment is null.
+            if(!call.getInvocationType().equals(CallType.invokestatic)){
                 code.append("pop").append(NL);
-            }
+            }*/
         }
 
         return code.toString();
@@ -449,8 +467,9 @@ public class JasminGenerator {
             code.append("return").append(NL);
             return code.toString();
         }
+
         code.append(generators.apply(returnInst.getOperand()));
-        code.append("ireturn").append(NL);
+        code.append(returnInstWithType(returnInst.getReturnType())).append(NL);
 
         return code.toString();
     }

@@ -58,45 +58,48 @@ public class Launcher {
 
         // Code generation stage
         String ollircode = """
-                import io;
-                Simple {
-                .construct Simple().V {
-                invokespecial(this, "<init>").V;
-                }
-                                
-                .method public add(a.i32, b.i32).i32 {
-                temp_0.i32 :=.i32 invokevirtual(this, "constInstr").i32;
-                c.i32 :=.i32 $1.a.i32 +.i32 temp_0.i32;
-                ret.i32 c.i32;
-                }
-                                
-                .method public static main(args.array.String).V {
-                a.i32 :=.i32 20.i32;
-                b.i32 :=.i32 10.i32;
-                temp_2.Simple :=.Simple new(Simple).Simple;
-                invokespecial(temp_2.Simple,"<init>").V;
-                s.Simple :=.Simple temp_2.Simple;
-                temp_3.i32 :=.i32 invokevirtual(s.Simple, "add", a.i32, b.i32).i32;
-                c.i32 :=.i32 temp_3.i32;
-                invokestatic(io, "println", c.i32).V;
-                ret.V;
-                }
-                                
-                .method public constInstr().i32 {
-                c.i32 :=.i32 0.i32;
-                c.i32 :=.i32 4.i32;
-                c.i32 :=.i32 8.i32;
-                c.i32 :=.i32 14.i32;
-                c.i32 :=.i32 250.i32;
-                c.i32 :=.i32 400.i32;
-                c.i32 :=.i32 1000.i32;
-                c.i32 :=.i32 100474650.i32;
-                c.i32 :=.i32 10.i32;
-                ret.i32 c.i32;
-                }
-                                
-                }
-                                
+                            import ola.io;
+                            import test.classA;
+                            Simple extends Object {
+                            
+                            
+                            .method public add(a.i32, b.i32).i32 {
+                            tmp0.i32 :=.i32 invokevirtual(this.Simple, "constInstr").i32;
+                            tmp1.i32 :=.i32 a.i32 +.i32 tmp0.i32;
+                            c.i32 :=.i32 tmp1.i32;
+                            invokestatic(classA, "constInstr").i32;
+                            ret.i32 c.i32;
+                            }
+                            
+                            .method public static main(args.array.String).V {
+                            a.i32 :=.i32 20.i32;
+                            b.i32 :=.i32 10.i32;
+                            tmp3.Simple :=.Simple new(Simple).Simple;
+                            invokespecial(tmp3.Simple, "").V;
+                            s.Simple :=.Simple tmp3.Simple;
+                            tmp4.i32 :=.i32 invokevirtual(s.Simple, "add", a.i32, b.i32).i32;
+                            c.i32 :=.i32 tmp4.i32;
+                            invokestatic(io, "println", c.i32).V;
+                            ret.V ;
+                            }
+                            
+                            .method public constInstr().i32 {
+                            c.i32 :=.i32 0.i32;
+                            c.i32 :=.i32 4.i32;
+                            c.i32 :=.i32 8.i32;
+                            c.i32 :=.i32 14.i32;
+                            c.i32 :=.i32 250.i32;
+                            c.i32 :=.i32 400.i32;
+                            c.i32 :=.i32 1000.i32;
+                            c.i32 :=.i32 100474650.i32;
+                            c.i32 :=.i32 10.i32;
+                            ret.i32 c.i32;
+                            }
+                            
+                            .construct Simple().V {
+                            invokespecial(this, "").V;
+                            }
+                            }
                 """;
         OllirResult ollirResult = new OllirResult(semanticsResult,ollircode,Collections.emptyList());
         JasminBackendImpl jasminGen = new JasminBackendImpl();
