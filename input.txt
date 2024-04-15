@@ -1,9 +1,12 @@
 import ola.io;
+import test.classA;
 class Simple {
 
     public int add(int a, int b){
         int c;
+        String d;
         c = a + this.constInstr();
+        d = classA.constInstr();
         return c;
     }
 

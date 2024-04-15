@@ -319,25 +319,28 @@ public class JasminGenerator {
             code.append("dup").append(NL);
         }
         else{
+            //Appends the function spec / name and package
             func = ((LiteralElement) call.getMethodName()).getLiteral();
             func = func.replaceAll("\\\"", ""); // Assigning the result back to func
             func = func.equals("") ? "<init>" : func;
-
             funcToCall+= path + "/" + func;
             funcToCall = funcToCall.replace("\"", "");
+
+            //Appends the list of args
             code.append(funcToCall).append("(");
-            //translates the list of args
             var arguments = "";
-            for(var arg : call.getArguments()){
-                arguments += generateJasminType(arg.getType());
+            for (var arg : call.getArguments()) {
+                arguments += generateJasminType(arg.getType()).equals("V") ? "" : generateJasminType(arg.getType());
             }
+            code.append(arguments).append(")");
+
+            //Generates the return type for the calL
+            code.append(generateJasminType(call.getReturnType()));
+            //Generates the number of arguments at the end if its invokeinterface
             if(call.getInvocationType().equals(CallType.invokeinterface)){
-                //Appends the number of arguments if its invokeInterface
-                code.append(arguments).append(")").append(generateJasminType(call.getReturnType())).append(" ").append(call.getArguments().size()).append(NL);
+                code.append(" ").append(call.getArguments().size());
             }
-            else{
-                code.append(arguments).append(")").append(generateJasminType(call.getReturnType())).append(NL);
-            }
+            code.append(NL);
             //invokespecial calls dont consume the reference so I popped it at the end of invoking.
             if(call.getInvocationType().equals(CallType.invokespecial)){
                 code.append("pop").append(NL);
