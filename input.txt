@@ -1,4 +1,4 @@
-import io;
+import ola.io;
 class Simple {
 
     public int add(int a, int b){

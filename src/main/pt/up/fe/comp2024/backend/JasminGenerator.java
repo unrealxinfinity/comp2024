@@ -51,10 +51,10 @@ public class JasminGenerator {
     private String getPackageFromImport(String name){
         var imports = ollirResult.getOllirClass().getImports();
         for (var imp: imports){
-            var path = imp.split("\\.");
-            if(path.length>1){
-                path = Arrays.copyOf(path,path.length-1);
-                var evaluatedClass = path[path.length-1];
+            var temp = imp.split("\\.");
+            if(temp.length>1){
+                var path = Arrays.copyOf(temp,temp.length-1);
+                var evaluatedClass = temp[temp.length-1];
                 evaluatedClass = evaluatedClass.replaceAll("\\[\\]", "");
                 if(name.equals(evaluatedClass)){
                     return String.join("/",path).replaceAll("\\[\\]", "") + "/";
