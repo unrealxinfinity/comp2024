@@ -43,6 +43,9 @@ public class TypePass extends AnalysisVisitor {
     private boolean checkReturnType(JmmNode jmmNode, SymbolTable symbolTable) {
         Optional<Type> returnType = symbolTable.getReturnTypeTry(jmmNode.get("name"));
         if (returnType.isEmpty()) {
+            if (symbolTable.getSuper() != null) {
+                return false;
+            }
             String message = String.format("Method %s does not exist", jmmNode.get("name"));
             Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
@@ -67,9 +70,14 @@ public class TypePass extends AnalysisVisitor {
             Report report = NodeUtils.createSemanticError(jmmNode, message);
             addReport(report);
         }
-        else if (objType.getName().equals(symbolTable.getClassName()) && symbolTable.getSuper() == null) {
+        else if (objType.getName().equals(symbolTable.getClassName())) {
             if (checkReturnType(jmmNode, symbolTable)) {
                 return null;
+            }
+            else {
+                Type assumed = new Type("void", false);
+                assumed.putObject("assumedType", true);
+                jmmNode.putObject("type", assumed);
             }
         }
         else {
@@ -111,7 +119,7 @@ public class TypePass extends AnalysisVisitor {
     private Void visitBinaryExpr(JmmNode jmmNode, SymbolTable symbolTable) {
         String op = jmmNode.get("op");
 
-        if (op.equals("+") || op.equals("-") || op.equals("*") || op.equals("/") || op.equals("<")) {
+        if (op.equals("+") || op.equals("-") || op.equals("*") || op.equals("/")) {
             jmmNode.putObject("type", new Type("int", false));
         }
         else {
@@ -122,15 +130,20 @@ public class TypePass extends AnalysisVisitor {
     }
 
     private Void visitLen(JmmNode jmmNode, SymbolTable symbolTable) {
+        if (!jmmNode.get("name").equals("length")) {
+            String message = String.format("Expected length, got %s", jmmNode.get("name"));
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
+            addReport(report);
+        }
         jmmNode.putObject("type", new Type("int", false));
 
         return null;
     }
 
     private Void propagateType(JmmNode jmmNode, SymbolTable symbolTable) {
-        visit(jmmNode.getJmmChild(0));
+        visit(jmmNode.getJmmChild(0), symbolTable);
 
-        jmmNode.putObject("type", jmmNode.getJmmChild(0).get("type"));
+        jmmNode.putObject("type", jmmNode.getJmmChild(0).getObject("type", Type.class));
 
         return null;
     }

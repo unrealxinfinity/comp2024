@@ -1,4 +1,4 @@
-class ClassNotImported {
+class ArrayAccessOnInt {
 
     public static void main(String[] args) {
 
@@ -6,7 +6,7 @@ class ClassNotImported {
 
     public int foo() {
         int a;
-        a = A.bar();
+        a = this;
         return a;
     }
 }

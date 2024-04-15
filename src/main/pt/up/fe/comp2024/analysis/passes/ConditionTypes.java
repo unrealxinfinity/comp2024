@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.analysis.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
@@ -16,7 +17,7 @@ public class ConditionTypes extends AnalysisVisitor {
     }
 
     private Void checkConditionType(JmmNode jmmNode, SymbolTable symbolTable) {
-        if (jmmNode.getJmmChild(0).get("type").equals("boolean")) {
+        if (jmmNode.getJmmChild(0).getObject("type", Type.class).getName().equals("boolean")) {
             return null;
         }
 
