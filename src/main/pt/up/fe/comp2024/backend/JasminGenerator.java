@@ -128,7 +128,13 @@ public class JasminGenerator {
         }
 
     }
-
+    private String returnInstWithType(Type type){
+        return switch (type.getTypeOfElement()) {
+            case INT32,BOOLEAN -> "ireturn";
+            case ARRAYREF,OBJECTREF,CLASS,THIS,STRING-> "areturn";
+            default -> "error"; // need to add to the list of reports
+        };
+    }
     private String distinguishLiteral(String literal){
         boolean isNumber = literal.matches("\\d+");
         if(isNumber) {
@@ -452,8 +458,9 @@ public class JasminGenerator {
             code.append("return").append(NL);
             return code.toString();
         }
+
         code.append(generators.apply(returnInst.getOperand()));
-        code.append("ireturn").append(NL);
+        code.append(returnInstWithType(returnInst.getReturnType())).append(NL);
 
         return code.toString();
     }
