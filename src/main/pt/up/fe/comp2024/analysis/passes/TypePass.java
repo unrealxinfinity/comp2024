@@ -98,6 +98,7 @@ public class TypePass extends AnalysisVisitor {
         }
         else if (symbolTable.getImports().contains(jmmNode.get("name"))) {
             type.putObject("assumedType", true);
+            type.putObject("newObj", true);
         }
         jmmNode.putObject("type", type);
 
