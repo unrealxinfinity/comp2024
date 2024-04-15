@@ -37,7 +37,7 @@ public class JasminGenerator {
 
     String superClass;
     String thisClass;
-
+    Integer extraRerence=0;
     private final SymbolTable symbolTable;
 
     private final FunctionClassMap<TreeNode, String> generators;
@@ -283,6 +283,13 @@ public class JasminGenerator {
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
             code.append(instCode);
+            if(inst instanceof CallInstruction && ((CallInstruction)inst).getReturnType().getTypeOfElement() != ElementType.VOID){
+                code.append(TAB).append("pop").append(NL);
+            }
+            else if (inst instanceof CallInstruction && this.extraRerence != 0 ){
+                code.append(TAB).append("pop").append(NL);
+                this.extraRerence-=1;
+            }
         }
         code.append(".end method\n");
 
@@ -323,6 +330,8 @@ public class JasminGenerator {
             funcToCall = funcToCall.replace("\"", "");
             code.append(funcToCall).append(NL);
             code.append("dup").append(NL);
+            //has to be popped later since i will only use one of the duplicated references
+            this.extraRerence+=1;
         }
         else{
             //Appends the function spec / name and package
@@ -347,10 +356,10 @@ public class JasminGenerator {
                 code.append(" ").append(call.getArguments().size());
             }
             code.append(NL);
-            //invokespecial calls dont consume the reference so I popped it at the end of invoking.
-            if(call.getInvocationType().equals(CallType.invokespecial)){
+            /*//all except invokestatic calls dont consume the reference so I popped it at the end of invoking or if parent Assignment is null.
+            if(!call.getInvocationType().equals(CallType.invokestatic)){
                 code.append("pop").append(NL);
-            }
+            }*/
         }
 
         return code.toString();
