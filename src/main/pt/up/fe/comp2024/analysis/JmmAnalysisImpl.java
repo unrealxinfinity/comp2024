@@ -18,10 +18,12 @@ public class JmmAnalysisImpl implements JmmAnalysis {
 
 
     private final List<AnalysisPass> analysisPasses;
+    private final List<AnalysisPass> initialPasses;
 
     public JmmAnalysisImpl() {
 
-        this.analysisPasses = List.of(new UndeclaredVariable(), new TypePass(), new VarargPass(), new StaticPass(), new OperandsMismatch(),
+        this.initialPasses = List.of(new UndeclaredVariable());
+        this.analysisPasses = List.of(new TypePass(), new VarargPass(), new StaticPass(), new OperandsMismatch(),
             new MethodCalls(), new ConditionTypes(), new ArrayExpressions(), new Assignments(), new MethodReturns(), new DupPass(),
                 new MainPass());
 
@@ -35,6 +37,24 @@ public class JmmAnalysisImpl implements JmmAnalysis {
         SymbolTable table = JmmSymbolTableBuilder.build(rootNode);
 
         List<Report> reports = new ArrayList<>();
+        int counter = 0;
+
+        for (var analysisPass : initialPasses) {
+            try {
+                var passReports = analysisPass.analyze(rootNode, table);
+                counter += passReports.size();
+                reports.addAll(passReports);
+            } catch (Exception e) {
+                reports.add(Report.newError(Stage.SEMANTIC,
+                        -1,
+                        -1,
+                        "Problem while executing analysis pass '" + analysisPass.getClass() + "'",
+                        e)
+                );
+            }
+        }
+
+        if (counter != 0) return new JmmSemanticsResult(parserResult, table, reports);
 
         // Visit all nodes in the AST
         for (var analysisPass : analysisPasses) {
