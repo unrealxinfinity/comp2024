@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.optimization;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -114,7 +115,14 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         String ollirVarType = OptUtils.toOllirType(type);
         String code="" ;
-
+        Symbol a_symbol= new Symbol(type, varName);
+        if( table.getFields().contains(a_symbol)){
+            if(type.isArray()){code = "getfield(this," + varName+ ".array"  + ollirVarType+ ')'+ollirVarType;}
+            else {
+                code = "getfield(this," + varName + ollirVarType+ ')'+ollirVarType;
+            }
+            return new OllirExprResult(code);
+        }
         if(type.isArray()){
             code = varName + ".array" + ollirVarType;
         }
@@ -171,7 +179,18 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         Type type = TypeUtils.getExprType(node, table);
         String ollirType = OptUtils.toOllirType(type);
         String code="";
+        Symbol a_symbol= new Symbol(type, id);
+        /*
+        if( table.getFields().contains(a_symbol)){
 
+            if(type.isArray()){code = "getfield(this," + id+ ".array"  + ollirType+ ')'+ollirType;}
+            else {
+                code = "getfield(this," + id + ollirType+ ')'+ollirType;
+            }
+            return new OllirExprResult(code);
+        }
+
+         */
         if(type.isArray()){
             code = id + ".array" + ollirType;
         }
