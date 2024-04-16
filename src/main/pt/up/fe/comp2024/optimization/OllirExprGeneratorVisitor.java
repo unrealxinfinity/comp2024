@@ -116,7 +116,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         String ollirVarType = OptUtils.toOllirType(type);
         String code="" ;
         Symbol a_symbol= new Symbol(type, varName);
-        if( table.getFields().contains(a_symbol)){
+        if( table.getFields().contains(a_symbol) ){
             if(type.isArray()){code = "getfield(this," + varName+ ".array"  + ollirVarType+ ')'+ollirVarType;}
             else {
                 code = "getfield(this," + varName + ollirVarType+ ')'+ollirVarType;

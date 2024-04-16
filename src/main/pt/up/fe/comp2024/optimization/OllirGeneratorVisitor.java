@@ -92,15 +92,23 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     }
     private String visitAssignStmt(JmmNode node, Void unused) {
 
+
         var lhs = exprVisitor.visit(node.getJmmChild(0));
         var rhs = exprVisitor.visit(node.getJmmChild(1));
 
         StringBuilder code = new StringBuilder();
+        Type type = node.getJmmChild(0).getObject("type", Type.class);
+        String ollirVarType = OptUtils.toOllirType(type);
 
         // code to compute the children
         code.append(lhs.getComputation());
         code.append(rhs.getComputation());
+        if(node.getJmmChild(0).getObject("type",Type.class).getObject("level",Integer.class)==0){
 
+            code.append("putfield(this, " + node.getJmmChild(0).get("name")+ollirVarType+","+rhs.getCode()+").V;");
+            code.append(NL);
+            return code.toString();
+        }
         // code to compute self
         // statement has type of lhs
         Type thisType = node.getJmmChild(0).getObject("type",Type.class);
@@ -149,6 +157,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         }
         return code.toString();
     }
+
 
 
     private String visitParam(JmmNode node, Void unused) {
