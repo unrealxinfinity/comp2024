@@ -6,11 +6,17 @@ class CompileBasic extends Quicksort {
     int intField;
     boolean boolField;
 
+    public int foo(int a) {
+        return 1;
+    }
+    public int bar(int b, CompileBasic obj){
+        return 2;
+    }
     public int methodOne() {
         int intLocal1;
         boolean boolLocal1;
-        intLocal1=intField;
-        return intField;
+        intLocal1 = 3 + this.bar(10+new CompileBasic().foo(intLocal1), new CompileBasic());
+        return 1;
     }
 
     public boolean methodTwo(int intParam1, boolean boolParam1) {
