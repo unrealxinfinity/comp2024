@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
  * One JasminGenerator instance per OllirResult.
  */
 public class JasminGenerator {
+    //ERROR!!! I NEED TO MAKE VIRTUAL INVOKATIONS WHEN I DECLARE NEW IMPORTED CLASSES
 
     private static final String NL = "\n";
     private static final String TAB = "   ";
