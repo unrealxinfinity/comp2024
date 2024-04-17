@@ -15,6 +15,19 @@ public class ArrayExpressions extends AnalysisVisitor {
         addVisit("NewArrayExpr", this::visitNewArray);
         addVisit("ArrayExpr", this::visitArrayInitializer);
         addVisit("IndexedExpr", this::visitIndexedExpr);
+        addVisit("LengthFunctionExpr", this::checkLength);
+    }
+
+    private Void checkLength(JmmNode jmmNode, SymbolTable symbolTable) {
+        Type objType = jmmNode.getJmmChild(0).getObject("type", Type.class);
+
+        if (!objType.isArray()) {
+            String message = String.format("Cannot access length of type %s", objType.getName());
+            Report report = NodeUtils.createSemanticError(jmmNode, message);
+            addReport(report);
+        }
+
+        return null;
     }
 
     private Void visitIndexedExpr(JmmNode jmmNode, SymbolTable symbolTable) {

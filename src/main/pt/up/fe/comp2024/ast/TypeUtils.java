@@ -93,7 +93,8 @@ public class TypeUtils {
         if (sourceType.getName().equals(symbolTable.getClassName()) && destinationType.getName().equals(symbolTable.getSuper())) {
             return true;
         }
-        if (sourceType.getOptionalObject("assumedType").isPresent()) {
+        if (!(isPrimitive(destinationType) && sourceType.getOptionalObject("newObj").isPresent())
+                && sourceType.getOptionalObject("assumedType").isPresent()) {
             return true;
         }
         else if (toArray) {
