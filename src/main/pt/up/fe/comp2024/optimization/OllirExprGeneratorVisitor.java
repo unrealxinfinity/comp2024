@@ -38,7 +38,12 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(CLASS_FUNCTION_CALL_EXPR, this::visitMethodCall);
         addVisit(THIS, this::visitThis);
         addVisit(NEW_CLASS_EXPR, this::visitNewObj);
+        addVisit("ParensExpr", this::visitParens);
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private OllirExprResult visitParens(JmmNode jmmNode, Void unused) {
+        return visit(jmmNode.getJmmChild(0), unused);
     }
 
     private OllirExprResult visitNewObj(JmmNode jmmNode, Void unused) {
