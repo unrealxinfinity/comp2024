@@ -101,7 +101,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         String ollirVarType = OptUtils.toOllirType(type);
 
         // code to compute the children
-        code.append(lhs.getComputation());
+        //code.append(lhs.getComputation());
         code.append(rhs.getComputation());
 
         if(node.getJmmChild(0).getObject("type",Type.class).getObject("level",Integer.class)==0){
