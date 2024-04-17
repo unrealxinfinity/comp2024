@@ -2,14 +2,9 @@ import foo.bar.A;
 import Auxi;
 import io;
 class Simple {
-    public int test(){
-        int b;
-        Auxi a;
-        a = new Auxi();
-        b = this.foo();
-        b = a.instanceCallInt();
-        io.print(c);
-        return b;
+    public int test(Auxi a){
+        Auxi.staticCall(3);
+        return 3;
     }
     public int foo(){
         return 3;
@@ -17,16 +12,10 @@ class Simple {
 
     public static void main(String[] args){
        Simple s;
-       boolean b;
-       String d;
+       Auxi a;
        int e;
-       int f;
+       a = new Auxi();
        s = new Simple();
-       d = A.foo();
-       e = s.foo();
-       f=s.test();
-
-
-
+       e = s.test(a);
     }
 }

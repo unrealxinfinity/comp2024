@@ -98,7 +98,7 @@ public class JasminGenerator {
             var temp = ((ArrayType)type).getElementType();
             return "[" + generateJasminType(temp);
         } else if (t.equals(ElementType.OBJECTREF)) {
-            var temp = getPackageFromImport(((ClassType)type).getName()) + ((ClassType)type).getName();
+            var temp = "L"+getPackageFromImport(((ClassType)type).getName()) + ((ClassType)type).getName()+";";
             return temp;
         } else if (t.equals(ElementType.CLASS)) {
             return "L";
@@ -327,7 +327,8 @@ public class JasminGenerator {
         }
 
         if(call.getInvocationType().equals(CallType.NEW)){
-            funcToCall += generateJasminType(call.getReturnType());
+            var objRef=generateJasminType(call.getReturnType());
+            funcToCall += objRef.substring(1,objRef.length()-1);
             funcToCall = funcToCall.replace("\"", "");
             code.append(funcToCall).append(NL);
             code.append("dup").append(NL);
