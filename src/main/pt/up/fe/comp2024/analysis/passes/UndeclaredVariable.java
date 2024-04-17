@@ -38,14 +38,14 @@ public class UndeclaredVariable extends AnalysisVisitor {
         // Check if exists a parameter or variable declaration with the same name as the variable reference
         var varRefName = varRefExpr.get("name");
 
-        Symbol checkField = table.getFields().stream()
+        Symbol checkLocal = table.getLocalVariables(currentMethod).stream()
                 .filter(param -> param.getName().equals(varRefName)).findFirst().orElse(null);
 
-        // Var is a field, return
-        if (checkField != null) {
-            Type type = checkField.getType();
-            type.putObject("level", 0);
-            varRefExpr.putObject("type", type);
+        // Var is a declared variable, return
+        if (checkLocal != null) {
+            Type type = checkLocal.getType();
+            type.putObject("level", 2);
+            varRefExpr.putObject("type", checkLocal.getType());
             return null;
         }
 
@@ -60,14 +60,14 @@ public class UndeclaredVariable extends AnalysisVisitor {
             return null;
         }
 
-        Symbol checkLocal = table.getLocalVariables(currentMethod).stream()
+        Symbol checkField = table.getFields().stream()
                 .filter(param -> param.getName().equals(varRefName)).findFirst().orElse(null);
 
-        // Var is a declared variable, return
-        if (checkLocal != null) {
-            Type type = checkLocal.getType();
-            type.putObject("level", 2);
-            varRefExpr.putObject("type", checkLocal.getType());
+        // Var is a field, return
+        if (checkField != null) {
+            Type type = checkField.getType();
+            type.putObject("level", 0);
+            varRefExpr.putObject("type", type);
             return null;
         }
 

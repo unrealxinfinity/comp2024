@@ -123,7 +123,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         String code="" ;
         String computation="";
         Symbol a_symbol= new Symbol(type, varName);
-        if( table.getFields().contains(a_symbol) ){
+        if( type.getObject("level", Integer.class) == 0 ){
             if(type.isArray()){code = "getfield(this," + varName+ ".array"  + ollirVarType+ ')'+ollirVarType;}
             else {
                 var temp = OptUtils.getTemp()+ ollirVarType;
