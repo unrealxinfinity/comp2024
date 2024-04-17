@@ -1,39 +1,32 @@
-import ola.io;
-import test.classA;
+import foo.bar.A;
+import Auxi;
+import io;
 class Simple {
-
-    public int add(int a, int b){
-        int c;
-        c = a + this.constInstr();
-        classA.constInstr();
-        return c;
+    public int test(){
+        int b;
+        Auxi a;
+        a = new Auxi();
+        b = this.foo();
+        b = a.instanceCallInt();
+        io.print(c);
+        return b;
+    }
+    public int foo(){
+        return 3;
     }
 
     public static void main(String[] args){
-        int a;
-        int b;
-        int c;
-        Simple s;
-        a = 20;
-        b = 10;
-        s = new Simple();
-        c = s.add(a,b);
-        io.println(c);
+       Simple s;
+       boolean b;
+       String d;
+       int e;
+       int f;
+       s = new Simple();
+       d = A.foo();
+       e = s.foo();
+       f=s.test();
+
+
+
     }
-
-    public int constInstr(){
-        int c;
-        c = 0;
-        c = 4;
-        c = 8;
-        c = 14;
-        c = 250;
-        c = 400;
-        c = 1000;
-        c = 100474650;
-		c = 10;
-        return c;
-    }
-
-
 }
