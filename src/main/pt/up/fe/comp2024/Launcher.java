@@ -65,7 +65,7 @@ public class Launcher {
         // Print Jasmin code
         System.out.println(jasminResult.getJasminCode());
         System.out.println("HERE");
-        System.out.println(jasminResult.run(jasminResult.getJasminCode()));
+        System.out.println(jasminResult.run());
 
 
     }
