@@ -29,7 +29,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
     @Override
     protected void buildVisitor() {
-        addVisit(VAR_REF_EXPR, this::visitVarRef);
+        //addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit(BINARY_EXPR, this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
         addVisit(BOOLEAN_LITERAL, this::visitBoolean);
@@ -115,13 +115,16 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         String ollirVarType = OptUtils.toOllirType(type);
         String code="" ;
+        String computation="";
         Symbol a_symbol= new Symbol(type, varName);
         if( table.getFields().contains(a_symbol) ){
             if(type.isArray()){code = "getfield(this," + varName+ ".array"  + ollirVarType+ ')'+ollirVarType;}
             else {
-                code = "getfield(this," + varName + ollirVarType+ ')'+ollirVarType;
+                var temp = OptUtils.getTemp()+ ollirVarType;
+                computation = temp+SPACE+ASSIGN+ollirVarType+SPACE+"getfield(this," + varName + ollirVarType+ ')'+ollirVarType+END_STMT;
+                code = temp;
             }
-            return new OllirExprResult(code);
+            return new OllirExprResult(code,computation);
         }
         if(type.isArray()){
             code = varName + ".array" + ollirVarType;

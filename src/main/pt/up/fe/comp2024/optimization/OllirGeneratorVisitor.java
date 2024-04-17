@@ -103,6 +103,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         // code to compute the children
         code.append(lhs.getComputation());
         code.append(rhs.getComputation());
+
         if(node.getJmmChild(0).getObject("type",Type.class).getObject("level",Integer.class)==0){
 
             code.append("putfield(this, " + node.getJmmChild(0).get("name")+ollirVarType+","+rhs.getCode()+").V;");
