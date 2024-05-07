@@ -358,10 +358,7 @@ public class JasminGenerator {
                 code.append(" ").append(call.getArguments().size());
             }
             code.append(NL);
-            /*//all except invokestatic calls dont consume the reference so I popped it at the end of invoking or if parent Assignment is null.
-            if(!call.getInvocationType().equals(CallType.invokestatic)){
-                code.append("pop").append(NL);
-            }*/
+
         }
 
         return code.toString();
