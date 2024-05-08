@@ -51,25 +51,33 @@ public class Launcher {
       //  JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
       //  OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
         //TestUtils.noErrors(ollirResult.getReports());
-       String ollirCode  = "import ioPlus;\n" +
-               "SimpleControlFlow {\n" +
-               "\t.construct SimpleControlFlow().V {\n" +
-               "\t\tinvokespecial(this, \"<init>\").V;\n" +
-               "\t}\n" +
+       String ollirCode  = "import io;\n" +
                "\n" +
-               "\t.method public static main(args.array.String).V {\n" +
+               "Arithmetic_and{\n" +
                "\n" +
-               "\t\ta.i32 :=.i32 2.i32;\n" +
-               "\t\tb.i32 :=.i32 3.i32;\n" +
-               "\t\tif (b.i32 >=.bool a.i32) goto ELSE_0;\n" +
-               "\t\tinvokestatic(ioPlus, \"printResult\", a.i32).V;\n" +
-               "\t\tgoto ENDIF_1;\n" +
-               "\t\tELSE_0:\n" +
-               "\t\tinvokestatic(ioPlus, \"printResult\", b.i32).V;\n" +
-               "\t\tENDIF_1:\n" +
-               "\t\tret.V;\n" +
-               "\t}\n" +
+               "   .construct Arithmetic_and().V {\n" +
+               "       invokespecial(this, \"<init>\").V;\n" +
+               "   }\n" +
                "\n" +
+               "   .method public static main(args.array.String).V {\n" +
+               "      tmp0.Arithmetic_and :=.Arithmetic_and new(Arithmetic_and).Arithmetic_and;\n" +
+               "      invokespecial(tmp0.Arithmetic_and, \"<init>\").V;\n" +
+               "      c.Arithmetic_and :=.Arithmetic_and tmp0.Arithmetic_and;\n" +
+               "      if(1.bool) goto true_0;\n" +
+               "      tmp1.bool :=.bool 0.bool;\n" +
+               "      goto end_0;\n" +
+               "      true_0:\n" +
+               "      tmp2.bool :=.bool invokevirtual(c.Arithmetic_and, \"p\", 1.i32).bool;\n" +
+               "      tmp1.bool :=.bool tmp2.bool;\n" +
+               "      end_0:\n" +
+               "      a.bool :=.bool tmp1.bool;\n" +
+               "      ret.V ;\n" +
+               "   }\n" +
+               "\n" +
+               "   .method p(value.i32).bool {\n" +
+               "      invokestatic(io, \"print\", value.i32).V;\n" +
+               "      ret.bool 1.bool;\n" +
+               "   }\n" +
                "}";
         OllirResult ollirResult = new OllirResult(semanticsResult,ollirCode,Collections.emptyList());
         // Print OLLIR code
