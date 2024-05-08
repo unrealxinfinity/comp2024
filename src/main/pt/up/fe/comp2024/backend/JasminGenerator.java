@@ -172,6 +172,16 @@ public class JasminGenerator {
         }
         return "ldc ";
     }
+    private String findLabel(Instruction inst){
+        for(var entry :this.currentMethod.getLabels().entrySet()){
+            var k = entry.getKey();
+            var ins = entry.getValue();
+            if(ins.equals(inst)){
+                return k+":"+NL;
+            }
+        }
+        return "";
+    }
     public JasminGenerator(OllirResult ollirResult) {
         this.ollirResult = ollirResult;
         this.symbolTable = ollirResult.getSymbolTable();
@@ -305,7 +315,7 @@ public class JasminGenerator {
         for (var inst : method.getInstructions()) {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
-
+            code.append(findLabel(inst));
             code.append(instCode);
             if(inst instanceof CallInstruction && ((CallInstruction)inst).getReturnType().getTypeOfElement() != ElementType.VOID){
                 code.append(TAB).append("pop").append(NL);
