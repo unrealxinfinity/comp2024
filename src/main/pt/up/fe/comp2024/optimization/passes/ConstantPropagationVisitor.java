@@ -16,8 +16,8 @@ import java.util.Map;
 
 public class ConstantPropagationVisitor extends AnalysisVisitor {
     Map<String, JmmNode> constants;
-    boolean inWhile;
-    boolean inIfElse;
+
+    boolean inConditional = false;
 
     @Override
     protected void buildVisitor() {
@@ -25,6 +25,30 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
         addVisit(Kind.ASSIGN_STMT, this::visitAssignment);
         addVisit("WhileStatement", this::visitWhile);
         addVisit(Kind.VAR_REF_LITERAL, this::visitVarRef);
+        addVisit("IfStatement", this::visitIf);
+    }
+
+    private Void visitIf(JmmNode jmmNode, SymbolTable symbolTable) {
+        visit(jmmNode.getJmmChild(0), symbolTable);
+
+        inConditional = true;
+        visit(jmmNode.getJmmChild(1), symbolTable);
+        Map<String, JmmNode> tempConstants = new HashMap<>(constants);
+        visit(jmmNode.getJmmChild(2), symbolTable);
+        inConditional = false;
+
+        Map<String, JmmNode> finalConstants = new HashMap<>();
+        for (Map.Entry<String, JmmNode> elem : constants.entrySet()) {
+            if (!tempConstants.containsKey(elem.getKey())) continue;
+            int left = Integer.parseInt(elem.getValue().getJmmChild(1).get("value"));
+            int right = Integer.parseInt(tempConstants.get(elem.getKey()).getJmmChild(1).get("value"));
+            if (left != right) continue;
+
+            finalConstants.put(elem.getKey(), elem.getValue());
+        }
+
+        constants = new HashMap<>(finalConstants);
+        return null;
     }
 
     private Void visitVarRef(JmmNode jmmNode, SymbolTable symbolTable) {
@@ -40,12 +64,15 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
     }
 
     private Void visitWhile(JmmNode jmmNode, SymbolTable symbolTable) {
-        visit(jmmNode.getJmmChild(1));
-        visit(jmmNode.getJmmChild(0));
+        inConditional = true;
+        visit(jmmNode.getJmmChild(1), symbolTable);
+        inConditional = false;
+        visit(jmmNode.getJmmChild(0), symbolTable);
         return null;
     }
 
     private Void visitAssignment(JmmNode jmmNode, SymbolTable symbolTable) {
+        if (!inConditional && (jmmNode.getParent().isInstance("IfStatement") || jmmNode.getParent().isInstance("WhileStatement"))) return null;
         if (!jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_LITERAL)) return null;
         if (!jmmNode.getJmmChild(1).isInstance(Kind.INTEGER_LITERAL)) {
             constants.remove(jmmNode.getJmmChild(0).get("name"));
@@ -53,7 +80,7 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
         }
         if (constants.containsKey(jmmNode.getJmmChild(0).get("name"))) {
             JmmNode toRemove = constants.get(jmmNode.getJmmChild(0).get("name"));
-            toRemove.getParent().removeChild(toRemove);
+            //toRemove.getParent().removeChild(toRemove);
         }
         constants.put(jmmNode.getJmmChild(0).get("name"), jmmNode);
         return null;
@@ -66,7 +93,7 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
             visit(child);
         }
         for (JmmNode toRemove : constants.values()) {
-            toRemove.getParent().removeChild(toRemove);
+            //toRemove.getParent().removeChild(toRemove);
         }
         return null;
     }
