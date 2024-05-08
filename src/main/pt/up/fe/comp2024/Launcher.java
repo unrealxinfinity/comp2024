@@ -48,10 +48,30 @@ public class Launcher {
 
 
         // Optimization stage
-        JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
-        OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
+      //  JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
+      //  OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
         //TestUtils.noErrors(ollirResult.getReports());
-
+       String ollirCode  = "import ioPlus;\n" +
+               "SimpleControlFlow {\n" +
+               "\t.construct SimpleControlFlow().V {\n" +
+               "\t\tinvokespecial(this, \"<init>\").V;\n" +
+               "\t}\n" +
+               "\n" +
+               "\t.method public static main(args.array.String).V {\n" +
+               "\n" +
+               "\t\ta.i32 :=.i32 2.i32;\n" +
+               "\t\tb.i32 :=.i32 3.i32;\n" +
+               "\t\tif (b.i32 >=.bool a.i32) goto ELSE_0;\n" +
+               "\t\tinvokestatic(ioPlus, \"printResult\", a.i32).V;\n" +
+               "\t\tgoto ENDIF_1;\n" +
+               "\t\tELSE_0:\n" +
+               "\t\tinvokestatic(ioPlus, \"printResult\", b.i32).V;\n" +
+               "\t\tENDIF_1:\n" +
+               "\t\tret.V;\n" +
+               "\t}\n" +
+               "\n" +
+               "}";
+        OllirResult ollirResult = new OllirResult(semanticsResult,ollirCode,Collections.emptyList());
         // Print OLLIR code
         System.out.println(ollirResult.getOllirCode());
 
@@ -61,11 +81,11 @@ public class Launcher {
         JasminBackendImpl jasminGen = new JasminBackendImpl();
         JasminResult jasminResult = jasminGen.toJasmin(ollirResult);
        // TestUtils.noErrors(jasminResult.getReports());
-        jasminResult.compile();
+        //jasminResult.compile();
         // Print Jasmin code
         System.out.println(jasminResult.getJasminCode());
-        System.out.println("HERE");
-        jasminResult.run();
+       // System.out.println("HERE");
+       // jasminResult.run();
 
 
     }

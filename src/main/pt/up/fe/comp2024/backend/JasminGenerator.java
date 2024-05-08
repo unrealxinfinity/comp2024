@@ -39,6 +39,7 @@ public class JasminGenerator {
     String superClass;
     String thisClass;
     Integer extraRerence=0;
+    Integer cmpLabelNumbers=0;
     private final SymbolTable symbolTable;
 
     private final FunctionClassMap<TreeNode, String> generators;
@@ -64,23 +65,43 @@ public class JasminGenerator {
         }
         return "" ;
     }
-    private String instWithType(ElementType type,OperationType opType){
+    private String loadBooleanLiteral(){
+        StringBuilder code = new StringBuilder();
+        code.append("cmp_true_"+this.cmpLabelNumbers).append(NL);
+        code.append("iconst_0");
+        code.append("cmp_true"+this.cmpLabelNumbers+":").append(NL);
+        code.append("iconst_1");
+        var branch ="cmp_true_"+this.cmpLabelNumbers;
+        this.cmpLabelNumbers++;
+        return branch;
+    }
+    private String instWithTypeBinary(Operation op){
+        var opType = op.getOpType();
+        var type = op.getTypeInfo().getTypeOfElement();
         switch (type) {
             case INT32:  switch (opType){
                 case ADD: return "iadd";
                 case SUB: return "isub";
                 case MUL: return "imul";
-                case DIV: return "idiv" ;
+                case DIV: return "idiv";
             };
             case BOOLEAN: switch (opType){
-                case EQ:
-                case SUB:
+                case LTH: return "if_icmplt";
+                case LTE: return "if_icmple";
+                case GTH: return "if_icmpgt";
+                case GTE: return "if_icmpge";
+                case EQ: return "if_icmpeq";
+                case NEQ: return "if_icmpne";
                 case AND:
                 case OR:
                 case XOR: break;
             };
             case ARRAYREF:
-            case OBJECTREF:
+            case OBJECTREF: switch(opType){
+                case EQ: return "if_acmpeq";
+                case NEQ: return "if_acmpne";
+                default: break;
+            }
             case CLASS:
             case THIS:
             case STRING: break;
@@ -172,6 +193,8 @@ public class JasminGenerator {
         generators.put(ReturnInstruction.class, this::generateReturn);
         generators.put(CallInstruction.class,this::generateCall);
         generators.put(FieldInstruction.class,this::generateFieldInst);
+        generators.put(CondBranchInstruction.class,this::generateConditional);
+        generators.put(GotoInstruction.class,this::generateGoTo);
     }
 
     public List<Report> getReports() {
@@ -385,10 +408,15 @@ public class JasminGenerator {
     }
     private String generateAssign(AssignInstruction assign) {
         var code = new StringBuilder();
-
+        var rhs = generators.apply(assign.getRhs());
         // generate code for loading what's on the right
-        code.append(generators.apply(assign.getRhs()));
-
+        code.append(rhs);
+        var assignType = assign.getTypeOfAssign();
+        if(assignType.equals(ElementType.BOOLEAN)){
+            if(assign.getRhs() instanceof BinaryOpInstruction) {
+                code.append(loadBooleanLiteral()).append(NL);
+            }
+        }
         // store value in the stack in destination
         var lhs = assign.getDest();
         if (!(lhs instanceof Operand)) {
@@ -420,7 +448,7 @@ public class JasminGenerator {
     }
 
     private String generateLiteral(LiteralElement literal) {
-        var lit = literal.getLiteral().equals("-1")? "m1" : literal.getLiteral();
+        var lit= literal.getLiteral().equals("-1")? "m1" : literal.getLiteral();
         return distinguishLiteral(literal.getLiteral()) + lit + NL;
     }
 
@@ -444,19 +472,22 @@ public class JasminGenerator {
         code.append(generators.apply(binaryOp.getRightOperand()));
         var type1 = binaryOp.getLeftOperand().getType().getTypeOfElement();
         var type2 = binaryOp.getRightOperand().getType().getTypeOfElement();
-
         if (!type1.equals(type2)){
             //Add error report here
         }
-
         // apply operation
-        var op = instWithType(type1,binaryOp.getOperation().getOpType());
+        var op = instWithTypeBinary(binaryOp.getOperation());
         if (op.equals("error")) throw new NotImplementedException(binaryOp.getOperation().getOpType());
-        code.append(op).append(NL);
+        if(binaryOp.getOperation().getTypeInfo().getTypeOfElement().equals(ElementType.BOOLEAN)){
+            code.append(op).append(" ");
+
+        }
+        else{
+            code.append(op).append(NL);
+        }
 
         return code.toString();
     }
-
     private String generateReturn(ReturnInstruction returnInst) {
         var code = new StringBuilder();
 
@@ -472,5 +503,21 @@ public class JasminGenerator {
 
         return code.toString();
     }
-
+    private String generateConditional(CondBranchInstruction branchInst){
+        StringBuilder code = new StringBuilder();
+        var condition = branchInst.getCondition();
+        if (branchInst.getCondition() instanceof SingleOpInstruction){
+            code.append(generators.apply(branchInst.getCondition())).append("ifeq ").append(branchInst.getLabel()).append(NL);
+        }
+        else{
+            code.append(generators.apply(branchInst.getCondition())).append(branchInst.getLabel()).append(NL);
+        }
+        //
+        return code.toString();
+    }
+    private String generateGoTo(GotoInstruction goToInst){
+        StringBuilder code = new StringBuilder();
+        code.append("goto").append(" ").append(goToInst.getLabel()).append(NL);
+        return code.toString();
+    }
 }
