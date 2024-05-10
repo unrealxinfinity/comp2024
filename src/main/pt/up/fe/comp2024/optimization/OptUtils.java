@@ -14,6 +14,18 @@ import static pt.up.fe.comp2024.ast.Kind.TYPE;
 public class OptUtils {
     private static int tempNumber = -1;
 
+    private static int ifStmtNumber = -1;
+
+    private static int elseStmtNumber =-1;
+
+    public static String getif(){
+        ifStmtNumber++;
+        return "if"+ifStmtNumber;
+    }
+    public static String getendif(){
+        elseStmtNumber++;
+        return "endif"+elseStmtNumber;
+    }
     public static String getTemp() {
 
         return getTemp("tmp");

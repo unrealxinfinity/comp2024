@@ -49,9 +49,32 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(VAR_DECL, this::visitVarDecl);
         addVisit(SIMPLE_STATEMENT, this::visitSimpleStatement);
         addVisit(IMPORT_DECL, this::visitImportDecl);
+        addVisit(IF_STATEMENT,this::visitIfStatement);
         setDefaultVisit(this::defaultVisit);
     }
 
+    private String visitIfStatement(JmmNode node, Void unused){
+        StringBuilder codeBuilder = new StringBuilder();
+
+
+        OllirExprResult condition = exprVisitor.visit(node.getJmmChild(0));
+        codeBuilder.append(condition.getComputation()).append(NL);
+        String if_branch= OptUtils.getif();
+        String endif_branch = OptUtils.getendif();
+
+        codeBuilder.append("if (").append(condition.getCode()).append(")").append(SPACE).append("goto ").append(if_branch).append(END_STMT);
+
+        String then_body = visit(node.getJmmChild(1));
+        String else_body = visit(node.getJmmChild(2));
+
+        codeBuilder.append(else_body).append(NL);
+        codeBuilder.append("goto ").append(endif_branch).append(END_STMT);
+
+        codeBuilder.append(if_branch).append(":").append(NL);
+        codeBuilder.append(then_body);
+        codeBuilder.append(endif_branch).append(":").append(NL);
+        return codeBuilder.toString();
+    }
     private String visitImportDecl(JmmNode node, Void unused) {
         StringBuilder codeBuilder = new StringBuilder();
 
