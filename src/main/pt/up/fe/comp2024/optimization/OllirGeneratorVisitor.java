@@ -50,9 +50,31 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(SIMPLE_STATEMENT, this::visitSimpleStatement);
         addVisit(IMPORT_DECL, this::visitImportDecl);
         addVisit(IF_STATEMENT,this::visitIfStatement);
+        addVisit(WHILE_STATEMENT, this::visitWhileStatement);
         setDefaultVisit(this::defaultVisit);
     }
+    private String visitWhileStatement(JmmNode node, Void unused){
+        StringBuilder codeBuilder = new StringBuilder();
 
+        OllirExprResult condition = exprVisitor.visit(node.getJmmChild(0));
+        String loopbranch= OptUtils.getWhileLoop();
+        String conditionbranch= OptUtils.getWhileCond();
+        String whileendbranch= OptUtils.getWhileEnd();
+        String loopbody = visit(node.getJmmChild(1));
+
+        codeBuilder.append(conditionbranch).append(":").append(NL);
+
+        codeBuilder.append(condition.getComputation()).append(NL);
+
+        codeBuilder.append("if ").append("(").append(condition.getCode()).append(")").append(SPACE).append("goto ").append(loopbranch).append(END_STMT);
+        codeBuilder.append("goto ").append(SPACE).append(whileendbranch).append(END_STMT);
+        codeBuilder.append(loopbranch).append(":").append(NL);
+        codeBuilder.append(loopbody).append(NL);
+        codeBuilder.append("goto ").append(SPACE).append(conditionbranch).append(END_STMT);
+        codeBuilder.append(whileendbranch).append(":").append(NL);
+
+        return codeBuilder.toString();
+    }
     private String visitIfStatement(JmmNode node, Void unused){
         StringBuilder codeBuilder = new StringBuilder();
 

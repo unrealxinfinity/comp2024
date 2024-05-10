@@ -18,6 +18,24 @@ public class OptUtils {
 
     private static int elseStmtNumber =-1;
 
+    private static int whileCondNumber =-1;
+
+    private static int whileLoopNumber =-1;
+
+    private static int whileEndNumber=-1;
+    public static String getWhileCond(){
+        whileCondNumber++;
+        return "whileCond"+whileCondNumber;
+    }
+    public static String getWhileLoop(){
+        whileLoopNumber++;
+        return "whileLoop"+whileLoopNumber;
+    }
+
+    public static String getWhileEnd(){
+        whileEndNumber++;
+        return "whileEnd"+whileEndNumber;
+    }
     public static String getif(){
         ifStmtNumber++;
         return "if"+ifStmtNumber;

@@ -22,6 +22,9 @@ public enum Kind {
     VAR_REF_LITERAL,
 
     IF_STATEMENT,
+
+    WHILE_STATEMENT,
+
     SIMPLE_STATEMENT,
 
     NEW_CLASS_EXPR,
