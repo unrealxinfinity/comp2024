@@ -72,7 +72,7 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
     }
 
     private Void visitAssignment(JmmNode jmmNode, SymbolTable symbolTable) {
-        if (!inConditional && (jmmNode.getParent().isInstance("IfStatement") || jmmNode.getParent().isInstance("WhileStatement"))) return null;
+        if (!inConditional && (jmmNode.getParent().getParent().isInstance("IfStatement") || jmmNode.getParent().getParent().isInstance("WhileStatement"))) return null;
         if (!jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_LITERAL)) return null;
         if (!jmmNode.getJmmChild(1).isInstance(Kind.INTEGER_LITERAL)) {
             constants.remove(jmmNode.getJmmChild(0).get("name"));
