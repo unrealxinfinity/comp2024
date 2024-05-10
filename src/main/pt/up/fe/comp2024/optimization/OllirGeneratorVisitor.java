@@ -51,7 +51,16 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(IMPORT_DECL, this::visitImportDecl);
         addVisit(IF_STATEMENT,this::visitIfStatement);
         addVisit(WHILE_STATEMENT, this::visitWhileStatement);
+        addVisit(ENCVALOSE_STATEMENT, this::visitEncvaloseStatement);
         setDefaultVisit(this::defaultVisit);
+    }
+    private String visitEncvaloseStatement(JmmNode node, Void unused) {
+        StringBuilder codeBuilder = new StringBuilder();
+
+        for (JmmNode stmt : node.getChildren())
+            codeBuilder.append(visit(stmt));
+
+        return codeBuilder.toString();
     }
     private String visitWhileStatement(JmmNode node, Void unused){
         StringBuilder codeBuilder = new StringBuilder();

@@ -29,6 +29,8 @@ public enum Kind {
 
     NEW_CLASS_EXPR,
 
+    ENCVALOSE_STATEMENT,
+
     CLASS_FUNCTION_CALL_EXPR,
 
     THIS,
