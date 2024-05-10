@@ -86,12 +86,12 @@ param
     ;
 
 stmt
-    //: LCURLY (stmt)* RCURLY #EncvaloseStatement
-    : IF LPAREN expr RPAREN
-        LCURLY stmt RCURLY
+    : LCURLY (stmt)* RCURLY #EncvaloseStatement
+    | IF LPAREN expr RPAREN
+        stmt
       ELSE
-        LCURLY stmt RCURLY #IfStatement
-    | WHILE LPAREN expr RPAREN LCURLY stmt RCURLY #WhileStatement
+        stmt #IfStatement
+    | WHILE LPAREN expr RPAREN stmt #WhileStatement
     | expr SEMI #SimpleStatement
     | expr '=' expr SEMI #AssignStmt
     | expr LRECT expr RRECT '=' expr SEMI #ArrayAlterIndexStatement
