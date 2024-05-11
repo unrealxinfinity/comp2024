@@ -17,6 +17,9 @@ public enum Kind {
     ASSIGN_STMT,
     RETURN_STMT,
     BINARY_EXPR,
+
+    LOGICAL_EXPR,
+
     INTEGER_LITERAL,
     VAR_REF_EXPR,
     VAR_REF_LITERAL,
@@ -32,6 +35,10 @@ public enum Kind {
     ENCVALOSE_STATEMENT,
 
     CLASS_FUNCTION_CALL_EXPR,
+
+    ARRAY_EXPR,
+
+    NEW_ARRAY_EXPR,
 
     THIS,
     BOOLEAN_LITERAL;

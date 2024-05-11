@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.optimization;
 
+import org.specs.comp.ollir.Ollir;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
@@ -38,14 +39,48 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(CLASS_FUNCTION_CALL_EXPR, this::visitMethodCall);
         addVisit(THIS, this::visitThis);
         addVisit(NEW_CLASS_EXPR, this::visitNewObj);
+        addVisit(LOGICAL_EXPR, this::visitLogicalExpr);
+        addVisit(NEW_ARRAY_EXPR, this::visitArrayNew);
         addVisit("ParensExpr", this::visitParens);
         setDefaultVisit(this::defaultVisit);
     }
+    private OllirExprResult visitArrayNew(JmmNode jmmNode, Void unused){
+        StringBuilder computation = new StringBuilder();
+        Type type = jmmNode.getObject("type", Type.class);
+        Type sizetype= jmmNode.getJmmChild(0).getObject("type", Type.class);
+        String intOllirType = OptUtils.toOllirType(sizetype);
+        String arrayintOllirType= OptUtils.toOllirType(type);
 
+        OllirExprResult size = visit(jmmNode.getJmmChild(0));
+
+        String sizeTemp = OptUtils.getTemp() + intOllirType;
+        computation.append(size.getComputation());
+        computation.append(sizeTemp + SPACE + ASSIGN + intOllirType + SPACE + size.getCode() + END_STMT);
+
+        String arrayTemp = OptUtils.getTemp() + arrayintOllirType;
+        computation.append(arrayTemp + SPACE + ASSIGN + "int[]" + " new(array, " + sizeTemp + ")" + arrayintOllirType + END_STMT);
+
+        return new OllirExprResult(arrayTemp, computation);
+
+    }
     private OllirExprResult visitParens(JmmNode jmmNode, Void unused) {
         return visit(jmmNode.getJmmChild(0), unused);
     }
+    private OllirExprResult visitLogicalExpr(JmmNode jmmNode, Void unused){
+        StringBuilder computation = new StringBuilder();
 
+        OllirExprResult childVisit = visit(jmmNode.getJmmChild(0));
+
+        computation.append(childVisit.getComputation());
+
+        String temp = OptUtils.getTemp();
+        String type = ".bool";
+
+        computation.append(temp + type + " " + ASSIGN + type + " ");
+        computation.append("!.bool " + childVisit.getCode() + END_STMT);
+
+        return new OllirExprResult(temp + type, computation);
+    }
     private OllirExprResult visitNewObj(JmmNode jmmNode, Void unused) {
         Type objType = jmmNode.getObject("type", Type.class);
         String resOllirType = OptUtils.toOllirType(objType);
