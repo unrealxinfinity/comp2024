@@ -49,7 +49,7 @@ public class Launcher {
         // Optimization stage
 
         JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
-        semanticsResult = ollirGen.optimize(semanticsResult);
+        //semanticsResult = ollirGen.optimize(semanticsResult);
         System.out.println(semanticsResult.getRootNode().toTree());
 
         OllirResult ollirResult = ollirGen.toOllir(semanticsResult);

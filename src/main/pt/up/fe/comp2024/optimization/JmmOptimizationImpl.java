@@ -31,7 +31,9 @@ public class JmmOptimizationImpl implements JmmOptimization {
     }
 
     @Override
+
     public JmmSemanticsResult optimize(JmmSemanticsResult semanticsResult) {
+        /*
         while (true) {
             AnalysisVisitor visitor = new ConstantFoldingVisitor();
             AnalysisVisitor visitor2 = new ConstantPropagationVisitor();
@@ -46,6 +48,8 @@ public class JmmOptimizationImpl implements JmmOptimization {
 
             if (l1.isEmpty() && l2.isEmpty()) break;
         }
+
+         */
         return semanticsResult;
     }
 }
