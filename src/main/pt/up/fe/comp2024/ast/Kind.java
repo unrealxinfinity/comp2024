@@ -40,6 +40,8 @@ public enum Kind {
 
     NEW_ARRAY_EXPR,
 
+    LENGTH_FUNCTION_EXPR,
+
     THIS,
     BOOLEAN_LITERAL;
 

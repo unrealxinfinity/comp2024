@@ -65,7 +65,7 @@ public class OptUtils {
         TYPE.checkOrThrow(typeNode);
 
         String typeName = typeNode.get("name");
-        boolean isArray= typeNode.getJmmChild(0).getObject("isArray", Boolean.class);
+        boolean isArray= typeNode.getObject("isArray", Boolean.class);
         return toOllirType(typeName, isArray);
     }
 

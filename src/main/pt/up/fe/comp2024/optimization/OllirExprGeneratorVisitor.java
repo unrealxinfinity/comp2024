@@ -41,8 +41,28 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(NEW_CLASS_EXPR, this::visitNewObj);
         addVisit(LOGICAL_EXPR, this::visitLogicalExpr);
         addVisit(NEW_ARRAY_EXPR, this::visitArrayNew);
+        //addVisit(ARRAY_EXPR, this::visitArrayExpr);
+        addVisit(LENGTH_FUNCTION_EXPR, this::visitLengthFunction);
         addVisit("ParensExpr", this::visitParens);
         setDefaultVisit(this::defaultVisit);
+    }
+    private OllirExprResult visitLengthFunction(JmmNode jmmNode, Void unused) {
+        StringBuilder computation = new StringBuilder();
+
+        Type type = jmmNode.getObject("type", Type.class);
+        Type sizetype= jmmNode.getJmmChild(0).getObject("type", Type.class);
+
+        String intOllirType = OptUtils.toOllirType(type);
+        String arrayintOllirType= OptUtils.toOllirType(sizetype);
+
+        String code = OptUtils.getTemp() + intOllirType;
+        OllirExprResult id = visit(jmmNode.getJmmChild(0));
+        computation.append(id.getComputation());
+        computation.append(code + SPACE + ASSIGN + intOllirType
+                + " arraylength(" + id.getCode()
+                + ")" + intOllirType + END_STMT);
+
+        return new OllirExprResult(code, computation);
     }
     private OllirExprResult visitArrayNew(JmmNode jmmNode, Void unused){
         StringBuilder computation = new StringBuilder();
@@ -58,7 +78,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         computation.append(sizeTemp + SPACE + ASSIGN + intOllirType + SPACE + size.getCode() + END_STMT);
 
         String arrayTemp = OptUtils.getTemp() + arrayintOllirType;
-        computation.append(arrayTemp + SPACE + ASSIGN + "int[]" + " new(array, " + sizeTemp + ")" + arrayintOllirType + END_STMT);
+        computation.append(arrayTemp + SPACE + ASSIGN + arrayintOllirType +  " new(array, " + sizeTemp + ")" + arrayintOllirType + END_STMT);
 
         return new OllirExprResult(arrayTemp, computation);
 
@@ -167,10 +187,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             }
             return new OllirExprResult(code,computation);
         }
-        if(type.isArray()){
-            code = varName + ".array" + ollirVarType;
-        }
-        else{ code = varName + ollirVarType;}
+        code = varName + ollirVarType;
 
         return new OllirExprResult(code);
     }
