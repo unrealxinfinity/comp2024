@@ -1,12 +1,10 @@
 package pt.up.fe.comp2024.optimization;
 
-import org.specs.comp.ollir.Ollir;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
-import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 import java.util.ArrayList;
@@ -50,26 +48,24 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         StringBuilder computation = new StringBuilder();
 
         Type type = jmmNode.getObject("type", Type.class);
-        Type sizetype= jmmNode.getJmmChild(0).getObject("type", Type.class);
 
         String intOllirType = OptUtils.toOllirType(type);
-        String arrayintOllirType= OptUtils.toOllirType(sizetype);
 
-        String code = OptUtils.getTemp() + intOllirType;
-        OllirExprResult id = visit(jmmNode.getJmmChild(0));
-        computation.append(id.getComputation());
-        computation.append(code + SPACE + ASSIGN + intOllirType
-                + " arraylength(" + id.getCode()
+        String temp = OptUtils.getTemp() + intOllirType;
+        OllirExprResult var_ref = visit(jmmNode.getJmmChild(0));
+        computation.append(var_ref.getComputation());
+        computation.append(temp + SPACE + ASSIGN + intOllirType
+                + " arraylength(" + var_ref.getCode()
                 + ")" + intOllirType + END_STMT);
 
-        return new OllirExprResult(code, computation);
+        return new OllirExprResult(temp, computation);
     }
     private OllirExprResult visitArrayNew(JmmNode jmmNode, Void unused){
         StringBuilder computation = new StringBuilder();
         Type type = jmmNode.getObject("type", Type.class);
         Type sizetype= jmmNode.getJmmChild(0).getObject("type", Type.class);
         String intOllirType = OptUtils.toOllirType(sizetype);
-        String arrayintOllirType= OptUtils.toOllirType(type);
+        String arrayOllirType= OptUtils.toOllirType(type);
 
         OllirExprResult size = visit(jmmNode.getJmmChild(0));
 
@@ -77,8 +73,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         computation.append(size.getComputation());
         computation.append(sizeTemp + SPACE + ASSIGN + intOllirType + SPACE + size.getCode() + END_STMT);
 
-        String arrayTemp = OptUtils.getTemp() + arrayintOllirType;
-        computation.append(arrayTemp + SPACE + ASSIGN + arrayintOllirType +  " new(array, " + sizeTemp + ")" + arrayintOllirType + END_STMT);
+        String arrayTemp = OptUtils.getTemp() + arrayOllirType;
+        computation.append(arrayTemp + SPACE + ASSIGN + arrayOllirType +  " new(array, " + sizeTemp + ")" + arrayOllirType + END_STMT);
 
         return new OllirExprResult(arrayTemp, computation);
 
@@ -93,13 +89,12 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         computation.append(childVisit.getComputation());
 
-        String temp = OptUtils.getTemp();
-        String type = ".bool";
+        String temp = OptUtils.getTemp() + ".bool";
 
-        computation.append(temp + type + " " + ASSIGN + type + " ");
+        computation.append(temp + " " + ASSIGN + ".bool" + " ");
         computation.append("!.bool " + childVisit.getCode() + END_STMT);
 
-        return new OllirExprResult(temp + type, computation);
+        return new OllirExprResult(temp , computation);
     }
     private OllirExprResult visitNewObj(JmmNode jmmNode, Void unused) {
         Type objType = jmmNode.getObject("type", Type.class);
@@ -175,9 +170,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         Type type = node.getObject("type", Type.class);
 
         String ollirVarType = OptUtils.toOllirType(type);
-        String code="" ;
+        String code;
         String computation="";
-        Symbol a_symbol= new Symbol(type, varName);
         if( type.getObject("level", Integer.class) == 0 ){
             if(type.isArray()){code = "getfield(this," + varName+ ".array"  + ollirVarType+ ')'+ollirVarType;}
             else {
@@ -217,17 +211,17 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         computation.append(lhs.getComputation()).append(rhs.getComputation());
 
         String temp = OptUtils.getTemp() + booleanOllirType;
-        String ifThen = OptUtils.getif();
-        String ifEnd = OptUtils.getendif();
+        String if_ = OptUtils.getif();
+        String endif = OptUtils.getendif();
 
-        computation.append("if (" + lhs.getCode() + ") goto " + ifThen + END_STMT);
+        computation.append("if (" + lhs.getCode() + ") goto " + if_ + END_STMT);
         computation.append(temp + SPACE + ASSIGN + booleanOllirType + SPACE + "0" + booleanOllirType + END_STMT);
-        computation.append("goto " + ifEnd + END_STMT);
+        computation.append("goto " + endif + END_STMT);
 
-        computation.append(ifThen + ":\n");
+        computation.append(if_ + ":\n");
         computation.append(temp + SPACE + ASSIGN + booleanOllirType + SPACE + rhs.getCode() + END_STMT);
 
-        computation.append(ifEnd + ":\n");
+        computation.append(endif + ":\n");
         return new OllirExprResult(temp, computation);
 
     }
@@ -256,33 +250,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 .append(rhs.getCode()).append(END_STMT);
 
         return new OllirExprResult(code, computation);
-    }
-
-
-    private OllirExprResult visitVarRef(JmmNode node, Void unused) {
-
-        var id = node.get("name");
-        Type type = TypeUtils.getExprType(node, table);
-        String ollirType = OptUtils.toOllirType(type);
-        String code="";
-        Symbol a_symbol= new Symbol(type, id);
-        /*
-        if( table.getFields().contains(a_symbol)){
-
-            if(type.isArray()){code = "getfield(this," + id+ ".array"  + ollirType+ ')'+ollirType;}
-            else {
-                code = "getfield(this," + id + ollirType+ ')'+ollirType;
-            }
-            return new OllirExprResult(code);
-        }
-
-         */
-        if(type.isArray()){
-            code = id + ".array" + ollirType;
-        }
-        else{ code = id + ollirType;}
-
-        return new OllirExprResult(code);
     }
 
     /**
