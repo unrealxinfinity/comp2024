@@ -3,10 +3,7 @@ package pt.up.fe.comp2024.optimization;
 import org.specs.comp.ollir.*;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class LivenessAnalysis {
     
@@ -52,21 +49,43 @@ public class LivenessAnalysis {
 
         Instruction inst = curr.toInstruction();
 
+        return this.getUseFromInstruction(inst);
+
+    }
+
+    private Set<String> getUseFromInstruction(Instruction inst) {
         return switch (inst.getInstType()) {
-            case ASSIGN -> this.getUseAssign(inst);
-            case CALL -> this.getUseCall(inst);
-            case GOTO -> this.getUseGoto(inst);
-            case BRANCH -> this.getUseBranch(inst);
-            case RETURN -> this.getUseReturn(inst);
-            case PUTFIELD -> this.getUsePutfield(inst);
-            case GETFIELD -> this.getUseGetfield(inst);
-            case UNARYOPER -> this.getUseUnaryOp(inst);
+            case ASSIGN -> this.getUseFromInstruction(((AssignInstruction) inst).getRhs());
+            case CALL -> this.getUseCall((CallInstruction) inst);
+            case GOTO -> null;
+            case BRANCH -> null;
+            case RETURN -> null;
+            case PUTFIELD -> null;
+            case GETFIELD -> null;
+            case UNARYOPER -> null;
             case BINARYOPER -> this.getUseBinaryOp((BinaryOpInstruction) inst);
-            case NOPER -> this.getUseNoper(inst);
+            case NOPER -> null;
         };
     }
 
-    private Set<String> getUseBinaryOp(BinaryOpInstruction inst) {
+    private Set<String> getUseCall(CallInstruction inst) {
+        Set<String> use = new TreeSet<>();
 
+        for (Element element : inst.getOperands()) {
+            if (element.isLiteral()) continue;
+
+            use.add(((Operand) element).getName());
+        }
+        return use;
+    }
+
+    private Set<String> getUseBinaryOp(BinaryOpInstruction inst) {
+        Element left = inst.getLeftOperand();
+        Element right = inst.getRightOperand();
+        Set<String> use = new TreeSet<>();
+
+        if (!left.isLiteral()) use.add(((Operand) left).getName());
+        if (!right.isLiteral()) use.add(((Operand) right).getName());
+        return use;
     }
 }
