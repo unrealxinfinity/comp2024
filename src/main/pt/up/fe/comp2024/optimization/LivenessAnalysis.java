@@ -16,37 +16,45 @@ public class LivenessAnalysis {
         for (Method method : ollirResult.getOllirClass().getMethods()) {
             outs.put(method.getMethodName(), new HashMap<>());
             uses.put(method.getMethodName(), new HashMap<>());
+
             this.buildLivenessSets(method);
         }
     }
 
     private void buildLivenessSets(Method method) {
-        Queue<Node> queue = new ArrayDeque<>(Collections.singletonList(method.getBeginNode()));
+        boolean changed = true;
+
         Map<Integer, Set<String>> useSets = uses.get(method.getMethodName());
         Map<Integer, Set<String>> defSets = new HashMap<>();
         Map<Integer, Set<String>> inSets = new HashMap<>();
         Map<Integer, Set<String>> outSets = outs.get(method.getMethodName());
 
-        while (!queue.isEmpty()) {
-            Node curr = queue.remove();
-            queue.addAll(curr.getSuccessors());
-            if (!curr.getNodeType().equals(NodeType.INSTRUCTION)) continue;
+        while (changed) {
+            changed = false;
+            Queue<Node> queue = new ArrayDeque<>(Collections.singletonList(method.getBeginNode()));
 
-            if (!useSets.containsKey(curr.getId())) useSets.put(curr.getId(), this.getUse(curr));
-            if (!defSets.containsKey(curr.getId())) defSets.put(curr.getId(), this.getDef(curr));
-            Set<String> newOut = new TreeSet<>();
+            while (!queue.isEmpty()) {
+                Node curr = queue.remove();
+                queue.addAll(curr.getSuccessors());
+                if (!curr.getNodeType().equals(NodeType.INSTRUCTION)) continue;
 
-            Set<String> outTemp = new TreeSet<>(outSets.getOrDefault(curr.getId(), new TreeSet<>()));
-            Set<String> useTemp = new TreeSet<>(useSets.get(curr.getId()));
-            outTemp.removeAll(defSets.get(curr.getId()));
-            useTemp.addAll(outTemp);
+                if (!useSets.containsKey(curr.getId())) useSets.put(curr.getId(), this.getUse(curr));
+                if (!defSets.containsKey(curr.getId())) defSets.put(curr.getId(), this.getDef(curr));
+                Set<String> newOut = new TreeSet<>();
 
-            for (Node successor : curr.getSuccessors()) {
-                newOut.addAll(inSets.getOrDefault(successor.getId(), new TreeSet<>()));
+                Set<String> outTemp = new TreeSet<>(outSets.getOrDefault(curr.getId(), new TreeSet<>()));
+                outTemp.removeAll(defSets.get(curr.getId()));
+                outTemp.addAll(useSets.get(curr.getId()));
+
+                for (Node successor : curr.getSuccessors()) {
+                    newOut.addAll(inSets.getOrDefault(successor.getId(), new TreeSet<>()));
+                }
+
+                if (!inSets.getOrDefault(curr.getId(), new TreeSet<>()).equals(outTemp)) changed = true;
+                if (!outSets.getOrDefault(curr.getId(), new TreeSet<>()).equals(newOut)) changed = true;
+                inSets.put(curr.getId(), outTemp);
+                outSets.put(curr.getId(), newOut);
             }
-
-            inSets.put(curr.getId(), useTemp);
-            outSets.put(curr.getId(), newOut);
         }
     }
 
