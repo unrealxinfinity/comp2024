@@ -6,44 +6,47 @@ import pt.up.fe.comp.jmm.ollir.OllirResult;
 import java.util.*;
 
 public class LivenessAnalysis {
-    
-    Map<String, Map<Integer, Set<String>>> ins;
-    Map<String, Map<Integer, Set<String>>> outs;
+
+    private final Map<String, Map<Integer, Set<String>>> outs = new HashMap<>();
+    private final Map<String, Map<Integer, Set<String>>> uses = new HashMap<>();
 
     public void buildLivenessSets(OllirResult ollirResult) {
         ollirResult.getOllirClass().buildCFGs();
+        ollirResult.getOllirClass().buildVarTables();
         for (Method method : ollirResult.getOllirClass().getMethods()) {
-            ins.put(method.getMethodName(), new HashMap<>());
             outs.put(method.getMethodName(), new HashMap<>());
+            uses.put(method.getMethodName(), new HashMap<>());
             this.buildLivenessSets(method);
         }
     }
 
     private void buildLivenessSets(Method method) {
-        Node curr = method.getBeginNode();
-        Map<Integer, Set<String>> useSets = new HashMap<>();
+        Queue<Node> queue = new ArrayDeque<>(Collections.singletonList(method.getBeginNode()));
+        Map<Integer, Set<String>> useSets = uses.get(method.getMethodName());
         Map<Integer, Set<String>> defSets = new HashMap<>();
-        Map<Integer, Set<String>> inSets = ins.get(method.getMethodName());
+        Map<Integer, Set<String>> inSets = new HashMap<>();
         Map<Integer, Set<String>> outSets = outs.get(method.getMethodName());
 
-        while (curr != method.getEndNode()) {
+        while (!queue.isEmpty()) {
+            Node curr = queue.remove();
+            queue.addAll(curr.getSuccessors());
+            if (!curr.getNodeType().equals(NodeType.INSTRUCTION)) continue;
+
             if (!useSets.containsKey(curr.getId())) useSets.put(curr.getId(), this.getUse(curr));
             if (!defSets.containsKey(curr.getId())) defSets.put(curr.getId(), this.getDef(curr));
             Set<String> newOut = new TreeSet<>();
 
-            Set<String> outTemp = new TreeSet<>(outSets.get(curr.getId()));
+            Set<String> outTemp = new TreeSet<>(outSets.getOrDefault(curr.getId(), new TreeSet<>()));
             Set<String> useTemp = new TreeSet<>(useSets.get(curr.getId()));
             outTemp.removeAll(defSets.get(curr.getId()));
             useTemp.addAll(outTemp);
 
             for (Node successor : curr.getSuccessors()) {
-                newOut.addAll(inSets.get(successor.getId()));
+                newOut.addAll(inSets.getOrDefault(successor.getId(), new TreeSet<>()));
             }
 
             inSets.put(curr.getId(), useTemp);
             outSets.put(curr.getId(), newOut);
-
-            curr = curr.getSucc1();
         }
     }
 
@@ -88,10 +91,19 @@ public class LivenessAnalysis {
         Set<String> use = new TreeSet<>();
 
         for (Element element : operands) {
-            if (element.isLiteral()) continue;
+            if (element == null || element.isLiteral()) continue;
 
             use.add(((Operand) element).getName());
         }
         return use;
+    }
+
+
+    private Map<Integer, Set<String>> getOuts(String method) {
+        return outs.get(method);
+    }
+
+    private Map<Integer, Set<String>> getUses(String method) {
+        return uses.get(method);
     }
 }
