@@ -56,36 +56,24 @@ public class LivenessAnalysis {
     private Set<String> getUseFromInstruction(Instruction inst) {
         return switch (inst.getInstType()) {
             case ASSIGN -> this.getUseFromInstruction(((AssignInstruction) inst).getRhs());
-            case CALL -> this.getUseCall((CallInstruction) inst);
+            case CALL -> this.getUseOp(((CallInstruction) inst).getOperands());
             case GOTO -> null;
-            case BRANCH -> null;
-            case RETURN -> null;
-            case PUTFIELD -> null;
-            case GETFIELD -> null;
-            case UNARYOPER -> null;
-            case BINARYOPER -> this.getUseBinaryOp((BinaryOpInstruction) inst);
-            case NOPER -> null;
+            case BRANCH -> this.getUseFromInstruction(((CondBranchInstruction) inst).getCondition());
+            case RETURN -> this.getUseOp(Collections.singletonList(((ReturnInstruction) inst).getOperand()));
+            case PUTFIELD, GETFIELD -> this.getUseOp(((FieldInstruction) inst).getOperands());
+            case UNARYOPER, BINARYOPER -> this.getUseOp(((OpInstruction) inst).getOperands());
+            case NOPER -> this.getUseOp(Collections.singletonList(((SingleOpInstruction) inst).getSingleOperand()));
         };
     }
 
-    private Set<String> getUseCall(CallInstruction inst) {
+    private Set<String> getUseOp(List<Element> operands) {
         Set<String> use = new TreeSet<>();
 
-        for (Element element : inst.getOperands()) {
+        for (Element element : operands) {
             if (element.isLiteral()) continue;
 
             use.add(((Operand) element).getName());
         }
-        return use;
-    }
-
-    private Set<String> getUseBinaryOp(BinaryOpInstruction inst) {
-        Element left = inst.getLeftOperand();
-        Element right = inst.getRightOperand();
-        Set<String> use = new TreeSet<>();
-
-        if (!left.isLiteral()) use.add(((Operand) left).getName());
-        if (!right.isLiteral()) use.add(((Operand) right).getName());
         return use;
     }
 }
