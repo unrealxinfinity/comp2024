@@ -13,6 +13,8 @@ public class LivenessAnalysis {
     public void buildLivenessSets(OllirResult ollirResult) {
         ollirResult.getOllirClass().buildCFGs();
         for (Method method : ollirResult.getOllirClass().getMethods()) {
+            ins.put(method.getMethodName(), new HashMap<>());
+            outs.put(method.getMethodName(), new HashMap<>());
             this.buildLivenessSets(method);
         }
     }
@@ -21,10 +23,26 @@ public class LivenessAnalysis {
         Node curr = method.getBeginNode();
         Map<Integer, Set<String>> useSets = new HashMap<>();
         Map<Integer, Set<String>> defSets = new HashMap<>();
+        Map<Integer, Set<String>> inSets = ins.get(method.getMethodName());
+        Map<Integer, Set<String>> outSets = outs.get(method.getMethodName());
 
         while (curr != method.getEndNode()) {
             if (!useSets.containsKey(curr.getId())) useSets.put(curr.getId(), this.getUse(curr));
             if (!defSets.containsKey(curr.getId())) defSets.put(curr.getId(), this.getDef(curr));
+            Set<String> newOut = new TreeSet<>();
+
+            Set<String> outTemp = new TreeSet<>(outSets.get(curr.getId()));
+            Set<String> useTemp = new TreeSet<>(useSets.get(curr.getId()));
+            outTemp.removeAll(defSets.get(curr.getId()));
+            useTemp.addAll(outTemp);
+
+            for (Node successor : curr.getSuccessors()) {
+                newOut.addAll(inSets.get(successor.getId()));
+            }
+
+            inSets.put(curr.getId(), useTemp);
+            outSets.put(curr.getId(), newOut);
+
             curr = curr.getSucc1();
         }
     }
