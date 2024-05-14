@@ -1,9 +1,6 @@
 package pt.up.fe.comp2024.optimization.graph;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class InterferenceGraph {
     private Map<String, GraphNode> nodes = new HashMap<>();
@@ -14,9 +11,17 @@ public class InterferenceGraph {
         }
     }
 
-    public void buildEdges(Map<Integer, Set<String>> ins, Map<Integer, Set<String>> outs) {
-        for (Integer id : ins.keySet()) {
-
+    public void buildEdges(Map<Integer, Set<String>> uses, Map<Integer, Set<String>> outs) {
+        for (Integer id : uses.keySet()) {
+            Set<String> union = new TreeSet<>(uses.get(id));
+            union.addAll(outs.get(id));
+            for (String s : union) {
+                for (String t : union) {
+                    if (s == t) continue;
+                    nodes.get(s).addAdj(t);
+                    nodes.get(t).addAdj(s);
+                }
+            }
         }
     }
 }
