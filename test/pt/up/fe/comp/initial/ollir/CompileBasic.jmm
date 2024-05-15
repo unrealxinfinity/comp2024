@@ -1,13 +1,15 @@
 import io;
 import Quicksort;
-
+import java.utils.ArrayList;
 class CompileBasic extends Quicksort {
 
     int intField;
     boolean boolField;
 
-    public int foo(int a) {
-        return 1;
+    public CompileBasic foo(int a) {
+        CompileBasic b;
+        b= new CompileBasic();
+        return b;
     }
     public int bar(int b, CompileBasic obj){
         return 2;
@@ -15,7 +17,7 @@ class CompileBasic extends Quicksort {
     public int methodOne() {
         int intLocal1;
         boolean boolLocal1;
-        intLocal1 = 3 + this.bar(10+new CompileBasic().foo(intLocal1), new CompileBasic());
+        intLocal1 = 3 + this.bar(10+new CompileBasic().foo(intLocal1).bar(1, new CompileBasic()), new CompileBasic());
         return 1;
     }
 
