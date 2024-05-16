@@ -8,14 +8,14 @@ import java.util.*;
 public class LivenessAnalysis {
 
     private final Map<String, Map<Integer, Set<String>>> outs = new HashMap<>();
-    private final Map<String, Map<Integer, Set<String>>> uses = new HashMap<>();
+    private final Map<String, Map<Integer, Set<String>>> defs = new HashMap<>();
+    private final Map<String, Map<Integer, Set<String>>> ins = new HashMap<>();
 
     public void buildLivenessSets(OllirResult ollirResult) {
-        ollirResult.getOllirClass().buildCFGs();
-        ollirResult.getOllirClass().buildVarTables();
         for (Method method : ollirResult.getOllirClass().getMethods()) {
             outs.put(method.getMethodName(), new HashMap<>());
-            uses.put(method.getMethodName(), new HashMap<>());
+            defs.put(method.getMethodName(), new HashMap<>());
+            ins.put(method.getMethodName(), new HashMap<>());
 
             this.buildLivenessSets(method);
         }
@@ -24,9 +24,9 @@ public class LivenessAnalysis {
     private void buildLivenessSets(Method method) {
         boolean changed = true;
 
-        Map<Integer, Set<String>> useSets = uses.get(method.getMethodName());
-        Map<Integer, Set<String>> defSets = new HashMap<>();
-        Map<Integer, Set<String>> inSets = new HashMap<>();
+        Map<Integer, Set<String>> useSets = new HashMap<>();
+        Map<Integer, Set<String>> defSets = defs.get(method.getMethodName());
+        Map<Integer, Set<String>> inSets = ins.get(method.getMethodName());
         Map<Integer, Set<String>> outSets = outs.get(method.getMethodName());
 
         while (changed) {
@@ -107,11 +107,13 @@ public class LivenessAnalysis {
     }
 
 
-    private Map<Integer, Set<String>> getOuts(String method) {
+    public Map<Integer, Set<String>> getOuts(String method) {
         return outs.get(method);
     }
-
-    private Map<Integer, Set<String>> getUses(String method) {
-        return uses.get(method);
+    public Map<Integer, Set<String>> getIns(String method) {
+        return ins.get(method);
+    }
+    public Map<Integer, Set<String>> getDefs(String method) {
+        return defs.get(method);
     }
 }

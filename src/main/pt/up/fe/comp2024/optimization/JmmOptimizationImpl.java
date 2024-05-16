@@ -1,10 +1,12 @@
 package pt.up.fe.comp2024.optimization;
 
+import org.specs.comp.ollir.Method;
 import org.specs.comp.ollir.OllirErrorException;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
+import pt.up.fe.comp2024.optimization.graph.InterferenceGraph;
 import pt.up.fe.comp2024.optimization.passes.ConstantFoldingVisitor;
 import pt.up.fe.comp2024.optimization.passes.ConstantPropagationVisitor;
 
@@ -24,8 +26,17 @@ public class JmmOptimizationImpl implements JmmOptimization {
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
 
+        ollirResult.getOllirClass().buildCFGs();
+        ollirResult.getOllirClass().buildVarTables();
         LivenessAnalysis analyzer = new LivenessAnalysis();
         analyzer.buildLivenessSets(ollirResult);
+
+        for (Method method : ollirResult.getOllirClass().getMethods()) {
+            InterferenceGraph graph = new InterferenceGraph(method.getVarTable().keySet().stream().toList());
+            graph.buildEdges(analyzer.getDefs(method.getMethodName()), analyzer.getOuts(method.getMethodName()));
+
+
+        }
 
         return ollirResult;
     }

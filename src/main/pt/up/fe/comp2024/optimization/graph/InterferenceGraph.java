@@ -11,9 +11,9 @@ public class InterferenceGraph {
         }
     }
 
-    public void buildEdges(Map<Integer, Set<String>> uses, Map<Integer, Set<String>> outs) {
-        for (Integer id : uses.keySet()) {
-            Set<String> union = new TreeSet<>(uses.get(id));
+    public void buildEdges(Map<Integer, Set<String>> defs, Map<Integer, Set<String>> outs) {
+        for (Integer id : defs.keySet()) {
+            Set<String> union = new TreeSet<>(defs.get(id));
             union.addAll(outs.get(id));
             for (String s : union) {
                 for (String t : union) {
@@ -23,5 +23,20 @@ public class InterferenceGraph {
                 }
             }
         }
+    }
+
+    public Map<String, GraphNode> getNodes() {
+        return nodes;
+    }
+
+    public int getDegree(String name) {
+        int degree = 0;
+        GraphNode node = nodes.get(name);
+        for (String adj : node.getAdj()) {
+            GraphNode neighbor = nodes.get(adj);
+            if (neighbor.getColor() != -1) degree++;
+        }
+
+        return degree;
     }
 }

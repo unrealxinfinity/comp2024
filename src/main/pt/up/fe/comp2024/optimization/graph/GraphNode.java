@@ -5,7 +5,7 @@ import java.util.List;
 
 public class GraphNode {
     private final String name;
-    private int color;
+    private int color = -1;
     private List<String> adj = new ArrayList<>();
 
     public GraphNode(String name) {
@@ -22,5 +22,13 @@ public class GraphNode {
 
     public void addAdj(String neighbor) {
         adj.add(neighbor);
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
     }
 }
