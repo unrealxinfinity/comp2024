@@ -21,7 +21,8 @@ public class GraphNode {
     }
 
     public void addAdj(String neighbor) {
-        adj.add(neighbor);
+        if (!adj.contains(neighbor))
+            adj.add(neighbor);
     }
 
     public int getColor() {

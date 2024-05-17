@@ -2,9 +2,7 @@ package pt.up.fe.comp2024.optimization.graph;
 
 import org.specs.comp.ollir.Descriptor;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
 
 public class GraphColorer {
 
@@ -36,12 +34,16 @@ public class GraphColorer {
             String curr = stack.pop();
             int minColor = 1;
             GraphNode currNode = graph.getNodes().get(curr);
+            List<Boolean> foundColors = new ArrayList<>(Collections.nCopies(colors, false));
 
             for (Iterator<GraphNode> it = currNode.getAdj().stream().map(name -> graph.getNodes().get(name)).iterator(); it.hasNext(); ) {
                 GraphNode adj = it.next();
                 if (adj.getColor() == -1) continue;
+                foundColors.set(adj.getColor()-1, true);
 
-                minColor = Math.min(minColor, adj.getColor());
+                while (foundColors.get(minColor-1)) {
+                    minColor++;
+                }
             }
             currNode.setColor(minColor);
         }

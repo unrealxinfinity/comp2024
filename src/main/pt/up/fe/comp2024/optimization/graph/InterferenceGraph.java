@@ -21,14 +21,12 @@ public class InterferenceGraph {
                 for (String t : union) {
                     if (s == t) continue;
                     nodes.get(s).addAdj(t);
-                    nodes.get(t).addAdj(s);
                 }
             }
             for (String s : in) {
                 for (String t : in) {
                     if (s == t) continue;
                     nodes.get(s).addAdj(t);
-                    nodes.get(t).addAdj(s);
                 }
             }
         }

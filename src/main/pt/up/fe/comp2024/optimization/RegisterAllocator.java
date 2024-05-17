@@ -30,7 +30,7 @@ public class RegisterAllocator {
     }
 
     public void allocateRegisters() {
-        for (int i = 0; i < colors; i++) {
+        for (int i = 1; i <= colors; i++) {
             int finalI = i;
             List<GraphNode> nodes = graph.getNodes().values().stream().filter(node -> finalI == node.getColor()).toList();
             int reg = nextReg;
