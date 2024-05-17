@@ -15,7 +15,6 @@ public class GraphColorer {
         for (GraphNode node : graph.getNodes().values()) {
             node.setColor(0);
         }
-        int nodesLeft = graph.getNodes().size();
         Stack<String> stack = new Stack<>();
 
         while (stack.size() < graph.getNodes().size()) {

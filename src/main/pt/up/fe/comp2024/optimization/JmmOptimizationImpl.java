@@ -24,11 +24,7 @@ public class JmmOptimizationImpl implements JmmOptimization {
         return new OllirResult(semanticsResult, ollirCode, Collections.emptyList());
     }
 
-    @Override
-    public OllirResult optimize(OllirResult ollirResult) {
-
-        ollirResult.getOllirClass().buildCFGs();
-        ollirResult.getOllirClass().buildVarTables();
+    private boolean runRegisterAllocation(OllirResult ollirResult, int colors) {
         LivenessAnalysis analyzer = new LivenessAnalysis();
         analyzer.buildLivenessSets(ollirResult);
 
@@ -38,11 +34,34 @@ public class JmmOptimizationImpl implements JmmOptimization {
                     analyzer.getIns(method.getMethodName()));
 
             GraphColorer colorer = new GraphColorer(graph);
-            colorer.colorGraph(5);
+            if (!colorer.colorGraph(colors)) return false;
 
-            RegisterAllocator allocator = new RegisterAllocator(method.getVarTable(), graph, 5);
+            RegisterAllocator allocator = new RegisterAllocator(method.getVarTable(), graph, colors);
             allocator.allocateRegisters();
         }
+
+        return true;
+    }
+
+    @Override
+    public OllirResult optimize(OllirResult ollirResult) {
+        int regValue = Integer.parseInt(ollirResult.getConfig().getOrDefault("registerAllocation", "-1"));
+        if (regValue == -1) return ollirResult;
+
+        ollirResult.getOllirClass().buildCFGs();
+        ollirResult.getOllirClass().buildVarTables();
+
+        if (regValue != 0) {
+            runRegisterAllocation(ollirResult, regValue);
+        }
+        else {
+            int currRegs = 1;
+            boolean success;
+            do {
+                success = runRegisterAllocation(ollirResult, currRegs);
+            } while (!success);
+        }
+
 
         return ollirResult;
     }
