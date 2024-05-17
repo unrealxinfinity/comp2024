@@ -11,12 +11,21 @@ public class InterferenceGraph {
         }
     }
 
-    public void buildEdges(Map<Integer, Set<String>> defs, Map<Integer, Set<String>> outs) {
+    public void buildEdges(Map<Integer, Set<String>> defs, Map<Integer, Set<String>> outs, Map<Integer, Set<String>> ins) {
         for (Integer id : defs.keySet()) {
             Set<String> union = new TreeSet<>(defs.get(id));
             union.addAll(outs.get(id));
+            Set<String> in = ins.get(id);
+
             for (String s : union) {
                 for (String t : union) {
+                    if (s == t) continue;
+                    nodes.get(s).addAdj(t);
+                    nodes.get(t).addAdj(s);
+                }
+            }
+            for (String s : in) {
+                for (String t : in) {
                     if (s == t) continue;
                     nodes.get(s).addAdj(t);
                     nodes.get(t).addAdj(s);

@@ -34,7 +34,8 @@ public class JmmOptimizationImpl implements JmmOptimization {
 
         for (Method method : ollirResult.getOllirClass().getMethods()) {
             InterferenceGraph graph = new InterferenceGraph(method.getVarTable().keySet().stream().toList());
-            graph.buildEdges(analyzer.getDefs(method.getMethodName()), analyzer.getOuts(method.getMethodName()));
+            graph.buildEdges(analyzer.getDefs(method.getMethodName()), analyzer.getOuts(method.getMethodName()),
+                    analyzer.getIns(method.getMethodName()));
 
             GraphColorer colorer = new GraphColorer(graph, method.getVarTable());
             colorer.colorGraph(5);
