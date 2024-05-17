@@ -1,15 +1,17 @@
 package pt.up.fe.comp2024.optimization;
 
+import org.specs.comp.ollir.Method;
+import org.specs.comp.ollir.OllirErrorException;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
-import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
+import pt.up.fe.comp2024.optimization.graph.GraphColorer;
+import pt.up.fe.comp2024.optimization.graph.InterferenceGraph;
 import pt.up.fe.comp2024.optimization.passes.ConstantFoldingVisitor;
 import pt.up.fe.comp2024.optimization.passes.ConstantPropagationVisitor;
 
 import java.util.Collections;
-import java.util.List;
 
 public class JmmOptimizationImpl implements JmmOptimization {
 
@@ -22,30 +24,57 @@ public class JmmOptimizationImpl implements JmmOptimization {
         return new OllirResult(semanticsResult, ollirCode, Collections.emptyList());
     }
 
+    private boolean runRegisterAllocation(OllirResult ollirResult, int colors) {
+        LivenessAnalysis analyzer = new LivenessAnalysis();
+        analyzer.buildLivenessSets(ollirResult);
+
+        for (Method method : ollirResult.getOllirClass().getMethods()) {
+            InterferenceGraph graph = new InterferenceGraph(method.getVarTable().keySet().stream().toList());
+            graph.buildEdges(analyzer.getDefs(method.getMethodName()), analyzer.getOuts(method.getMethodName()),
+                    analyzer.getIns(method.getMethodName()));
+
+            GraphColorer colorer = new GraphColorer(graph);
+            if (!colorer.colorGraph(colors)) return false;
+
+            RegisterAllocator allocator = new RegisterAllocator(method.getVarTable(), graph, colors);
+            allocator.allocateRegisters();
+        }
+
+        return true;
+    }
+
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
+        int regValue = Integer.parseInt(ollirResult.getConfig().getOrDefault("registerAllocation", "-1"));
+        if (regValue == -1) return ollirResult;
 
-        //TODO: Do your OLLIR-based optimizations here
+        ollirResult.getOllirClass().buildCFGs();
+        ollirResult.getOllirClass().buildVarTables();
+
+        if (regValue != 0) {
+            runRegisterAllocation(ollirResult, regValue);
+        }
+        else {
+            int currRegs = 1;
+            boolean success;
+            do {
+                success = runRegisterAllocation(ollirResult, currRegs);
+            } while (!success);
+        }
+
 
         return ollirResult;
     }
 
     @Override
     public JmmSemanticsResult optimize(JmmSemanticsResult semanticsResult) {
-        while (true) {
+        if (Boolean.parseBoolean(semanticsResult.getConfig().getOrDefault("optimize", "false"))) {
             AnalysisVisitor visitor = new ConstantFoldingVisitor();
             AnalysisVisitor visitor2 = new ConstantPropagationVisitor();
-            List<Report> l1 = visitor.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable());
-            List<Report> l2 = visitor2.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable());
-            for (Report report : l1) {
-                System.out.println(report.toString());
-            }
-            for (Report report : l2) {
-                System.out.println(report.toString());
-            }
-
-            if (l1.isEmpty() && l2.isEmpty()) break;
+            visitor.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable());
+            visitor2.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable());
         }
+
         return semanticsResult;
     }
 }
