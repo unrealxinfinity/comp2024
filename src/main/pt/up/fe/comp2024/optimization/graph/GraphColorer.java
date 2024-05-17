@@ -9,10 +9,8 @@ import java.util.Stack;
 public class GraphColorer {
 
     private InterferenceGraph graph;
-    private Map<String, Descriptor> varTable;
-    public GraphColorer(InterferenceGraph graph, Map<String, Descriptor> varTable) {
+    public GraphColorer(InterferenceGraph graph) {
         this.graph = graph;
-        this.varTable = varTable;
     }
 
     public boolean colorGraph(int colors) {

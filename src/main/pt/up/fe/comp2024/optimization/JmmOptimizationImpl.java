@@ -37,8 +37,11 @@ public class JmmOptimizationImpl implements JmmOptimization {
             graph.buildEdges(analyzer.getDefs(method.getMethodName()), analyzer.getOuts(method.getMethodName()),
                     analyzer.getIns(method.getMethodName()));
 
-            GraphColorer colorer = new GraphColorer(graph, method.getVarTable());
+            GraphColorer colorer = new GraphColorer(graph);
             colorer.colorGraph(5);
+
+            RegisterAllocator allocator = new RegisterAllocator(method.getVarTable(), graph, 5);
+            allocator.allocateRegisters();
         }
 
         return ollirResult;
