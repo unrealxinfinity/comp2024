@@ -49,10 +49,13 @@ public class JmmOptimizationImpl implements JmmOptimization {
 
     @Override
     public JmmSemanticsResult optimize(JmmSemanticsResult semanticsResult) {
-        AnalysisVisitor visitor = new ConstantFoldingVisitor();
-        AnalysisVisitor visitor2 = new ConstantPropagationVisitor();
-        visitor.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable());
-        visitor2.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable());
+        if (Boolean.parseBoolean(semanticsResult.getConfig().getOrDefault("optimize", "false"))) {
+            AnalysisVisitor visitor = new ConstantFoldingVisitor();
+            AnalysisVisitor visitor2 = new ConstantPropagationVisitor();
+            visitor.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable());
+            visitor2.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable());
+        }
+
         return semanticsResult;
     }
 }
