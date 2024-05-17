@@ -6,6 +6,7 @@ import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
+import pt.up.fe.comp2024.optimization.graph.GraphColorer;
 import pt.up.fe.comp2024.optimization.graph.InterferenceGraph;
 import pt.up.fe.comp2024.optimization.passes.ConstantFoldingVisitor;
 import pt.up.fe.comp2024.optimization.passes.ConstantPropagationVisitor;
@@ -35,7 +36,8 @@ public class JmmOptimizationImpl implements JmmOptimization {
             InterferenceGraph graph = new InterferenceGraph(method.getVarTable().keySet().stream().toList());
             graph.buildEdges(analyzer.getDefs(method.getMethodName()), analyzer.getOuts(method.getMethodName()));
 
-
+            GraphColorer colorer = new GraphColorer(graph, method.getVarTable());
+            colorer.colorGraph(5);
         }
 
         return ollirResult;
