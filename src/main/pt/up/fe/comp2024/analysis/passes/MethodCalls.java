@@ -4,6 +4,7 @@ import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp.jmm.ast.JmmNodeImpl;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.ReportType;
 import pt.up.fe.comp.jmm.report.Stage;
@@ -89,8 +90,13 @@ public class MethodCalls extends AnalysisVisitor {
         Symbol lastParam = params.get(params.size()-1);
         if (lastParam.getType().getObject("isVarargs", Boolean.class)
                 && !paramNodes.get(params.size()-1).getObject("type", Type.class).isArray()) {
-            for (int i = params.size(); i < paramNodes.size(); i++) {
+            JmmNode arrayInit = new JmmNodeImpl("ArrayExpr");
+
+            for (int i = params.size()-1; i < paramNodes.size(); i++) {
                 JmmNode paramNode = paramNodes.get(i);
+                paramNode.detach();
+                arrayInit.add(paramNode);
+
                 if (!lastParam.getType().getName().equals(paramNode.getObject("type", Type.class).getName())
                     || paramNode.getObject("type", Type.class).isArray()) {
                     String message = String.format("Varargs misuse in method %s", jmmNode.get("name"));
@@ -98,6 +104,8 @@ public class MethodCalls extends AnalysisVisitor {
                     addReport(report);
                 }
             }
+
+            jmmNode.add(arrayInit);
         }
         else if (paramNodes.size() != params.size()) {
             String message = String.format("Incorrect number of parameters passed to method %s", jmmNode.get("name"));
