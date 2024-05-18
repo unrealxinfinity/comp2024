@@ -33,6 +33,7 @@ public enum Kind {
     NEW_CLASS_EXPR,
 
     ENCVALOSE_STATEMENT,
+    INDEXED_EXPR,
 
     CLASS_FUNCTION_CALL_EXPR,
 

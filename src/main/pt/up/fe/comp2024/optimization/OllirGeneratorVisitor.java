@@ -17,6 +17,8 @@ import static pt.up.fe.comp2024.ast.Kind.*;
 /**
  * Generates OLLIR code from JmmNodes that are not expressions.
  */
+
+
 public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private static final String SPACE = " ";
@@ -152,7 +154,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     }
     private String visitAssignStmt(JmmNode node, Void unused) {
 
-
+        //boolean skip= false ideia de skip a ser analisada para saltar o pedacço de código que pede o level;
         var lhs = exprVisitor.visit(node.getJmmChild(0));
         var rhs = exprVisitor.visit(node.getJmmChild(1));
 
@@ -163,13 +165,34 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         // code to compute the children
         //code.append(lhs.getComputation());
         code.append(rhs.getComputation());
+        if(node.getJmmChild(0).getKind().equals("IndexedExpr")){
 
-        if(node.getJmmChild(0).getObject("type",Type.class).getObject("level",Integer.class)==0){
+            String input = lhs.getComputation();
+            int firstSpaceIndex = input.indexOf(' ');
+            int secondSpaceIndex = input.indexOf(' ', firstSpaceIndex + 1);
+            String result = input.substring(secondSpaceIndex + 1);
+            result = result.replace(END_STMT, "");
+            // Print the result
+            System.out.println(result);
+            code.append(result);
+            //code.append(ollirVarType+ node.getJmmChild(0).getJmmChild(0).get("name")+"["+)
+            code.append(SPACE);
+            code.append(ASSIGN);
+            code.append(ollirVarType);
+            code.append(SPACE);
+            code.append(rhs.getCode());
+            code.append(END_STMT);
+            //skip    = true;
+            return code.toString();
+        }
 
-            code.append("putfield(this, " + node.getJmmChild(0).get("name")+ollirVarType+","+rhs.getCode()+").V;");
+        if (node.getJmmChild(0).getObject("type", Type.class).getObject("level", Integer.class) == 0) {
+
+            code.append("putfield(this, " + node.getJmmChild(0).get("name") + ollirVarType + "," + rhs.getCode() + ").V;");
             code.append(NL);
             return code.toString();
         }
+
         // code to compute self
         // statement has type of lhs
         Type thisType = node.getJmmChild(0).getObject("type",Type.class);

@@ -171,7 +171,7 @@ public class Cpf3_Ollir {
     @Test
     public void section4_Arrays_Access_Array() {
         var result = getOllirResult("arrays/ArrayAccess.jmm");
-
+        System.out.println(result.getOllirCode());
         var method = CpUtils.getMethod(result, "foo");
 
         var assigns = CpUtils.assertInstExists(AssignInstruction.class, method, result);
