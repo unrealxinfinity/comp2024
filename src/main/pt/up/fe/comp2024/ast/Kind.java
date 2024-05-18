@@ -38,6 +38,8 @@ public enum Kind {
 
     ARRAY_EXPR,
 
+    ARRAY_ALTER_INDEX_STATEMENT,
+
     NEW_ARRAY_EXPR,
 
     LENGTH_FUNCTION_EXPR,

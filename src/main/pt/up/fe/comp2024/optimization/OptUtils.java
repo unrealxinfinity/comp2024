@@ -23,6 +23,13 @@ public class OptUtils {
     private static int whileLoopNumber =-1;
 
     private static int whileEndNumber=-1;
+
+    private static int varArgsCounter = -1;
+
+    public static String getVarArgsCounter() {
+        varArgsCounter++;
+        return "__varargs_array_" + varArgsCounter;
+    }
     public static String getWhileCond(){
         whileCondNumber++;
         return "whileCond"+whileCondNumber;

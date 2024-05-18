@@ -39,10 +39,29 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(NEW_CLASS_EXPR, this::visitNewObj);
         addVisit(LOGICAL_EXPR, this::visitLogicalExpr);
         addVisit(NEW_ARRAY_EXPR, this::visitArrayNew);
-        //addVisit(ARRAY_EXPR, this::visitArrayExpr);
+        addVisit(ARRAY_EXPR, this::visitArrayExpr);
         addVisit(LENGTH_FUNCTION_EXPR, this::visitLengthFunction);
         addVisit("ParensExpr", this::visitParens);
         setDefaultVisit(this::defaultVisit);
+    }
+    private OllirExprResult visitArrayExpr(JmmNode jmmNode, Void unused){
+        StringBuilder computation = new StringBuilder();
+        Type type = jmmNode.getObject("type", Type.class);
+        Type sizetype= jmmNode.getJmmChild(0).getObject("type", Type.class);
+        String intOllirType = OptUtils.toOllirType(sizetype);
+        String arrayOllirType= OptUtils.toOllirType(type);
+        String ollir_size = jmmNode.getChildren().size() + intOllirType;
+        String arrayTemp = OptUtils.getTemp() + arrayOllirType;
+        String varArgsArray = OptUtils.getVarArgsCounter()+arrayOllirType;
+        computation.append(arrayTemp + SPACE + ASSIGN + arrayOllirType + " new( array," + ollir_size + ")" + arrayOllirType + END_STMT);
+        computation.append(varArgsArray + SPACE + ASSIGN + arrayOllirType + SPACE+ arrayTemp + END_STMT);
+        for (int i = 0; i < jmmNode.getChildren().size(); i++) {
+            OllirExprResult res = visit(jmmNode.getJmmChild(i));
+            computation.append(varArgsArray+res.getComputation()+intOllirType+ SPACE +ASSIGN + intOllirType+ SPACE + res.getCode() + END_STMT);
+
+        }
+
+        return new OllirExprResult(varArgsArray, computation);
     }
     private OllirExprResult visitLengthFunction(JmmNode jmmNode, Void unused) {
         StringBuilder computation = new StringBuilder();
