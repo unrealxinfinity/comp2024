@@ -28,6 +28,7 @@ public class LivenessAnalysis {
         Map<Integer, Set<String>> defSets = defs.get(method.getMethodName());
         Map<Integer, Set<String>> inSets = ins.get(method.getMethodName());
         Map<Integer, Set<String>> outSets = outs.get(method.getMethodName());
+        Set<Integer> visited = new TreeSet<>();
 
         while (changed) {
             changed = false;
@@ -35,6 +36,9 @@ public class LivenessAnalysis {
 
             while (!queue.isEmpty()) {
                 Node curr = queue.remove();
+                if (visited.contains(curr.getId())) continue;
+                visited.add(curr.getId());
+
                 queue.addAll(curr.getSuccessors());
                 if (!curr.getNodeType().equals(NodeType.INSTRUCTION)) continue;
 
@@ -86,7 +90,7 @@ public class LivenessAnalysis {
         return switch (inst.getInstType()) {
             case ASSIGN -> this.getUseFromInstruction(((AssignInstruction) inst).getRhs());
             case CALL -> this.getUseOp(((CallInstruction) inst).getOperands());
-            case GOTO -> null;
+            case GOTO -> new TreeSet<>();
             case BRANCH -> this.getUseFromInstruction(((CondBranchInstruction) inst).getCondition());
             case RETURN -> this.getUseOp(Collections.singletonList(((ReturnInstruction) inst).getOperand()));
             case PUTFIELD, GETFIELD -> this.getUseOp(((FieldInstruction) inst).getOperands());
