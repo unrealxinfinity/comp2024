@@ -101,20 +101,20 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         OllirExprResult condition = exprVisitor.visit(node.getJmmChild(0));
         codeBuilder.append(condition.getComputation()).append(NL);
-        String if_branch= OptUtils.getif();
-        String endif_branch = OptUtils.getendif();
+        String if_= OptUtils.getif();
+        String endif_ = OptUtils.getendif();
 
-        codeBuilder.append("if (").append(condition.getCode()).append(")").append(SPACE).append("goto ").append(if_branch).append(END_STMT);
+        codeBuilder.append("if (").append(condition.getCode()).append(")").append(SPACE).append("goto ").append(if_).append(END_STMT);
 
-        String then_body = visit(node.getJmmChild(1));
-        String else_body = visit(node.getJmmChild(2));
+        String then_ = visit(node.getJmmChild(1));
+        String else_ = visit(node.getJmmChild(2));
 
-        codeBuilder.append(else_body).append(NL);
-        codeBuilder.append("goto ").append(endif_branch).append(END_STMT);
+        codeBuilder.append(else_).append(NL);
+        codeBuilder.append("goto ").append(endif_).append(END_STMT);
 
-        codeBuilder.append(if_branch).append(":").append(NL);
-        codeBuilder.append(then_body);
-        codeBuilder.append(endif_branch).append(":").append(NL);
+        codeBuilder.append(if_).append(":").append(NL);
+        codeBuilder.append(then_);
+        codeBuilder.append(endif_).append(":").append(NL);
         return codeBuilder.toString();
     }
     private String visitImportDecl(JmmNode node, Void unused) {
