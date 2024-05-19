@@ -42,6 +42,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(ARRAY_EXPR, this::visitArrayExpr);
         addVisit(LENGTH_FUNCTION_EXPR, this::visitLengthFunction);
         addVisit(INDEXED_EXPR, this::visitIndexedExpr);
+
         addVisit("ParensExpr", this::visitParens);
         setDefaultVisit(this::defaultVisit);
     }
@@ -51,7 +52,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         Type sizetype= jmmNode.getObject("type", Type.class);
         String intOllirType = OptUtils.toOllirType(sizetype);
         String temp = OptUtils.getTemp() + intOllirType;
-
+        computation.append(index.getComputation());
         computation.append(temp + SPACE + ASSIGN + intOllirType + SPACE +jmmNode.getJmmChild(0).get("name") + "["+index.getCode()+"]"+intOllirType + END_STMT);
         return new OllirExprResult(temp, computation);
     }

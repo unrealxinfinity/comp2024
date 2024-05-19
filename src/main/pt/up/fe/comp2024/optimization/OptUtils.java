@@ -73,7 +73,8 @@ public class OptUtils {
 
         String typeName = typeNode.get("name");
         boolean isArray= typeNode.getObject("isArray", Boolean.class);
-        return toOllirType(typeName, isArray);
+        boolean isVarArgs = typeNode.getObject("isVarargs", Boolean.class);
+        return toOllirType(typeName, (isArray||isVarArgs));
     }
 
     public static String toOllirType(Type type) {
