@@ -91,6 +91,7 @@ public class MethodCalls extends AnalysisVisitor {
         if (lastParam.getType().getObject("isVarargs", Boolean.class)
                 && !paramNodes.get(params.size()-1).getObject("type", Type.class).isArray()) {
             JmmNode arrayInit = new JmmNodeImpl("ArrayExpr");
+            arrayInit.putObject("type", new Type("int", true));
 
             for (int i = params.size()-1; i < paramNodes.size(); i++) {
                 JmmNode paramNode = paramNodes.get(i);
