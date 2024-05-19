@@ -54,17 +54,10 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(IF_STATEMENT,this::visitIfStatement);
         addVisit(WHILE_STATEMENT, this::visitWhileStatement);
         addVisit(ENCVALOSE_STATEMENT, this::visitEncvaloseStatement);
-        addVisit(ARRAY_ALTER_INDEX_STATEMENT, this::visitArrayStatement);
+
         setDefaultVisit(this::defaultVisit);
     }
-    private String visitArrayStatement(JmmNode node, Void unused){
-        StringBuilder codeBuilder = new StringBuilder();
-        String arrayName = node.get("name");
-        String index = node.getJmmChild(0).get("name");
-        OllirExprResult value = exprVisitor.visit(node.getJmmChild(1));
-        codeBuilder.append(arrayName).append("[").append(index).append("]").append(":=").append(value.getCode()).append(END_STMT);
-        return codeBuilder.toString();
-    }
+
     private String visitEncvaloseStatement(JmmNode node, Void unused) {
         StringBuilder codeBuilder = new StringBuilder();
 
