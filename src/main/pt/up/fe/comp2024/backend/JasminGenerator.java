@@ -67,6 +67,7 @@ public class JasminGenerator {
         return "" ;
     }
     private String loadBooleanLiteral(){
+        pushToStack();
         StringBuilder code = new StringBuilder();
         code.append("cmp_true_"+this.cmpLabelNumbers).append(NL);
         code.append("iconst_0");
@@ -304,7 +305,7 @@ public class JasminGenerator {
 
     private void popFromStack() {
         stackSize--;
-        if (stackSize < 0) System.out.println("ERROR! STACK WENT NEGATIVE");
+        if (stackSize < 0) throw new RuntimeException();
     }
     private String generateMethod(Method method) {
 
