@@ -461,7 +461,6 @@ public class JasminGenerator {
         }
 
         for (int i = 0; i < call.getArguments().size()-1; i++) {
-            System.out.println(call.getArguments());
             popFromStack();
         }
         if (popCaller) popFromStack();
@@ -538,7 +537,6 @@ public class JasminGenerator {
     }
 
     private String generateOperand(Operand operand) {
-        pushToStack();
         // get register
         pushToStack();
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
@@ -572,6 +570,7 @@ public class JasminGenerator {
             //Add error report here
         }
         // apply operation
+        popFromStack();
 
         var op = instWithOp(binaryOp.getOperation());
 
