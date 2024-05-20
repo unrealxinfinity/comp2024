@@ -78,6 +78,7 @@ public class JasminGenerator {
         return branch;
     }
     private String negBooleanLiteral(){
+        pushToStack();
         StringBuilder code = new StringBuilder();
         code.append("iconst_1").append(NL);
         code.append("ixor");

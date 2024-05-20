@@ -51,45 +51,20 @@ public class Launcher {
       //  JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
       //  OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
         //TestUtils.noErrors(ollirResult.getReports());
-       String ollirCode  = "import ioPlus;\n" +
-               "ArrayAccess {\n" +
+       String ollirCode  = "import io;\n" +
                "\n" +
-               "    .construct ArrayAccess().V {\n" +
-               "        invokespecial(this, \"<init>\").V;\n" +
-               "    }\n" +
+               "Arithmetic_not{\n" +
                "\n" +
-               "    .method public static main(args.array.String).V {\n" +
-               "temp0.i32 :=.i32 5.i32;\n" +
-               "a.array.i32 :=.array.i32 new(array, temp0.i32).array.i32;\n" +
-               "temp1.i32 :=.i32 0.i32;\n" +
-               "a[temp1.i32].i32 :=.i32 1.i32;\n" +
-               "temp2.i32 :=.i32 1.i32;\n" +
-               "a[temp2.i32].i32 :=.i32 2.i32;\n" +
-               "temp3.i32 :=.i32 2.i32;\n" +
-               "a[temp3.i32].i32 :=.i32 3.i32;\n" +
-               "temp4.i32 :=.i32 3.i32;\n" +
-               "a[temp4.i32].i32 :=.i32 4.i32;\n" +
-               "temp5.i32 :=.i32 4.i32;\n" +
-               "a[temp5.i32].i32 :=.i32 5.i32;\n" +
-               "temp8.i32 :=.i32 0.i32;\n" +
-               "temp7.i32 :=.i32 a[temp8.i32].i32;\n" +
-               "invokestatic(ioPlus, \"printResult\", temp7.i32).V;\n" +
-               "temp11.i32 :=.i32 1.i32;\n" +
-               "temp10.i32 :=.i32 a[temp11.i32].i32;\n" +
-               "invokestatic(ioPlus, \"printResult\", temp10.i32).V;\n" +
-               "temp14.i32 :=.i32 2.i32;\n" +
-               "temp13.i32 :=.i32 a[temp14.i32].i32;\n" +
-               "invokestatic(ioPlus, \"printResult\", temp13.i32).V;\n" +
-               "temp17.i32 :=.i32 3.i32;\n" +
-               "temp16.i32 :=.i32 a[temp17.i32].i32;\n" +
-               "invokestatic(ioPlus, \"printResult\", temp16.i32).V;\n" +
-               "temp20.i32 :=.i32 4.i32;\n" +
-               "temp19.i32 :=.i32 a[temp20.i32].i32;\n" +
-               "invokestatic(ioPlus, \"printResult\", temp19.i32).V;\n" +
+               "   .construct Arithmetic_not().V {\n" +
+               "       invokespecial(this, \"<init>\").V;\n" +
+               "   }\n" +
                "\n" +
-               "ret.V;\n" +
-               "    }\n" +
-               "\n" +
+               "   .method public static main(args.array.String).V {\n" +
+               "      tmp0.bool :=.bool !.bool 1.bool;\n" +
+               "      a.bool :=.bool tmp0.bool;\n" +
+               "      invokestatic(io, \"println\", a.bool).V;\n" +
+               "      ret.V ;\n" +
+               "   }\n" +
                "}";
         OllirResult ollirResult = new OllirResult(semanticsResult,ollirCode,Collections.emptyList());
         // Print OLLIR code
