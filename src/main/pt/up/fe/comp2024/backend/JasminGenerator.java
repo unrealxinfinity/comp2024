@@ -67,6 +67,7 @@ public class JasminGenerator {
         return "" ;
     }
     private String loadBooleanLiteral(){
+        pushToStack();
         StringBuilder code = new StringBuilder();
         code.append("cmp_true_"+this.cmpLabelNumbers).append(NL);
         code.append("iconst_0");
@@ -304,7 +305,7 @@ public class JasminGenerator {
 
     private void popFromStack() {
         stackSize--;
-        if (stackSize < 0) System.out.println("ERROR! STACK WENT NEGATIVE");
+        if (stackSize < 0) throw new RuntimeException();
     }
     private String generateMethod(Method method) {
 
@@ -461,7 +462,6 @@ public class JasminGenerator {
         }
 
         for (int i = 0; i < call.getArguments().size()-1; i++) {
-            System.out.println(call.getArguments());
             popFromStack();
         }
         if (popCaller) popFromStack();
@@ -538,7 +538,6 @@ public class JasminGenerator {
     }
 
     private String generateOperand(Operand operand) {
-        pushToStack();
         // get register
         pushToStack();
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
@@ -572,6 +571,7 @@ public class JasminGenerator {
             //Add error report here
         }
         // apply operation
+        popFromStack();
 
         var op = instWithOp(binaryOp.getOperation());
 
