@@ -39,6 +39,9 @@ public class JasminGenerator {
     String thisClass;
     Integer extraRerence=0;
     Integer cmpLabelNumbers=0;
+    int stackSize;
+    int maxStack;
+
     private final SymbolTable symbolTable;
 
     private final FunctionClassMap<TreeNode, String> generators;
@@ -295,14 +298,28 @@ public class JasminGenerator {
     }
 
 
+    private void pushToStack() {
+        stackSize++;
+        if (stackSize > maxStack) maxStack = stackSize;
+    }
+
+    private void popFromStack() {
+        stackSize--;
+        if (stackSize < 0) System.out.println("ERROR! STACK WENT NEGATIVE");
+    }
 
 
     private String generateMethod(Method method) {
 
         // set method
         currentMethod = method;
+        stackSize = 0;
+        maxStack = 0;
 
         var code = new StringBuilder();
+        var tempCode = new StringBuilder();
+
+
 
         // calculate modifier
         var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
@@ -326,30 +343,36 @@ public class JasminGenerator {
         }
         code.append(")").append(returnType).append(NL);
         // Add limits
-        code.append(TAB).append(".limit stack 99").append(NL);
-        code.append(TAB).append(".limit locals 99").append(NL);
+        //code.append(TAB).append(".limit stack 99").append(NL);
+        //code.append(TAB).append(".limit locals 99").append(NL);
 
         for (var inst : method.getInstructions()) {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
             for(String label : method.getLabels(inst)){
-                code.append(label+":").append(NL);
+                tempCode.append(label+":").append(NL);
             }
-            code.append(instCode);
+            tempCode.append(instCode);
             if(inst instanceof CallInstruction && ((CallInstruction)inst).getReturnType().getTypeOfElement() != ElementType.VOID){
-                code.append(TAB).append("pop").append(NL);
+                tempCode.append(TAB).append("pop").append(NL);
+                popFromStack();
             }
             else if (inst instanceof CallInstruction && this.extraRerence != 0 ){
-                code.append(TAB).append("pop").append(NL);
+                tempCode.append(TAB).append("pop").append(NL);
+                popFromStack();
                 this.extraRerence-=1;
             }
         }
-        code.append(".end method\n");
+        tempCode.append(".end method\n");
 
+        code.append(TAB).append(".limit stack ").append(maxStack).append(NL);
+        code.append(TAB).append(".limit locals 99").append(NL);
+        code.append(tempCode);
         // unset method
         currentMethod = null;
 
         return code.toString();
+
     }
     private String generateCall(CallInstruction call){
         var code = new StringBuilder();
@@ -407,6 +430,7 @@ public class JasminGenerator {
             code.append("dup").append(NL);
             //has to be popped later since i will only use one of the duplicated references
             this.extraRerence += 1;
+            pushToStack();
         }
         else if (call.getInvocationType().equals(CallType.arraylength)){
             code.append(call.getInvocationType().toString().toLowerCase()).append(NL);
@@ -503,11 +527,13 @@ public class JasminGenerator {
     }
 
     private String generateLiteral(LiteralElement literal) {
+        pushToStack();
         var lit= literal.getLiteral().equals("-1")? "m1" : literal.getLiteral();
         return distinguishLiteral(literal.getLiteral()) + lit + NL;
     }
 
     private String generateOperand(Operand operand) {
+        pushToStack();
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
         //changed the hardcoded version with integer
