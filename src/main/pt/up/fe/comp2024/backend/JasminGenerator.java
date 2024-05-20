@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
  * One JasminGenerator instance per OllirResult.
  */
 public class JasminGenerator {
-    //ERROR!!! I NEED TO MAKE VIRTUAL INVOKATIONS WHEN I DECLARE NEW IMPORTED CLASSES
 
     private static final String NL = "\n";
     private static final String TAB = "   ";
@@ -75,7 +74,13 @@ public class JasminGenerator {
         this.cmpLabelNumbers++;
         return branch;
     }
-    private String instWithTypeBinary(Operation op){
+    private String negBooleanLiteral(){
+        StringBuilder code = new StringBuilder();
+        code.append("iconst_1").append(NL);
+        code.append("ixor");
+        return code.toString();
+    }
+    private String instWithOp(Operation op){
         var opType = op.getOpType();
         var type = op.getTypeInfo().getTypeOfElement();
         switch (type) {
@@ -94,9 +99,12 @@ public class JasminGenerator {
                 case NEQ: return "if_icmpne";
                 case AND:
                 case OR:
+                case NOTB: return negBooleanLiteral();
                 case XOR: break;
             };
-            case ARRAYREF:
+            case ARRAYREF:switch(opType){
+
+            };
             case OBJECTREF: switch(opType){
                 case EQ: return "if_acmpeq";
                 case NEQ: return "if_acmpne";
@@ -131,6 +139,14 @@ public class JasminGenerator {
             return "V";
         } else {
             return "error";
+        }
+    }
+    private String generateArrayElementType(Type type){
+        ElementType elementstype = type.getTypeOfElement();
+        switch(elementstype){
+            case INT32: return "int";
+            case BOOLEAN: return "boolean";
+            default: return "";
         }
     }
     private String storeLoadInstWithType(ElementType type,Boolean isStore){
@@ -200,6 +216,7 @@ public class JasminGenerator {
         generators.put(LiteralElement.class, this::generateLiteral);
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
+        generators.put(UnaryOpInstruction.class,this::generateUnaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
         generators.put(CallInstruction.class,this::generateCall);
         generators.put(FieldInstruction.class,this::generateFieldInst);
@@ -315,7 +332,9 @@ public class JasminGenerator {
         for (var inst : method.getInstructions()) {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
-            code.append(findLabel(inst));
+            for(String label : method.getLabels(inst)){
+                code.append(label+":").append(NL);
+            }
             code.append(instCode);
             if(inst instanceof CallInstruction && ((CallInstruction)inst).getReturnType().getTypeOfElement() != ElementType.VOID){
                 code.append(TAB).append("pop").append(NL);
@@ -335,40 +354,66 @@ public class JasminGenerator {
     private String generateCall(CallInstruction call){
         var code = new StringBuilder();
         //Does the register operations to get the callee reference
-        if(!call.getInvocationType().equals(CallType.NEW)  && !call.getInvocationType().equals(CallType.invokestatic) && !call.getInvocationType().equals(CallType.ldc) && ! call.getInvocationType().equals(CallType.arraylength)){
+        if(!call.getInvocationType().equals(CallType.NEW)  && !call.getInvocationType().equals(CallType.invokestatic) && !call.getInvocationType().equals(CallType.ldc)){
             var get_caller_reference = generators.apply(call.getCaller());
             code.append(get_caller_reference);
         }
-        //Does the register operatiosn to load the argument values to the stack
+        //Does the register operations to load the argument values to the stack
         for (var arg:call.getArguments()){
             code.append(generators.apply(arg));
         }
         //generates the type of invokation instruction
-        code.append(call.getInvocationType().toString().toLowerCase()).append(" ");
-
         var func="";
         var funcToCall="";
         var path="";
         var caller = ((Operand)call.getCaller());
         var mapEntry = currentMethod.getVarTable().get(caller.getName());
-        //gets the package for the caller
-        if(mapEntry!=null){
-            path = getPackageFromImport(((ClassType)mapEntry.getVarType()).getName()) + ((ClassType)mapEntry.getVarType()).getName();
-        }
-        else{
-            path = getPackageFromImport(caller.getName())+caller.getName();
+
+        if(!call.getInvocationType().equals(CallType.arraylength)) {
+            //gets the package for the caller
+            if (mapEntry != null) {
+
+                path = getPackageFromImport(((ClassType) mapEntry.getVarType()).getName()) + ((ClassType) mapEntry.getVarType()).getName();
+            } else {
+                path = getPackageFromImport(caller.getName()) + caller.getName();
+            }
         }
 
-        if(call.getInvocationType().equals(CallType.NEW)){
-            var objRef=generateJasminType(call.getReturnType());
-            funcToCall += objRef.substring(1,objRef.length()-1);
+        if(call.getInvocationType().equals(CallType.NEW)) {
+            var callRet = call.getReturnType();
+            var objRef = generateJasminType(callRet);
+
+            if (callRet instanceof ArrayType) {
+                //Case call is for an array type
+                var arrayType = (ArrayType) callRet;
+                var elementsType = arrayType.getElementType();
+                //Case the type of the array is a reference of object or another array object (multiarray)
+                if (elementsType.equals(ElementType.OBJECTREF) || elementsType.equals(ElementType.ARRAYREF)) {
+                    if (arrayType.getNumDimensions() > 1) {
+                        funcToCall += "multianewarray " + generateJasminType(elementsType) + " " + arrayType.getNumDimensions();
+                    } else {
+                        funcToCall += "anewarray " + path;
+                    }
+                } else {
+                    funcToCall += "newarray " + generateArrayElementType(arrayType.getElementType());
+                }
+            } else {
+                code.append(call.getInvocationType().toString().toLowerCase());
+                code.append(" ");
+                funcToCall += objRef.substring(1, objRef.length() - 1);
+            }
             funcToCall = funcToCall.replace("\"", "");
             code.append(funcToCall).append(NL);
             code.append("dup").append(NL);
             //has to be popped later since i will only use one of the duplicated references
-            this.extraRerence+=1;
+            this.extraRerence += 1;
+        }
+        else if (call.getInvocationType().equals(CallType.arraylength)){
+            code.append(call.getInvocationType().toString().toLowerCase()).append(NL);
         }
         else{
+            code.append(call.getInvocationType().toString().toLowerCase());
+            code.append(" ");
             //Appends the function spec / name and package
             func = ((LiteralElement) call.getMethodName()).getLiteral();
             func = func.replaceAll("\\\"", ""); // Assigning the result back to func
@@ -391,10 +436,10 @@ public class JasminGenerator {
                 code.append(" ").append(call.getArguments().size());
             }
             code.append(NL);
-
         }
 
         return code.toString();
+
     }
     private String generateFieldInst(FieldInstruction fieldInst){
         var code = new StringBuilder();
@@ -474,6 +519,15 @@ public class JasminGenerator {
         return inst + "_" + reg + NL;
     }
 
+    private String generateUnaryOp(UnaryOpInstruction unaryOp){
+        var code  = new StringBuilder();
+        var op = unaryOp.getOperation();
+        var inst = instWithOp(op);
+        code.append(generators.apply(unaryOp.getOperand())); // appends the operand for the unary operation
+        code.append(inst).append(NL); //appends the instruction generated according to operation
+        return code.toString();
+
+    }
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
         var code = new StringBuilder();
 
@@ -486,7 +540,7 @@ public class JasminGenerator {
             //Add error report here
         }
         // apply operation
-        var op = instWithTypeBinary(binaryOp.getOperation());
+        var op = instWithOp(binaryOp.getOperation());
         if (op.equals("error")) throw new NotImplementedException(binaryOp.getOperation().getOpType());
         if(binaryOp.getOperation().getTypeInfo().getTypeOfElement().equals(ElementType.BOOLEAN)){
             code.append(op).append(" ");
@@ -517,7 +571,7 @@ public class JasminGenerator {
         StringBuilder code = new StringBuilder();
         var condition = branchInst.getCondition();
         if (branchInst.getCondition() instanceof SingleOpInstruction){
-            code.append(generators.apply(branchInst.getCondition())).append("ifeq ").append(branchInst.getLabel()).append(NL);
+            code.append(generators.apply(branchInst.getCondition())).append("ifne ").append(branchInst.getLabel()).append(NL);
         }
         else{
             code.append(generators.apply(branchInst.getCondition())).append(branchInst.getLabel()).append(NL);

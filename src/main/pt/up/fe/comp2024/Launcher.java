@@ -89,11 +89,11 @@ public class Launcher {
         JasminBackendImpl jasminGen = new JasminBackendImpl();
         JasminResult jasminResult = jasminGen.toJasmin(ollirResult);
        // TestUtils.noErrors(jasminResult.getReports());
-        //jasminResult.compile();
+        jasminResult.compile();
         // Print Jasmin code
         System.out.println(jasminResult.getJasminCode());
        // System.out.println("HERE");
-       // jasminResult.run();
+       jasminResult.run();
 
 
     }
