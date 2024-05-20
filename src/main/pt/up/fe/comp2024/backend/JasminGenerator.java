@@ -41,7 +41,6 @@ public class JasminGenerator {
     Integer cmpLabelNumbers=0;
     int stackSize;
     int maxStack;
-
     private final SymbolTable symbolTable;
 
     private final FunctionClassMap<TreeNode, String> generators;
@@ -307,8 +306,6 @@ public class JasminGenerator {
         stackSize--;
         if (stackSize < 0) System.out.println("ERROR! STACK WENT NEGATIVE");
     }
-
-
     private String generateMethod(Method method) {
 
         // set method
@@ -318,8 +315,6 @@ public class JasminGenerator {
 
         var code = new StringBuilder();
         var tempCode = new StringBuilder();
-
-
 
         // calculate modifier
         var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
@@ -352,7 +347,7 @@ public class JasminGenerator {
             for(String label : method.getLabels(inst)){
                 tempCode.append(label+":").append(NL);
             }
-            tempCode.append(instCode);
+          tempCode.append(instCode);
             if(inst instanceof CallInstruction && ((CallInstruction)inst).getReturnType().getTypeOfElement() != ElementType.VOID){
                 tempCode.append(TAB).append("pop").append(NL);
                 popFromStack();
@@ -376,10 +371,12 @@ public class JasminGenerator {
     }
     private String generateCall(CallInstruction call){
         var code = new StringBuilder();
+        boolean popCaller = false;
         //Does the register operations to get the callee reference
         if(!call.getInvocationType().equals(CallType.NEW)  && !call.getInvocationType().equals(CallType.invokestatic) && !call.getInvocationType().equals(CallType.ldc)){
             var get_caller_reference = generators.apply(call.getCaller());
             code.append(get_caller_reference);
+            popCaller = true;
         }
         //Does the register operations to load the argument values to the stack
         for (var arg:call.getArguments()){
@@ -428,6 +425,7 @@ public class JasminGenerator {
             funcToCall = funcToCall.replace("\"", "");
             code.append(funcToCall).append(NL);
             code.append("dup").append(NL);
+            pushToStack();
             //has to be popped later since i will only use one of the duplicated references
             this.extraRerence += 1;
             pushToStack();
@@ -461,6 +459,12 @@ public class JasminGenerator {
             }
             code.append(NL);
         }
+
+        for (int i = 0; i < call.getArguments().size()-1; i++) {
+            System.out.println(call.getArguments());
+            popFromStack();
+        }
+        if (popCaller) popFromStack();
 
         return code.toString();
 
@@ -511,6 +515,7 @@ public class JasminGenerator {
         var type = currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement();
         // not hardcoded anymore
         var inst = storeLoadInstWithType(type,true);
+        popFromStack();
         if(reg<=3){
             code.append(inst+"_").append(reg).append(NL);
         }
@@ -535,6 +540,7 @@ public class JasminGenerator {
     private String generateOperand(Operand operand) {
         pushToStack();
         // get register
+        pushToStack();
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
         //changed the hardcoded version with integer
         var type = currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement();
@@ -566,7 +572,9 @@ public class JasminGenerator {
             //Add error report here
         }
         // apply operation
+
         var op = instWithOp(binaryOp.getOperation());
+
         if (op.equals("error")) throw new NotImplementedException(binaryOp.getOperation().getOpType());
         if(binaryOp.getOperation().getTypeInfo().getTypeOfElement().equals(ElementType.BOOLEAN)){
             code.append(op).append(" ");
