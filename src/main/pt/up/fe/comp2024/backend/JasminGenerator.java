@@ -40,6 +40,8 @@ public class JasminGenerator {
     String thisClass;
     Integer extraRerence=0;
     Integer cmpLabelNumbers=0;
+    int stackSize;
+    int maxStack;
     private final SymbolTable symbolTable;
 
     private final FunctionClassMap<TreeNode, String> generators;
@@ -278,12 +280,22 @@ public class JasminGenerator {
     }
 
 
+    private void pushToStack() {
+        stackSize++;
+        if (stackSize > maxStack) maxStack = stackSize;
+    }
 
+    private void popFromStack() {
+        stackSize--;
+        if (stackSize < 0) System.out.println("ERROR! STACK WENT NEGATIVE");
+    }
 
     private String generateMethod(Method method) {
 
         // set method
         currentMethod = method;
+        stackSize = 0;
+        maxStack = 0;
 
         var code = new StringBuilder();
 
