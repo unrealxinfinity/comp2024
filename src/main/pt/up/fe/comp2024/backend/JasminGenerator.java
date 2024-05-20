@@ -298,6 +298,7 @@ public class JasminGenerator {
         maxStack = 0;
 
         var code = new StringBuilder();
+        var tempCode = new StringBuilder();
 
         // calculate modifier
         var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
@@ -321,24 +322,29 @@ public class JasminGenerator {
         }
         code.append(")").append(returnType).append(NL);
         // Add limits
-        code.append(TAB).append(".limit stack 99").append(NL);
-        code.append(TAB).append(".limit locals 99").append(NL);
+        //code.append(TAB).append(".limit stack 99").append(NL);
+        //code.append(TAB).append(".limit locals 99").append(NL);
 
         for (var inst : method.getInstructions()) {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
-            code.append(findLabel(inst));
-            code.append(instCode);
+            tempCode.append(findLabel(inst));
+            tempCode.append(instCode);
             if(inst instanceof CallInstruction && ((CallInstruction)inst).getReturnType().getTypeOfElement() != ElementType.VOID){
-                code.append(TAB).append("pop").append(NL);
+                tempCode.append(TAB).append("pop").append(NL);
+                popFromStack();
             }
             else if (inst instanceof CallInstruction && this.extraRerence != 0 ){
-                code.append(TAB).append("pop").append(NL);
+                tempCode.append(TAB).append("pop").append(NL);
+                popFromStack();
                 this.extraRerence-=1;
             }
         }
-        code.append(".end method\n");
+        tempCode.append(".end method\n");
 
+        code.append(TAB).append(".limit stack ").append(maxStack).append(NL);
+        code.append(TAB).append(".limit locals 99").append(NL);
+        code.append(tempCode);
         // unset method
         currentMethod = null;
 
@@ -346,10 +352,12 @@ public class JasminGenerator {
     }
     private String generateCall(CallInstruction call){
         var code = new StringBuilder();
+        boolean popCaller = false;
         //Does the register operations to get the callee reference
         if(!call.getInvocationType().equals(CallType.NEW)  && !call.getInvocationType().equals(CallType.invokestatic) && !call.getInvocationType().equals(CallType.ldc) && ! call.getInvocationType().equals(CallType.arraylength)){
             var get_caller_reference = generators.apply(call.getCaller());
             code.append(get_caller_reference);
+            popCaller = true;
         }
         //Does the register operatiosn to load the argument values to the stack
         for (var arg:call.getArguments()){
@@ -377,6 +385,7 @@ public class JasminGenerator {
             funcToCall = funcToCall.replace("\"", "");
             code.append(funcToCall).append(NL);
             code.append("dup").append(NL);
+            pushToStack();
             //has to be popped later since i will only use one of the duplicated references
             this.extraRerence+=1;
         }
@@ -405,6 +414,12 @@ public class JasminGenerator {
             code.append(NL);
 
         }
+
+        for (int i = 0; i < call.getArguments().size()-1; i++) {
+            System.out.println(call.getArguments());
+            popFromStack();
+        }
+        if (popCaller) popFromStack();
 
         return code.toString();
     }
@@ -454,6 +469,7 @@ public class JasminGenerator {
         var type = currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement();
         // not hardcoded anymore
         var inst = storeLoadInstWithType(type,true);
+        popFromStack();
         if(reg<=3){
             code.append(inst+"_").append(reg).append(NL);
         }
@@ -470,12 +486,14 @@ public class JasminGenerator {
     }
 
     private String generateLiteral(LiteralElement literal) {
+        pushToStack();
         var lit= literal.getLiteral().equals("-1")? "m1" : literal.getLiteral();
         return distinguishLiteral(literal.getLiteral()) + lit + NL;
     }
 
     private String generateOperand(Operand operand) {
         // get register
+        pushToStack();
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
         //changed the hardcoded version with integer
         var type = currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement();
@@ -498,6 +516,7 @@ public class JasminGenerator {
             //Add error report here
         }
         // apply operation
+        popFromStack();
         var op = instWithTypeBinary(binaryOp.getOperation());
         if (op.equals("error")) throw new NotImplementedException(binaryOp.getOperation().getOpType());
         if(binaryOp.getOperation().getTypeInfo().getTypeOfElement().equals(ElementType.BOOLEAN)){
