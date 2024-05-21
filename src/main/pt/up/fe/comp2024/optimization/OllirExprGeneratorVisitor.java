@@ -223,9 +223,12 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
     private OllirExprResult visitBoolean(JmmNode node, Void unused) {
         var boolType = new Type(TypeUtils.getBoolTypeName(), false);
-        String ollirIntType = OptUtils.toOllirType(boolType);
-        String code = node.get("value") + ollirIntType;
-        return new OllirExprResult(code);
+        String ollirboolType = OptUtils.toOllirType(boolType);
+        StringBuilder code= new StringBuilder();
+        if(node.get("value").equals("true")){code.append("1"+ollirboolType);}
+        if(node.get("value").equals("false")){code.append("0"+ollirboolType);}
+
+        return new OllirExprResult(code.toString());
     }
     private OllirExprResult visitInteger(JmmNode node, Void unused) {
         var intType = new Type(TypeUtils.getIntTypeName(), false);
