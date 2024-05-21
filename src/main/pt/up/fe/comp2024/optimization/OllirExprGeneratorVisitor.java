@@ -64,16 +64,20 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         String arrayOllirType= OptUtils.toOllirType(type);
         String ollir_size = jmmNode.getChildren().size() + intOllirType;
         String arrayTemp = OptUtils.getTemp() + arrayOllirType;
-        String varArgsArray = OptUtils.getVarArgsCounter()+arrayOllirType;
+        String varArgsArray = OptUtils.getVarArgsCounter();
         computation.append(arrayTemp + SPACE + ASSIGN + arrayOllirType + " new( array," + ollir_size + ")" + arrayOllirType + END_STMT);
-        computation.append(varArgsArray + SPACE + ASSIGN + arrayOllirType + SPACE+ arrayTemp + END_STMT);
+        computation.append(varArgsArray + arrayOllirType + SPACE + ASSIGN + arrayOllirType + SPACE+ arrayTemp + END_STMT);
         for (int i = 0; i < jmmNode.getChildren().size(); i++) {
             OllirExprResult res = visit(jmmNode.getJmmChild(i));
-            computation.append(varArgsArray+res.getComputation()+intOllirType+ SPACE +ASSIGN + intOllirType+ SPACE + res.getCode() + END_STMT);
+            computation.append(res.getComputation());
+            computation.append(varArgsArray).append('[').append(i).append(intOllirType).append(']')
+                            .append(intOllirType).append(SPACE).append(ASSIGN).append(intOllirType)
+                            .append(SPACE).append(res.getCode()).append(END_STMT);
+            //computation.append(varArgsArray+res.getComputation()+intOllirType+ SPACE +ASSIGN + intOllirType+ SPACE + res.getCode() + END_STMT);
 
         }
 
-        return new OllirExprResult(varArgsArray, computation);
+        return new OllirExprResult(varArgsArray+arrayOllirType, computation);
     }
     private OllirExprResult visitLengthFunction(JmmNode jmmNode, Void unused) {
         StringBuilder computation = new StringBuilder();
