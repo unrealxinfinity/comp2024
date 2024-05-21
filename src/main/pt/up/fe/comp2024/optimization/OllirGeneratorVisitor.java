@@ -250,9 +250,13 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         StringBuilder code = new StringBuilder(".method ");
 
         boolean isPublic = NodeUtils.getBooleanAttribute(node, "isPublic", "false");
+        boolean hasVarargs = node.hasAttribute("hasVarargs");
         boolean hasreturn = false;
         if (isPublic) {
             code.append("public ");
+        }
+        if (hasVarargs) {
+            code.append("varargs ");
         }
         if (node.getObject("isStatic", Boolean.class)) {
             code.append("static ");
