@@ -354,6 +354,7 @@ public class JasminGenerator {
                 "";
         var st = method.isStaticMethod()? "static " : "";
         var f = method.isFinalMethod()? "final ":"";
+        var va = method.isVarargs()? "varargs ":"";
 
         var methodName = method.getMethodName();
         var methodParams = method.getParams();
@@ -364,7 +365,7 @@ public class JasminGenerator {
         // TODO: Hardcoded param types and return type, needs to be expanded
         //code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
         //not hardcoded anymore i think?
-        code.append("\n.method ").append(modifier).append(st).append(f).append(methodName).append("(");
+        code.append("\n.method ").append(modifier).append(st).append(f).append(va).append(methodName).append("(");
         for(var param:methodParams){
             code.append(generateJasminType(param.getType()));
         }

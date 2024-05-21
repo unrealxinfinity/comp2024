@@ -22,7 +22,11 @@ public class VarargPass extends AnalysisVisitor {
         List<JmmNode> params = jmmNode.getChildren(Kind.PARAM);
         if (params.isEmpty()) return null;
 
-        for (int i = 0; i < params.size() - 1; i++) {
+        for (int i = 0; i < params.size(); i++) {
+            if (params.get(i).getJmmChild(0).getObject("isVarargs", Boolean.class)) {
+                jmmNode.putObject("hasVarargs", true);
+            }
+            if (i == params.size() - 1) continue;
             if (params.get(i).getJmmChild(0).getObject("isVarargs", Boolean.class)) {
                 String message = String.format("Only last parameter of %s can be varargs", jmmNode.get("name"));
                 Report report = NodeUtils.createSemanticError(jmmNode, message);
