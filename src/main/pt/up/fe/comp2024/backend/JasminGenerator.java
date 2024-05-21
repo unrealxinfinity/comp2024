@@ -71,12 +71,14 @@ public class JasminGenerator {
         pushToStack();
         StringBuilder code = new StringBuilder();
         code.append("cmp_true_"+this.cmpLabelNumbers).append(NL);
-        code.append("iconst_0");
+        code.append("iconst_0").append(NL);
+        code.append("goto cmp_false_").append(this.cmpLabelNumbers).append(NL);
         code.append("cmp_true"+this.cmpLabelNumbers+":").append(NL);
         code.append("iconst_1");
-        var branch ="cmp_true_"+this.cmpLabelNumbers;
+        code.append("cmp_false_").append(this.cmpLabelNumbers).append(':').append(NL);
+
         this.cmpLabelNumbers++;
-        return branch;
+        return code.toString();
     }
     private String negBooleanLiteral(){
         pushToStack();
