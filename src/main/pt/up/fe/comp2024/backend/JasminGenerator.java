@@ -306,7 +306,7 @@ public class JasminGenerator {
 
     private void popFromStack() {
         stackSize--;
-        if (stackSize < 0) throw new RuntimeException();
+        if (stackSize < 0) throw new RuntimeException("Stack went negative");
     }
     private String generateMethod(Method method) {
 
@@ -359,6 +359,7 @@ public class JasminGenerator {
                 popFromStack();
                 this.extraRerence-=1;
             }
+            if (stackSize != 0) throw new RuntimeException("Stack was not 0 after end of statement");
         }
         tempCode.append(".end method\n");
 
@@ -599,6 +600,7 @@ public class JasminGenerator {
 
         code.append(generators.apply(returnInst.getOperand()));
         code.append(returnInstWithType(returnInst.getReturnType())).append(NL);
+        popFromStack();
 
         return code.toString();
     }
