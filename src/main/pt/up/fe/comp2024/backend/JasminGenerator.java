@@ -343,6 +343,7 @@ public class JasminGenerator {
         currentMethod = method;
         stackSize = 0;
         maxStack = 0;
+        extraRerence = 0;
 
         var code = new StringBuilder();
         var tempCode = new StringBuilder();
@@ -582,7 +583,6 @@ public class JasminGenerator {
 
             for(var op:((ArrayOperand) operand).getIndexOperands()){
                 index += generators.apply(op);
-                pushToStack(); // push the indexes
             }
             code.append(index);
             code.append(inst).append(NL);//push the loaded value content
@@ -620,7 +620,6 @@ public class JasminGenerator {
             inst = storeLoadInstWithType(type,true,true);
             for(var op:((ArrayOperand) lhs).getIndexOperands()){
                 index += generators.apply(op);
-                pushToStack(); // push the indexes
             }
             if(reg>3){
                 code.append("aload "+ reg).append(NL);
