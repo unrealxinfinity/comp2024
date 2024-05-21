@@ -596,7 +596,9 @@ public class JasminGenerator {
             if(reg>3){
                 code.append(inst + " " + reg + NL);
             }
-             code.append(inst + "_" + reg + NL);
+            else{
+                code.append(inst + "_" + reg + NL);
+            }
         }
        return code.toString();
     }
