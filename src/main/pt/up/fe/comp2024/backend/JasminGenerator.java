@@ -359,7 +359,7 @@ public class JasminGenerator {
                 popFromStack();
                 this.extraRerence-=1;
             }
-            if (stackSize != 0) throw new RuntimeException("Stack was not 0 after end of statement");
+            if (stackSize != this.extraRerence) throw new RuntimeException("Stack was not 0 after end of statement");
         }
         tempCode.append(".end method\n");
 
@@ -431,7 +431,6 @@ public class JasminGenerator {
             pushToStack();
             //has to be popped later since i will only use one of the duplicated references
             this.extraRerence += 1;
-            pushToStack();
         }
         else if (call.getInvocationType().equals(CallType.arraylength)){
             code.append(call.getInvocationType().toString().toLowerCase()).append(NL);
@@ -463,10 +462,11 @@ public class JasminGenerator {
             code.append(NL);
         }
 
-        for (int i = 0; i < call.getArguments().size()-1; i++) {
+        for (int i = 0; i < call.getArguments().size(); i++) {
             popFromStack();
         }
         if (popCaller) popFromStack();
+        if (!call.getReturnType().getTypeOfElement().equals(ElementType.VOID)) pushToStack();
 
         return code.toString();
 
@@ -480,6 +480,8 @@ public class JasminGenerator {
         code.append(getObjRef);
         if(getFieldVal!=null){
             code.append(getFieldVal);
+            popFromStack();
+            popFromStack();
         }
         var callObjName = ((ClassType)fieldInst.getObject().getType()).getName();
         var fieldName = fieldInst.getField().getName();
@@ -614,6 +616,7 @@ public class JasminGenerator {
             code.append(generators.apply(branchInst.getCondition())).append(branchInst.getLabel()).append(NL);
         }
         //
+        popFromStack();
         return code.toString();
     }
     private String generateGoTo(GotoInstruction goToInst){
