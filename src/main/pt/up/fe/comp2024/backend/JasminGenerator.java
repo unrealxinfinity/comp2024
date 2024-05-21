@@ -560,6 +560,7 @@ public class JasminGenerator {
         var inst = instWithOp(op);
         code.append(generators.apply(unaryOp.getOperand())); // appends the operand for the unary operation
         code.append(inst).append(NL); //appends the instruction generated according to operation
+        popFromStack();
         return code.toString();
 
     }
