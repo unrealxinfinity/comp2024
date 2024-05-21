@@ -35,7 +35,7 @@ public class Launcher {
         // Parsing stage
         JmmParserImpl parser = new JmmParserImpl();
         JmmParserResult parserResult = parser.parse(code, config);
-        //TestUtils.noErrors(parserResult.getReports());
+        TestUtils.noErrors(parserResult.getReports());
 
         // Print AST
         System.out.println(parserResult.getRootNode().toTree());

@@ -7,6 +7,7 @@ public class InterferenceGraph {
 
     public InterferenceGraph(List<String> vars) {
         for (String var : vars) {
+            if (var.equals("this")) continue;
             nodes.put(var, new GraphNode(var));
         }
     }
@@ -20,12 +21,18 @@ public class InterferenceGraph {
             for (String s : union) {
                 for (String t : union) {
                     if (s == t) continue;
+                    if (!nodes.containsKey(s) || !nodes.containsKey(t)) {
+                        continue;
+                    }
                     nodes.get(s).addAdj(t);
                 }
             }
             for (String s : in) {
                 for (String t : in) {
                     if (s == t) continue;
+                    if (!nodes.containsKey(s) || !nodes.containsKey(t)) {
+                        continue;
+                    }
                     nodes.get(s).addAdj(t);
                 }
             }
