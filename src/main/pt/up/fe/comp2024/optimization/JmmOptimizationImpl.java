@@ -59,6 +59,7 @@ public class JmmOptimizationImpl implements JmmOptimization {
             boolean success;
             do {
                 success = runRegisterAllocation(ollirResult, currRegs);
+                currRegs++;
             } while (!success);
         }
 
