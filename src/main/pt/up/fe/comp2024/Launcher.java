@@ -59,7 +59,34 @@ public class Launcher {
         // Print OLLIR code
         System.out.println(ollirResult.getOllirCode());
 
-
+        String ollirCode = "LocalLimits {\n" +
+                "\n" +
+                "    .method public func(a.i32, b.i32).i32 {\n" +
+                "\n" +
+                "        t1.i32 :=.i32 invokevirtual(this.LocalLimits, \"func\", 3.i32, 4.i32).i32;\n" +
+                "        t2.i32 :=.i32 3.i32 +.i32 t1.i32;\n" +
+                "        t3.i32 :=.i32 10.i32 *.i32 t2.i32;\n" +
+                "        $1.a.i32 :=.i32 $2.b.i32 +.i32 t3.i32;\n" +
+                "\n" +
+                "        j.i32 :=.i32 invokevirtual(this.LocalLimits, \"func\", 3.i32, 4.i32).i32;\n" +
+                "\n" +
+                "        ret.i32 1.i32;\n" +
+                "\n" +
+                "    }\n" +
+                "\n" +
+                "    .method public static main(args.array.String).V {\n" +
+                "\n" +
+                "        a.i32 :=.i32 1.i32;\n" +
+                "\n" +
+                "        ret.V;\n" +
+                "\n" +
+                "    }\n" +
+                "\n" +
+                "    .construct LocalLimits().V {\n" +
+                "        invokespecial(this, \"<init>\").V;\n" +
+                "    }\n" +
+                "}";
+        ollirResult = new OllirResult(ollirCode,Collections.emptyMap());
         // Code generation stage
 
         JasminBackendImpl jasminGen = new JasminBackendImpl();

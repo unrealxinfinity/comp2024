@@ -73,6 +73,7 @@ public class JasminGenerator {
         code.append("cmp_true_"+this.cmpLabelNumbers).append(NL);
         code.append("iconst_0").append(NL);
         code.append("goto cmp_false_").append(this.cmpLabelNumbers).append(NL);
+
         code.append("cmp_true_"+this.cmpLabelNumbers+":").append(NL);
         code.append("iconst_1").append(NL);
         code.append("cmp_false_").append(this.cmpLabelNumbers).append(':').append(NL);
@@ -411,8 +412,7 @@ public class JasminGenerator {
         tempCode.append(".end method\n");
 
         code.append(TAB).append(".limit stack ").append(maxStack).append(NL);
-        code.append(TAB).append(".limit locals 99")//.append(Collections.max(method.getVarTable().values().stream()
-                /*.map(Descriptor::getVirtualReg).toList())+1)*/.append(NL);
+        code.append(TAB).append(".limit locals ").append(Collections.max(method.getVarTable().values().stream().map(Descriptor::getVirtualReg).toList())+1).append(NL);
         code.append(tempCode);
         // unset method
         currentMethod = null;
@@ -563,8 +563,6 @@ public class JasminGenerator {
             }
             var op = instWithOp(((BinaryOpInstruction)assign.getRhs()).getOperation(),true);
             code.append(op).append(" ").append(reg).append(" ").append(incVal).append(NL);
-            popFromStack();
-            popFromStack();
         }
         else{
             var rhs = generators.apply(assign.getRhs());
@@ -771,7 +769,6 @@ public class JasminGenerator {
     }
     private String generateConditional(CondBranchInstruction branchInst){
         StringBuilder code = new StringBuilder();
-        var condition = branchInst.getCondition();
         if (branchInst.getCondition() instanceof SingleOpInstruction){
             code.append(generators.apply(branchInst.getCondition())).append("ifne ").append(branchInst.getLabel()).append(NL);
         }
