@@ -48,13 +48,33 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
     private OllirExprResult visitIndexedExpr(JmmNode jmmNode, Void unused){
         StringBuilder computation = new StringBuilder();
+        StringBuilder code = new StringBuilder();
+        Type type = jmmNode.getJmmChild(0).getObject("type", Type.class);
+        String arrayOllirType= OptUtils.toOllirType(type);
+
+        OllirExprResult array = visit(jmmNode.getJmmChild(0));
         OllirExprResult index = visit(jmmNode.getJmmChild(1));
         Type sizetype= jmmNode.getObject("type", Type.class);
         String intOllirType = OptUtils.toOllirType(sizetype);
-        String temp = OptUtils.getTemp() + intOllirType;
+        String temp = OptUtils.getTemp();
+        computation.append(array.getComputation());
+
+        computation.append(temp).append(arrayOllirType).append(SPACE).append(ASSIGN).append(arrayOllirType).append(SPACE).append(array.getCode()).append(END_STMT);
         computation.append(index.getComputation());
-        computation.append(temp + SPACE + ASSIGN + intOllirType + SPACE +jmmNode.getJmmChild(0).get("name") + "["+index.getCode()+"]"+intOllirType + END_STMT);
-        return new OllirExprResult(temp, computation);
+        String indexedComputation = computation.toString();
+
+        code.append(temp).append('[').append(index.getCode()).append(']').append(intOllirType);
+        String indexedCode = code.toString();
+
+        String temp2 = OptUtils.getTemp();
+        computation.append(temp2).append(intOllirType).append(SPACE).append(ASSIGN).append(intOllirType)
+                .append(SPACE).append(indexedCode).append(END_STMT);
+
+        OllirExprResult result = new OllirExprResult(temp2 + intOllirType, computation);
+        result.setIndexedCode(indexedCode);
+        result.setIndexedComputation(indexedComputation);
+
+        return result;
     }
     private OllirExprResult visitArrayExpr(JmmNode jmmNode, Void unused){
         StringBuilder computation = new StringBuilder();

@@ -6,6 +6,8 @@ public class OllirExprResult {
 
     private final String computation;
     private final String code;
+    private String indexedCode;
+    private String indexedComputation;
 
     public OllirExprResult(String code, String computation) {
         this.code = code;
@@ -34,5 +36,21 @@ public class OllirExprResult {
                 "computation='" + computation + '\'' +
                 ", code='" + code + '\'' +
                 '}';
+    }
+
+    public String getIndexedCode() {
+        return indexedCode;
+    }
+
+    public void setIndexedCode(String indexedCode) {
+        this.indexedCode = indexedCode;
+    }
+
+    public String getIndexedComputation() {
+        return indexedComputation;
+    }
+
+    public void setIndexedComputation(String indexedComputation) {
+        this.indexedComputation = indexedComputation;
     }
 }
