@@ -14,6 +14,43 @@ import static pt.up.fe.comp2024.ast.Kind.TYPE;
 public class OptUtils {
     private static int tempNumber = -1;
 
+    private static int ifStmtNumber = -1;
+
+    private static int elseStmtNumber =-1;
+
+    private static int whileCondNumber =-1;
+
+    private static int whileLoopNumber =-1;
+
+    private static int whileEndNumber=-1;
+
+    private static int varArgsCounter = -1;
+
+    public static String getVarArgsCounter() {
+        varArgsCounter++;
+        return "__varargs_array_" + varArgsCounter;
+    }
+    public static String getWhileCond(){
+        whileCondNumber++;
+        return "whileCond"+whileCondNumber;
+    }
+    public static String getWhileLoop(){
+        whileLoopNumber++;
+        return "whileLoop"+whileLoopNumber;
+    }
+
+    public static String getWhileEnd(){
+        whileEndNumber++;
+        return "whileEnd"+whileEndNumber;
+    }
+    public static String getif(){
+        ifStmtNumber++;
+        return "if"+ifStmtNumber;
+    }
+    public static String getendif(){
+        elseStmtNumber++;
+        return "endif"+elseStmtNumber;
+    }
     public static String getTemp() {
 
         return getTemp("tmp");
@@ -35,17 +72,18 @@ public class OptUtils {
         TYPE.checkOrThrow(typeNode);
 
         String typeName = typeNode.get("name");
-
-        return toOllirType(typeName);
+        boolean isArray= typeNode.getObject("isArray", Boolean.class);
+        boolean isVarArgs = typeNode.getObject("isVarargs", Boolean.class);
+        return toOllirType(typeName, (isArray||isVarArgs));
     }
 
     public static String toOllirType(Type type) {
-        return toOllirType(type.getName());
+        return toOllirType(type.getName(), type.isArray());
     }
 
-    private static String toOllirType(String typeName) {
+    private static String toOllirType(String typeName, boolean isArray) {
 
-        String type = "." + switch (typeName) {
+        String type = (isArray? ".array." : ".") + switch (typeName) {
             case "int" -> "i32";
             case "boolean"-> "bool";
             case "String" -> "String";

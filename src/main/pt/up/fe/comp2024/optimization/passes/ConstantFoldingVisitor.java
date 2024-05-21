@@ -13,21 +13,41 @@ public class ConstantFoldingVisitor extends AnalysisVisitor {
     @Override
     protected void buildVisitor() {
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
+        addVisit("LogicalExpr", this::visitNegation);
     }
 
-    private static int runArithmeticOp(String op, Integer op1, Integer op2) {
+    private void replaceAndLog(JmmNode toReplace, JmmNode folded) {
+        toReplace.replace(folded);
+        Report report = Report.newLog(Stage.OPTIMIZATION, NodeUtils.getLine(folded), NodeUtils.getColumn(folded), "Folded a constant op", null);
+        addReport(report);
+    }
+
+    private Void visitNegation(JmmNode jmmNode, SymbolTable symbolTable) {
+        JmmNode operand = jmmNode.getJmmChild(0);
+        if (!operand.isInstance(Kind.BOOLEAN_LITERAL)) return null;
+        boolean op1 = Boolean.parseBoolean(operand.get("value"));
+        JmmNode folded = new JmmNodeImpl(Kind.BOOLEAN_LITERAL.toString(), jmmNode);
+        folded.put("value", Boolean.toString(!op1));
+        replaceAndLog(jmmNode, folded);
+        return null;
+    }
+
+    private static String runArithmeticOp(String op, Integer op1, Integer op2) {
         switch (op) {
             case "+" -> {
-                return op1 + op2;
+                return Integer.toString(op1 + op2);
             }
             case "-" -> {
-                return op1 - op2;
+                return Integer.toString(op1 - op2);
             }
             case "*" -> {
-                return op1 * op2;
+                return Integer.toString(op1 * op2);
             }
             case "/" -> {
-                return op1 / op2;
+                return Integer.toString(op1 / op2);
+            }
+            case "<" -> {
+                return Boolean.toString(op1 < op2);
             }
             default -> throw new IllegalArgumentException();
         }
@@ -38,15 +58,24 @@ public class ConstantFoldingVisitor extends AnalysisVisitor {
         JmmNode left = jmmNode.getJmmChild(0);
         JmmNode right = jmmNode.getJmmChild(1);
 
-        if (op.equals("+") || op.equals("-") || op.equals("*") || op.equals("/")) {
-            if (!left.isInstance(Kind.INTEGER_LITERAL) || !right.isInstance(Kind.INTEGER_LITERAL)) return null;
-            int op1 = Integer.parseInt(left.get("value"));
-            int op2 = Integer.parseInt(right.get("value"));
-            JmmNode folded = new JmmNodeImpl(Kind.INTEGER_LITERAL.toString(), jmmNode);
-            folded.put("value", Integer.toString(runArithmeticOp(op, op1, op2)));
-            jmmNode.replace(folded);
-            Report report = Report.newLog(Stage.OPTIMIZATION, NodeUtils.getLine(folded), NodeUtils.getColumn(folded), "Folded a constant op", null);
-            addReport(report);
+        switch (op) {
+            case "+", "-", "*", "/", "<" -> {
+                if (!left.isInstance(Kind.INTEGER_LITERAL) || !right.isInstance(Kind.INTEGER_LITERAL)) return null;
+                int op1 = Integer.parseInt(left.get("value"));
+                int op2 = Integer.parseInt(right.get("value"));
+                String kind = op.equals("<") ? Kind.BOOLEAN_LITERAL.toString() : Kind.INTEGER_LITERAL.toString();
+                JmmNode folded = new JmmNodeImpl(kind, jmmNode);
+                folded.put("value", runArithmeticOp(op, op1, op2));
+                replaceAndLog(jmmNode, folded);
+            }
+            case "&&" -> {
+                if (!left.isInstance(Kind.BOOLEAN_LITERAL) || !right.isInstance(Kind.BOOLEAN_LITERAL)) return null;
+                boolean op1 = Boolean.parseBoolean(left.get("value"));
+                boolean op2 = Boolean.parseBoolean(right.get("value"));
+                JmmNode folded = new JmmNodeImpl(Kind.BOOLEAN_LITERAL.toString(), jmmNode);
+                folded.put("value", Boolean.toString(op1 && op2));
+                replaceAndLog(jmmNode, folded);
+            }
         }
 
         return null;

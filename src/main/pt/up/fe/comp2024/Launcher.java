@@ -40,7 +40,6 @@ public class Launcher {
         // Print AST
         System.out.println(parserResult.getRootNode().toTree());
 
-
         // Semantic Analysis stage
         JmmAnalysisImpl sema = new JmmAnalysisImpl();
         JmmSemanticsResult semanticsResult = sema.semanticAnalysis(parserResult);
@@ -48,50 +47,15 @@ public class Launcher {
 
 
         // Optimization stage
-      //  JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
-      //  OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
-        //TestUtils.noErrors(ollirResult.getReports());
-       String ollirCode  = "import ioPlus;\n" +
-               "ArrayAccess {\n" +
-               "\n" +
-               "    .construct ArrayAccess().V {\n" +
-               "        invokespecial(this, \"<init>\").V;\n" +
-               "    }\n" +
-               "\n" +
-               "    .method public static main(args.array.String).V {\n" +
-               "temp0.i32 :=.i32 5.i32;\n" +
-               "a.array.i32 :=.array.i32 new(array, temp0.i32).array.i32;\n" +
-               "temp1.i32 :=.i32 0.i32;\n" +
-               "a[temp1.i32].i32 :=.i32 1.i32;\n" +
-               "temp2.i32 :=.i32 1.i32;\n" +
-               "a[temp2.i32].i32 :=.i32 2.i32;\n" +
-               "temp3.i32 :=.i32 2.i32;\n" +
-               "a[temp3.i32].i32 :=.i32 3.i32;\n" +
-               "temp4.i32 :=.i32 3.i32;\n" +
-               "a[temp4.i32].i32 :=.i32 4.i32;\n" +
-               "temp5.i32 :=.i32 4.i32;\n" +
-               "a[temp5.i32].i32 :=.i32 5.i32;\n" +
-               "temp8.i32 :=.i32 0.i32;\n" +
-               "temp7.i32 :=.i32 a[temp8.i32].i32;\n" +
-               "invokestatic(ioPlus, \"printResult\", temp7.i32).V;\n" +
-               "temp11.i32 :=.i32 1.i32;\n" +
-               "temp10.i32 :=.i32 a[temp11.i32].i32;\n" +
-               "invokestatic(ioPlus, \"printResult\", temp10.i32).V;\n" +
-               "temp14.i32 :=.i32 2.i32;\n" +
-               "temp13.i32 :=.i32 a[temp14.i32].i32;\n" +
-               "invokestatic(ioPlus, \"printResult\", temp13.i32).V;\n" +
-               "temp17.i32 :=.i32 3.i32;\n" +
-               "temp16.i32 :=.i32 a[temp17.i32].i32;\n" +
-               "invokestatic(ioPlus, \"printResult\", temp16.i32).V;\n" +
-               "temp20.i32 :=.i32 4.i32;\n" +
-               "temp19.i32 :=.i32 a[temp20.i32].i32;\n" +
-               "invokestatic(ioPlus, \"printResult\", temp19.i32).V;\n" +
-               "\n" +
-               "ret.V;\n" +
-               "    }\n" +
-               "\n" +
-               "}";
-        OllirResult ollirResult = new OllirResult(semanticsResult,ollirCode,Collections.emptyList());
+
+        JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
+        //semanticsResult = ollirGen.optimize(semanticsResult);
+        System.out.println(semanticsResult.getRootNode().toTree());
+
+        OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
+        ollirGen.optimize(ollirResult);
+        TestUtils.noErrors(ollirResult.getReports());
+
         // Print OLLIR code
         System.out.println(ollirResult.getOllirCode());
 
@@ -100,12 +64,11 @@ public class Launcher {
 
         JasminBackendImpl jasminGen = new JasminBackendImpl();
         JasminResult jasminResult = jasminGen.toJasmin(ollirResult);
-       // TestUtils.noErrors(jasminResult.getReports());
+        TestUtils.noErrors(jasminResult.getReports());
         jasminResult.compile();
         // Print Jasmin code
         System.out.println(jasminResult.getJasminCode());
-       // System.out.println("HERE");
-       jasminResult.run();
+        jasminResult.run();
 
 
     }

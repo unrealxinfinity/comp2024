@@ -130,7 +130,8 @@ public class JmmSymbolTableBuilder {
 
     private static List<Symbol> buildFields(JmmNode classDecl) {
         return classDecl.getChildren(VAR_DECL).stream()
-                .map(var -> new Symbol(new Type(var.getJmmChild(0).get("name"), false), var.get("name")))
+                .map(var -> new Symbol(new Type(var.getJmmChild(0).get("name"),
+                        var.getJmmChild(0).getObject("isArray", Boolean.class)), var.get("name")))
                 .toList();
     }
 
