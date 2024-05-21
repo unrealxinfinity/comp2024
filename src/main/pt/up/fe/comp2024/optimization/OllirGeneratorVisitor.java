@@ -146,6 +146,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         return codeBuilder.toString();
     }
     private String visitAssignStmt(JmmNode node, Void unused) {
+        /*
         boolean indexed_expr = false;
         for(JmmNode node_  : node.getJmmChild(1).getDescendants()){
             if (node_.getKind().equals("IndexedExpr")){
@@ -184,7 +185,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 }
             }
         }
-
+        */
 
         var lhs = exprVisitor.visit(node.getJmmChild(0));
         var rhs = exprVisitor.visit(node.getJmmChild(1));
