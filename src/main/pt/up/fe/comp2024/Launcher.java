@@ -43,7 +43,7 @@ public class Launcher {
         // Semantic Analysis stage
         JmmAnalysisImpl sema = new JmmAnalysisImpl();
         JmmSemanticsResult semanticsResult = sema.semanticAnalysis(parserResult);
-        //TestUtils.noErrors(semanticsResult.getReports());
+        TestUtils.noErrors(semanticsResult.getReports());
 
 
         // Optimization stage
@@ -54,7 +54,7 @@ public class Launcher {
 
         OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
         ollirGen.optimize(ollirResult);
-        //TestUtils.noErrors(ollirResult.getReports());
+        TestUtils.noErrors(ollirResult.getReports());
 
         // Print OLLIR code
         System.out.println(ollirResult.getOllirCode());
