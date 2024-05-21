@@ -71,7 +71,9 @@ public class LivenessAnalysis {
         AssignInstruction assign = (AssignInstruction) inst;
 
         Operand dest = (Operand) assign.getDest();
-        def.add(dest.getName());
+        if (!(dest instanceof ArrayOperand)) {
+            def.add(dest.getName());
+        }
 
         return def;
     }
