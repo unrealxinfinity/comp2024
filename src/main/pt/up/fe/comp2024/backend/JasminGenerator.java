@@ -570,10 +570,10 @@ public class JasminGenerator {
         if(operand instanceof ArrayOperand){
             inst = storeLoadInstWithType(type,false,true);
             if(reg > 3){
-                code.append("aload "+ reg).append(NL);
+                code.append("aload " + reg).append(NL);
             }
             else {
-                code.append("aload_"+reg).append(NL);
+                code.append("aload_" + reg).append(NL);
             }
             pushToStack(); //push the aload
 
@@ -582,8 +582,8 @@ public class JasminGenerator {
                 pushToStack(); // push the indexes
             }
             code.append(index);
-            code.append(inst).append(NL);//push the loaded value content
-            pushToStack();
+            code.append(inst).append(NL);
+            pushToStack();//push the loaded value content
 
             popFromStack(); // pop the aload
             for(int i = 0;i<((ArrayOperand) operand).getIndexOperands().size();i++){
@@ -615,21 +615,24 @@ public class JasminGenerator {
         var inst = "";
         if(lhs instanceof ArrayOperand){
             inst = storeLoadInstWithType(type,true,true);
-            for(var op:((ArrayOperand) lhs).getIndexOperands()){
-                index += generators.apply(op);
-                pushToStack(); // push the indexes
-            }
+
             if(reg>3){
                 code.append("aload "+ reg).append(NL);
 
             }
             else{
-                code.append("aload_"+reg).append(NL);
+                code.append("aload_" + reg).append(NL);
             }
             pushToStack(); //push the aload
-            code.append(index);
-            code.append(value.toString());
 
+            for(var op:((ArrayOperand) lhs).getIndexOperands()){
+                index += generators.apply(op);
+                pushToStack(); // push the indexes
+            }
+
+            code.append(index);
+
+            code.append(value.toString());
             code.append(inst).append(NL);
 
             popFromStack(); // pop the aload
