@@ -61,10 +61,20 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         computation.append(temp).append(arrayOllirType).append(SPACE).append(ASSIGN).append(arrayOllirType).append(SPACE).append(array.getCode()).append(END_STMT);
         computation.append(index.getComputation());
+        String indexedComputation = computation.toString();
 
         code.append(temp).append('[').append(index.getCode()).append(']').append(intOllirType);
+        String indexedCode = code.toString();
 
-        return new OllirExprResult(code.toString(), computation);
+        String temp2 = OptUtils.getTemp();
+        computation.append(temp2).append(intOllirType).append(SPACE).append(ASSIGN).append(intOllirType)
+                .append(SPACE).append(indexedCode).append(END_STMT);
+
+        OllirExprResult result = new OllirExprResult(temp2 + intOllirType, computation);
+        result.setIndexedCode(indexedCode);
+        result.setIndexedComputation(indexedComputation);
+
+        return result;
     }
     private OllirExprResult visitArrayExpr(JmmNode jmmNode, Void unused){
         StringBuilder computation = new StringBuilder();
