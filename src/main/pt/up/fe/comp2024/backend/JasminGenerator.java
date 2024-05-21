@@ -71,12 +71,15 @@ public class JasminGenerator {
         pushToStack();
         StringBuilder code = new StringBuilder();
         code.append("cmp_true_"+this.cmpLabelNumbers).append(NL);
-        code.append("iconst_0");
-        code.append("cmp_true"+this.cmpLabelNumbers+":").append(NL);
-        code.append("iconst_1");
-        var branch ="cmp_true_"+this.cmpLabelNumbers;
+        code.append("iconst_0").append(NL);
+        code.append("goto cmp_false_").append(this.cmpLabelNumbers).append(NL);
+        code.append("cmp_true_"+this.cmpLabelNumbers+":").append(NL);
+        code.append("iconst_1").append(NL);
+        code.append("cmp_false_").append(this.cmpLabelNumbers).append(':').append(NL);
+        popFromStack();
+
         this.cmpLabelNumbers++;
-        return branch;
+        return code.toString();
     }
     private String negBooleanLiteral(){
         pushToStack();
@@ -408,8 +411,8 @@ public class JasminGenerator {
         tempCode.append(".end method\n");
 
         code.append(TAB).append(".limit stack ").append(maxStack).append(NL);
-        code.append(TAB).append(".limit locals ").append(Collections.max(method.getVarTable().values().stream()
-                .map(Descriptor::getVirtualReg).toList())+1).append(NL);
+        code.append(TAB).append(".limit locals 99")//.append(Collections.max(method.getVarTable().values().stream()
+                /*.map(Descriptor::getVirtualReg).toList())+1)*/.append(NL);
         code.append(tempCode);
         // unset method
         currentMethod = null;
