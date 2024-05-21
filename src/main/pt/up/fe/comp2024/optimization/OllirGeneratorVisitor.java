@@ -155,12 +155,37 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             }
         }
         //boolean skip= false ideia de skip a ser analisada para saltar o pedacço de código que pede o level;
-        if(!node.getJmmChild(0).getKind().equals("IndexedExpr") && !indexed_expr) {
-            if (node.getJmmChild(1).getKind().equals("BinaryExpr") && (node.getJmmChild(1).get("op").equals("+") || node.getJmmChild(1).get("op").equals("-") || node.getJmmChild(1).get("op").equals("*") || node.getJmmChild(1).get("op").equals("/"))
-                    && node.getJmmChild(1).getJmmChild(1).getChildren().isEmpty() && node.getJmmChild(1).getJmmChild(0).getChildren().isEmpty()) {
-                if (node.getJmmChild(1).getJmmChild(0).get("name").equals(node.getJmmChild(0).get("name")) ||
-                        node.getJmmChild(1).getJmmChild(1).get("name").equals(node.getJmmChild(0).get("name")) && (node.getJmmChild(1).getJmmChild(0).getKind().equals("IntegerLiteral") || node.getJmmChild(1).getJmmChild(1).getKind().equals("IntegerLiteral"))){
+        if(!node.getJmmChild(0).getKind().equals("IndexedExpr") && !indexed_expr && node.getJmmChild(1).getKind().equals("BinaryExpr") ) {
+           if(node.getJmmChild(1).getJmmChild(1).getKind().equals("IntegerLiteral")){
+            if(node.getJmmChild(0).get("name").equals(node.getJmmChild(1).getJmmChild(0).get("name")))
+            {
+                Type type = node.getJmmChild(0).getObject("type", Type.class);
+                String ollirVarType = OptUtils.toOllirType(type);
+                StringBuilder code = new StringBuilder();
 
+                code.append(node.getJmmChild(0).get("name"));
+                code.append(ollirVarType);
+                code.append(SPACE);
+                code.append(ASSIGN);
+                code.append(SPACE);
+                code.append(ollirVarType);
+                code.append(SPACE);
+                code.append(node.getJmmChild(1).getJmmChild(0).get("name")).append(ollirVarType);
+                code.append(SPACE);
+                code.append(node.getJmmChild(1).get("op"));
+                code.append(SPACE);
+                code.append(ollirVarType);
+                code.append(SPACE);
+                code.append(node.getJmmChild(1).getJmmChild(1).get("value"));
+                code.append(ollirVarType);
+                code.append(END_STMT);
+
+                return code.toString();
+            }
+            }
+            if(node.getJmmChild(1).getJmmChild(0).getKind().equals("IntegerLiteral")){
+                if(node.getJmmChild(0).get("name").equals(node.getJmmChild(1).getJmmChild(1).get("name")))
+                {
                     Type type = node.getJmmChild(0).getObject("type", Type.class);
                     String ollirVarType = OptUtils.toOllirType(type);
                     StringBuilder code = new StringBuilder();
@@ -172,20 +197,21 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                     code.append(SPACE);
                     code.append(ollirVarType);
                     code.append(SPACE);
-                    code.append(node.getJmmChild(1).getJmmChild(0).get("name")).append(ollirVarType);
+                    code.append(node.getJmmChild(1).getJmmChild(1).get("name")).append(ollirVarType);
                     code.append(SPACE);
                     code.append(node.getJmmChild(1).get("op"));
                     code.append(SPACE);
                     code.append(ollirVarType);
                     code.append(SPACE);
-                    code.append(node.getJmmChild(1).getJmmChild(1).get("value"));
+                    code.append(node.getJmmChild(1).getJmmChild(0).get("value"));
                     code.append(ollirVarType);
                     code.append(END_STMT);
 
                     return code.toString();
                 }
             }
-        }
+            }
+
 
 
         var lhs = exprVisitor.visit(node.getJmmChild(0));
