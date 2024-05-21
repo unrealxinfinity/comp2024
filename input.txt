@@ -1,21 +1,13 @@
-import foo.bar.A;
-import Auxi;
 import io;
-class Simple {
-    public int test(Auxi a){
-        Auxi.staticCall(3);
-        return 3;
-    }
-    public int foo(){
-        return 3;
-    }
 
-    public static void main(String[] args){
-       Simple s;
-       Auxi a;
-       int e;
-       a = new Auxi();
-       s = new Simple();
-       e = s.test(a);
-    }
+class Arithmetic_not {
+	public static void main(String[] args) {
+		boolean a;
+
+        a = !true;
+
+        io.println(a);
+	}
+
+
 }
