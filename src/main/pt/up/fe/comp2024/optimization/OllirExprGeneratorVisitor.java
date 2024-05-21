@@ -289,7 +289,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         var rhs = visit(node.getJmmChild(1));
 
         StringBuilder computation = new StringBuilder();
-
         // code to compute the children
         computation.append(lhs.getComputation());
         computation.append(rhs.getComputation());
