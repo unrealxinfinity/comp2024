@@ -114,6 +114,12 @@ public class LivenessAnalysis {
 
         for (Element element : operands) {
             if (element == null || element.isLiteral()) continue;
+            if (((Operand) element).getName().equals("array")) {
+                continue;
+            }
+            if (((Operand) element).getName().equals("this")) {
+                continue;
+            }
 
             use.add(((Operand) element).getName());
         }
