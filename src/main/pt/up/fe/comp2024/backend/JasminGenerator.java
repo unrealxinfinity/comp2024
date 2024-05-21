@@ -153,18 +153,47 @@ public class JasminGenerator {
             default: return "";
         }
     }
-    private String storeLoadInstWithType(ElementType type,Boolean isStore){
+    private String storeLoadInstWithType(Type type,Boolean isStore,Boolean isArrayOperand){
+        ElementType elementType = type.getTypeOfElement();
         if (isStore){
-            return switch (type) {
-                case INT32,BOOLEAN -> "istore";
-                case ARRAYREF,OBJECTREF,CLASS,THIS,STRING-> "astore";
+            return switch (elementType) {
+                case INT32,BOOLEAN-> "istore";
+                case OBJECTREF,CLASS,THIS,STRING-> "astore";
+                case ARRAYREF ->{
+                    if(isArrayOperand){
+                        var elementstype = ((ArrayType) type).getElementType();
+                        switch(elementstype.getTypeOfElement()){
+                            case INT32: yield "iastore";
+                            case OBJECTREF:yield "aastore";
+                            default: yield "error";
+                        }
+                    }
+                    else{
+                        yield "astore";
+                    }
+
+                }
                 default -> "error"; // need to add to the list of reports
             };
         }
         else{
-            return switch (type) {
+            return switch (elementType) {
                 case INT32,BOOLEAN -> "iload";
-                case ARRAYREF,OBJECTREF,CLASS,THIS,STRING-> "aload";
+                case OBJECTREF,CLASS,THIS,STRING-> "aload";
+                case ARRAYREF -> {
+                    if(isArrayOperand){
+                        var elementstype = ((ArrayType) type).getElementType();
+                        switch(elementstype.getTypeOfElement()){
+                            case INT32: yield "iaload";
+                            case OBJECTREF:yield "aaload";
+                            default: yield "error";
+                        }
+                    }
+                    else{
+                        yield "aload";
+                    }
+
+                }
                 default -> "error"; // need to add to the list of reports
             };
         }
@@ -492,15 +521,18 @@ public class JasminGenerator {
     }
     private String generateAssign(AssignInstruction assign) {
         var code = new StringBuilder();
+        var value = new StringBuilder();
+
         var rhs = generators.apply(assign.getRhs());
         // generate code for loading what's on the right
-        code.append(rhs);
+        value.append(rhs);
         var assignType = assign.getTypeOfAssign();
         if(assignType.equals(ElementType.BOOLEAN)){
             if(assign.getRhs() instanceof BinaryOpInstruction) {
-                code.append(loadBooleanLiteral()).append(NL);
+                value.append(loadBooleanLiteral()).append(NL);
             }
         }
+
         // store value in the stack in destination
         var lhs = assign.getDest();
         if (!(lhs instanceof Operand)) {
@@ -508,22 +540,7 @@ public class JasminGenerator {
         }
 
         var operand = (Operand) lhs;
-
-        // get register
-        var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-
-        // TODO: Hardcoded for int type, needs to be expanded
-        var type = currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement();
-        // not hardcoded anymore
-        var inst = storeLoadInstWithType(type,true);
-        popFromStack();
-        if(reg<=3){
-            code.append(inst+"_").append(reg).append(NL);
-        }
-        else{
-            code.append(inst+" ").append(reg).append(NL);
-        }
-
+        code.append(generateLhsOperand(operand,value));
 
         return code.toString();
     }
@@ -539,18 +556,99 @@ public class JasminGenerator {
     }
 
     private String generateOperand(Operand operand) {
+        StringBuilder code  = new StringBuilder();
+
         // get register
-        pushToStack();
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
         //changed the hardcoded version with integer
-        var type = currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement();
-        var inst = storeLoadInstWithType(type,false);
-        if(reg>3){
-            return inst + " " + reg + NL;
-        }
-        return inst + "_" + reg + NL;
-    }
+        var type = currentMethod.getVarTable().get(operand.getName()).getVarType();
 
+        //index of the array access
+        String index = "";
+        String inst = "";
+        if(operand instanceof ArrayOperand){
+            inst = storeLoadInstWithType(type,false,true);
+            if(reg > 3){
+                code.append("aload "+ reg).append(NL);
+            }
+            else {
+                code.append("aload_"+reg).append(NL);
+            }
+            pushToStack(); //push the aload
+
+            for(var op:((ArrayOperand) operand).getIndexOperands()){
+                index += generators.apply(op);
+                pushToStack(); // push the indexes
+            }
+            code.append(index);
+            code.append(inst).append(NL);//push the loaded value content
+            pushToStack();
+
+            popFromStack(); // pop the aload
+            for(int i = 0;i<((ArrayOperand) operand).getIndexOperands().size();i++){
+                popFromStack(); // pop the indexes
+            }
+
+        }
+        else{
+            inst = storeLoadInstWithType(type,false,false);
+            pushToStack();
+            if(reg>3){
+                code.append(inst + " " + reg + NL);
+            }
+             code.append(inst + "_" + reg + NL);
+        }
+       return code.toString();
+    }
+    private String generateLhsOperand(Operand lhs,StringBuilder value){
+        StringBuilder code = new StringBuilder();
+        // get register
+        var reg = currentMethod.getVarTable().get(lhs.getName()).getVirtualReg();
+        // get type of the content in the register
+        var type = currentMethod.getVarTable().get(lhs.getName()).getVarType();
+
+        //index of the array access
+        String index = "";
+        var inst = "";
+        if(lhs instanceof ArrayOperand){
+            inst = storeLoadInstWithType(type,true,true);
+            for(var op:((ArrayOperand) lhs).getIndexOperands()){
+                index += generators.apply(op);
+                pushToStack(); // push the indexes
+            }
+            if(reg>3){
+                code.append("aload "+ reg).append(NL);
+
+            }
+            else{
+                code.append("aload_"+reg).append(NL);
+            }
+            pushToStack(); //push the aload
+            code.append(index);
+            code.append(value.toString());
+
+            code.append(inst).append(NL);
+
+            popFromStack(); // pop the aload
+            for(int i = 0;i<((ArrayOperand) lhs).getIndexOperands().size();i++){
+                popFromStack(); // pop the indexes
+            }
+            popFromStack(); //pop the value
+
+        }
+        else{
+            inst = storeLoadInstWithType(type,true,false);
+            code.append(value.toString());
+            popFromStack(); // pop the value
+            if(reg<=3){
+                code.append(inst+"_").append(reg).append(NL);
+            }
+            else{
+                code.append(inst+" ").append(reg).append(NL);
+            }
+        }
+        return code.toString();
+    }
     private String generateUnaryOp(UnaryOpInstruction unaryOp){
         var code  = new StringBuilder();
         var op = unaryOp.getOperation();
