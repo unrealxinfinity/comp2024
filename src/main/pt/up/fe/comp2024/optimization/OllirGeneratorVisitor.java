@@ -160,13 +160,14 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(rhs.getComputation());
         if(node.getJmmChild(0).getKind().equals("IndexedExpr")){
 
-            String input = lhs.getComputation();
+            String input = lhs.getCode();
             int firstSpaceIndex = input.indexOf(' ');
             int secondSpaceIndex = input.indexOf(' ', firstSpaceIndex + 1);
             String result = input.substring(secondSpaceIndex + 1);
             result = result.replace(END_STMT, "");
             // Print the result
             System.out.println(result);
+            code.append(lhs.getComputation());
             code.append(result);
             //code.append(ollirVarType+ node.getJmmChild(0).getJmmChild(0).get("name")+"["+)
             code.append(SPACE);
