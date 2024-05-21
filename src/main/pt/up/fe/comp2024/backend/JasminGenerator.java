@@ -573,8 +573,8 @@ public class JasminGenerator {
                     value.append(loadBooleanLiteral()).append(NL);
                     System.out.println(this.stackSize);
                 }
-                popFromStack();
             }
+
             // store value in the stack in destination
             var operand = (Operand) lhs;
             code.append(generateLhsOperand(operand,value));
