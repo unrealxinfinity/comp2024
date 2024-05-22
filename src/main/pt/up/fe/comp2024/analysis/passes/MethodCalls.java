@@ -109,7 +109,7 @@ public class MethodCalls extends AnalysisVisitor {
                 }
             }
 
-            jmmNode.add(arrayInit);
+            if (arrayInit.getNumChildren() != 0) jmmNode.add(arrayInit);
         }
         else if (paramNodes.size() != params.size()) {
             String message = String.format("Incorrect number of parameters passed to method %s", jmmNode.get("name"));
