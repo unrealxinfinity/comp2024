@@ -412,7 +412,7 @@ public class JasminGenerator {
         tempCode.append(".end method\n");
 
         code.append(TAB).append(".limit stack ").append(maxStack).append(NL);
-        code.append(TAB).append(".limit locals ").append(Collections.max(method.getVarTable().values().stream().map(Descriptor::getVirtualReg).toList())+1).append(NL);
+        code.append(TAB).append(".limit locals 99").append(NL);//.append(Collections.max(method.getVarTable().values().stream().map(Descriptor::getVirtualReg).toList())+1).append(NL);
         code.append(tempCode);
         // unset method
         currentMethod = null;
