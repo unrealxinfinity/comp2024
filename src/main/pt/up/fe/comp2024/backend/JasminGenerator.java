@@ -419,6 +419,7 @@ public class JasminGenerator {
         else{
             code.append(TAB).append(".limit locals ").append(Collections.max(method.getVarTable().values().stream().map(Descriptor::getVirtualReg).toList())+1).append(NL);
         }
+
         code.append(tempCode);
         // unset method
         currentMethod = null;
