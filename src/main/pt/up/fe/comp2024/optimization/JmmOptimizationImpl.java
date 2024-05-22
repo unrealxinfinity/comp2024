@@ -5,6 +5,8 @@ import org.specs.comp.ollir.OllirErrorException;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
+import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.optimization.graph.GraphColorer;
 import pt.up.fe.comp2024.optimization.graph.InterferenceGraph;
@@ -52,7 +54,11 @@ public class JmmOptimizationImpl implements JmmOptimization {
         ollirResult.getOllirClass().buildVarTables();
 
         if (regValue != 0) {
-            runRegisterAllocation(ollirResult, regValue);
+            if (!runRegisterAllocation(ollirResult, regValue)) {
+                Report report = Report.newError(Stage.OPTIMIZATION, 0,0,
+                        "Couldn't allocate with the specified number of registers!", null);
+                ollirResult.getReports().add(report);
+            }
         }
         else {
             int currRegs = 1;
