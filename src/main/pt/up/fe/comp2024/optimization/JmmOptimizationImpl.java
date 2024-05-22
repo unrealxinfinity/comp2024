@@ -1,10 +1,13 @@
 package pt.up.fe.comp2024.optimization;
 
+import org.specs.comp.ollir.Descriptor;
 import org.specs.comp.ollir.Method;
 import org.specs.comp.ollir.OllirErrorException;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
+import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.optimization.graph.GraphColorer;
 import pt.up.fe.comp2024.optimization.graph.InterferenceGraph;
@@ -12,6 +15,7 @@ import pt.up.fe.comp2024.optimization.passes.ConstantFoldingVisitor;
 import pt.up.fe.comp2024.optimization.passes.ConstantPropagationVisitor;
 
 import java.util.Collections;
+import java.util.Map;
 
 public class JmmOptimizationImpl implements JmmOptimization {
 
@@ -40,6 +44,15 @@ public class JmmOptimizationImpl implements JmmOptimization {
             allocator.allocateRegisters();
         }
 
+        for (Method method : ollirResult.getOllirClass().getMethods()) {
+            for (Map.Entry<String, Descriptor> descriptor : method.getVarTable().entrySet()) {
+                Report report = Report.newLog(Stage.OPTIMIZATION, 0, 0, descriptor.getKey() + ": " + descriptor.getValue().getVirtualReg()
+                , null);
+                ollirResult.getReports().add(report);
+                System.out.println(report);
+            }
+        }
+
         return true;
     }
 
@@ -52,7 +65,11 @@ public class JmmOptimizationImpl implements JmmOptimization {
         ollirResult.getOllirClass().buildVarTables();
 
         if (regValue != 0) {
-            runRegisterAllocation(ollirResult, regValue);
+            if (!runRegisterAllocation(ollirResult, regValue)) {
+                Report report = Report.newError(Stage.OPTIMIZATION, 0,0,
+                        "Couldn't allocate with the specified number of registers!", null);
+                ollirResult.getReports().add(report);
+            }
         }
         else {
             int currRegs = 1;

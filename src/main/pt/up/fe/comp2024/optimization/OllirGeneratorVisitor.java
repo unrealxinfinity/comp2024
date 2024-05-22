@@ -215,7 +215,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         */
 
         var lhs = exprVisitor.visit(node.getJmmChild(0));
+        exprVisitor.setRootOfAssign(true);
         var rhs = exprVisitor.visit(node.getJmmChild(1));
+        exprVisitor.setRootOfAssign(false);
 
         StringBuilder code = new StringBuilder();
         Type type = node.getJmmChild(0).getObject("type", Type.class);
