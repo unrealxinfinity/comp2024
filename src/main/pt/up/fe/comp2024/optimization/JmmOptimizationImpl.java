@@ -3,6 +3,7 @@ package pt.up.fe.comp2024.optimization;
 import org.specs.comp.ollir.Descriptor;
 import org.specs.comp.ollir.Method;
 import org.specs.comp.ollir.OllirErrorException;
+import org.specs.comp.ollir.VarScope;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
@@ -33,7 +34,9 @@ public class JmmOptimizationImpl implements JmmOptimization {
         analyzer.buildLivenessSets(ollirResult);
 
         for (Method method : ollirResult.getOllirClass().getMethods()) {
-            InterferenceGraph graph = new InterferenceGraph(method.getVarTable().keySet().stream().toList());
+            InterferenceGraph graph = new InterferenceGraph(method.getVarTable().entrySet()
+                    .stream().filter(descriptor -> !descriptor.getValue().getScope().equals(VarScope.FIELD))
+                    .map(Map.Entry::getKey).toList());
             graph.buildEdges(analyzer.getDefs(method.getMethodName()), analyzer.getOuts(method.getMethodName()),
                     analyzer.getIns(method.getMethodName()));
 
@@ -45,7 +48,8 @@ public class JmmOptimizationImpl implements JmmOptimization {
         }
 
         for (Method method : ollirResult.getOllirClass().getMethods()) {
-            for (Map.Entry<String, Descriptor> descriptor : method.getVarTable().entrySet()) {
+            for (Map.Entry<String, Descriptor> descriptor : method.getVarTable().entrySet().stream()
+                    .filter(descriptor -> !descriptor.getValue().getScope().equals(VarScope.FIELD)).toList()) {
                 Report report = Report.newLog(Stage.OPTIMIZATION, 0, 0, descriptor.getKey() + ": " + descriptor.getValue().getVirtualReg()
                 , null);
                 ollirResult.getReports().add(report);

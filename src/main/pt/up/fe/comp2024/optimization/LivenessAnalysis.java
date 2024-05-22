@@ -10,9 +10,10 @@ public class LivenessAnalysis {
     private final Map<String, Map<Integer, Set<String>>> outs = new HashMap<>();
     private final Map<String, Map<Integer, Set<String>>> defs = new HashMap<>();
     private final Map<String, Map<Integer, Set<String>>> ins = new HashMap<>();
-
+    private Method currMethod;
     public void buildLivenessSets(OllirResult ollirResult) {
         for (Method method : ollirResult.getOllirClass().getMethods()) {
+            currMethod = method;
             outs.put(method.getMethodName(), new HashMap<>());
             defs.put(method.getMethodName(), new HashMap<>());
             ins.put(method.getMethodName(), new HashMap<>());
@@ -116,10 +117,14 @@ public class LivenessAnalysis {
 
         for (Element element : operands) {
             if (element == null || element.isLiteral()) continue;
-            if (((Operand) element).getName().equals("array")) {
+            String name = ((Operand) element).getName();
+            if (name.equals("array")) {
                 continue;
             }
-            if (((Operand) element).getName().equals("this")) {
+            if (name.equals("this")) {
+                continue;
+            }
+            if (currMethod.getVarTable().containsKey(name) && currMethod.getVarTable().get(name).getScope().equals(VarScope.FIELD)) {
                 continue;
             }
 
