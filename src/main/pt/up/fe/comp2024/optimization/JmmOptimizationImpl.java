@@ -15,7 +15,9 @@ import pt.up.fe.comp2024.optimization.graph.InterferenceGraph;
 import pt.up.fe.comp2024.optimization.passes.ConstantFoldingVisitor;
 import pt.up.fe.comp2024.optimization.passes.ConstantPropagationVisitor;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class JmmOptimizationImpl implements JmmOptimization {
@@ -91,10 +93,14 @@ public class JmmOptimizationImpl implements JmmOptimization {
     @Override
     public JmmSemanticsResult optimize(JmmSemanticsResult semanticsResult) {
         if (Boolean.parseBoolean(semanticsResult.getConfig().getOrDefault("optimize", "false"))) {
-            AnalysisVisitor visitor = new ConstantFoldingVisitor();
-            AnalysisVisitor visitor2 = new ConstantPropagationVisitor();
-            visitor.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable());
-            visitor2.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable());
+            List<Report> reports;
+            do {
+                reports = new ArrayList<>();
+                AnalysisVisitor visitor = new ConstantFoldingVisitor();
+                AnalysisVisitor visitor2 = new ConstantPropagationVisitor();
+                reports.addAll(visitor.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable()));
+                reports.addAll(visitor2.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable()));
+            } while (!reports.isEmpty());
         }
 
         return semanticsResult;
