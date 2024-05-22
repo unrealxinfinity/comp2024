@@ -71,6 +71,9 @@ public class MethodCalls extends AnalysisVisitor {
         }
 
         for (int i = 0; i < params.size(); i++) {
+            if (params.get(i).getType().getObject("isVarargs", Boolean.class)) {
+                break;
+            }
             if (i >= paramNodes.size()) {
                 String message = String.format("Incorrect number of parameters passed to method %s", jmmNode.get("name"));
                 Report report = NodeUtils.createSemanticError(jmmNode, message);
@@ -88,8 +91,8 @@ public class MethodCalls extends AnalysisVisitor {
         }
 
         Symbol lastParam = params.get(params.size()-1);
-        if (lastParam.getType().getObject("isVarargs", Boolean.class)
-                && !paramNodes.get(params.size()-1).getObject("type", Type.class).isArray()) {
+        boolean sizeCheck = paramNodes.size() > params.size() - 1;
+        if (lastParam.getType().getObject("isVarargs", Boolean.class) && (!sizeCheck || !paramNodes.get(params.size() - 1).getObject("type", Type.class).isArray())) {
             JmmNode arrayInit = new JmmNodeImpl("ArrayExpr");
             arrayInit.putObject("type", new Type("int", true));
 
