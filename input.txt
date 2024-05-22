@@ -1,20 +1,17 @@
 import io;
 
-class Test {
-
+class Arithmetic_and {
 	public static void main(String[] args) {
-    	Test test;
-        test = new Test();
-        if(1<2){
-            io.println(test.println());
-        }
-        else{
-            io.println(0);
-        }
+		boolean a;
+		Arithmetic_and c;
+
+		c = new Arithmetic_and();
+
+		(0 < 1  && 2<3) && c.p(1);
 	}
 
-	public int println(){
-	    return 1;
-	}
-
+	boolean p(int value) {
+   	    io.print(value);
+   	    return true;
+   	}
 }
