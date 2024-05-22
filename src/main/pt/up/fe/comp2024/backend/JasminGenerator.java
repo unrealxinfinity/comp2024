@@ -412,7 +412,14 @@ public class JasminGenerator {
         tempCode.append(".end method\n");
 
         code.append(TAB).append(".limit stack ").append(maxStack).append(NL);
-        code.append(TAB).append(".limit locals 99").append(NL);//.append(Collections.max(method.getVarTable().values().stream().map(Descriptor::getVirtualReg).toList())+1).append(NL);
+        var tableList = method.getVarTable().values().stream().map(Descriptor::getVirtualReg).toList();
+        if(tableList.isEmpty()){
+            code.append(TAB).append(".limit locals 1").append(NL);
+        }
+        else{
+            code.append(TAB).append(".limit locals ").append(Collections.max(method.getVarTable().values().stream().map(Descriptor::getVirtualReg).toList())+1).append(NL);
+        }
+
         code.append(tempCode);
         // unset method
         currentMethod = null;
@@ -704,6 +711,26 @@ public class JasminGenerator {
         return code.toString();
 
     }
+    /*private Boolean checkZero(Instruction binaryOp){
+
+        if(binaryOp instanceof  BinaryOpInstruction){
+            Element left  = ((BinaryOpInstruction)binaryOp).getLeftOperand();
+            Element right = ((BinaryOpInstruction)binaryOp).getRightOperand();
+            if((left instanceof  LiteralElement && right instanceof Operand) || (right instanceof LiteralElement && left instanceof Operand)){
+                if(left instanceof LiteralElement){
+                    if(left.getType().getTypeOfElement().equals(ElementType.INT32) &&){
+                        return true;
+                    }
+                }
+                else if (right instanceof LiteralElement){
+                    if(right.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) left).getName().equals(((Operand)lhs).getName())){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }*/
     private Boolean checkInc(Element lhs,Instruction binaryOp){
 
         if(binaryOp instanceof  BinaryOpInstruction){
