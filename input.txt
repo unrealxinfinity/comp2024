@@ -1,14 +1,18 @@
-class LocalLimits{
+import io;
 
-    public int func(int a, int b){
-       int j;
-	   
-       a = b + 10 * (3 + this.func(3,4));
-       j = this.func(3,4);
-       return 1;
-    }
-    public static void main(String[] args){
-        int a ;
-        a = 1;
-    }
+class Test {
+
+	public static void main(String[] args) {
+    	Test test;
+        int a;
+        test = new Test();
+        a = test.println();
+        io.println(test.println());
+
+	}
+
+	public int println(){
+	    return 1;
+	}
+
 }
