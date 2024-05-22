@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.optimization.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.JmmNodeImpl;
 import pt.up.fe.comp.jmm.report.Report;
@@ -56,6 +57,7 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
         if (!constants.containsKey(jmmNode.get("name"))) return null;
         JmmNode propagated = new JmmNodeImpl(Kind.INTEGER_LITERAL.toString(), jmmNode);
         propagated.put("value", constants.get(jmmNode.get("name")).getJmmChild(1).get("value"));
+        propagated.putObject("type", jmmNode.getObject("type", Type.class));
         jmmNode.replace(propagated);
         Report report = Report.newLog(Stage.OPTIMIZATION, NodeUtils.getLine(propagated),
                 NodeUtils.getColumn(propagated), "Propagated a constant", null);
