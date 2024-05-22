@@ -95,9 +95,10 @@ public class MethodCalls extends AnalysisVisitor {
         if (lastParam.getType().getObject("isVarargs", Boolean.class) && (!sizeCheck || !paramNodes.get(params.size() - 1).getObject("type", Type.class).isArray())) {
             JmmNode arrayInit = new JmmNodeImpl("ArrayExpr");
             arrayInit.putObject("type", new Type("int", true));
-
+            Integer oldIndex = null;
             for (int i = params.size()-1; i < paramNodes.size(); i++) {
                 JmmNode paramNode = paramNodes.get(i);
+                if (oldIndex == null) oldIndex = paramNode.getIndexOfSelf();
                 paramNode.detach();
                 arrayInit.add(paramNode);
 
@@ -109,7 +110,7 @@ public class MethodCalls extends AnalysisVisitor {
                 }
             }
 
-            if (arrayInit.getNumChildren() != 0) jmmNode.add(arrayInit);
+            jmmNode.add(arrayInit);
         }
         else if (paramNodes.size() != params.size()) {
             String message = String.format("Incorrect number of parameters passed to method %s", jmmNode.get("name"));
