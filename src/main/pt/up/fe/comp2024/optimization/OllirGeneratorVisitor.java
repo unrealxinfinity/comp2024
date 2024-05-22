@@ -155,7 +155,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             }
         }
         //boolean skip= false ideia de skip a ser analisada para saltar o pedacço de código que pede o level;
-        if(!node.getJmmChild(0).getKind().equals("IndexedExpr") && !indexed_expr && node.getJmmChild(1).getKind().equals("BinaryExpr") ) {
+        if(!node.getJmmChild(0).getKind().equals("IndexedExpr") && !indexed_expr && node.getJmmChild(1).getKind().equals("BinaryExpr") && node.getJmmChild(1).getJmmChild(0).getChildren().isEmpty() && node.getJmmChild(1).getJmmChild(1).getChildren().isEmpty()){
            if(node.getJmmChild(1).getJmmChild(1).getKind().equals("IntegerLiteral") && !node.getJmmChild(1).getJmmChild(0).getKind().equals("IntegerLiteral")){
             if(node.getJmmChild(0).get("name").equals(node.getJmmChild(1).getJmmChild(0).get("name")))
             {
