@@ -89,49 +89,75 @@ public class JasminGenerator {
         code.append("ixor");
         return code.toString();
     }
-    private String instWithOp(Operation op,Boolean inc){
+    private String instWithOp(Operation op,Boolean inc,Boolean zeroSimplify){
         var opType = op.getOpType();
         var type = op.getTypeInfo().getTypeOfElement();
         if(!inc){
-            switch (type) {
-                case INT32:  switch (opType){
-                    case ADD: return "iadd";
-                    case SUB: return "isub";
-                    case MUL: return "imul";
-                    case DIV: return "idiv";
-                };
-                case BOOLEAN: switch (opType){
-                    case LTH: return "if_icmplt";
-                    case LTE: return "if_icmple";
-                    case GTH: return "if_icmpgt";
-                    case GTE: return "if_icmpge";
-                    case EQ: return "if_icmpeq";
-                    case NEQ: return "if_icmpne";
-                    case AND:
-                    case OR:
-                    case NOTB: return negBooleanLiteral();
-                    case XOR: break;
-                };
-                case ARRAYREF:switch(opType){
-
-                };
-                case OBJECTREF: switch(opType){
-                    case EQ: return "if_acmpeq";
-                    case NEQ: return "if_acmpne";
-                    default: break;
+            if(!zeroSimplify){
+                switch (type) {
+                    case INT32:  switch (opType){
+                        case ADD: return "iadd";
+                        case SUB: return "isub";
+                        case MUL: return "imul";
+                        case DIV: return "idiv";
+                    };
+                    case BOOLEAN: switch (opType){
+                        case LTH: return "if_icmplt";
+                        case LTE: return "if_icmple";
+                        case GTH: return "if_icmpgt";
+                        case GTE: return "if_icmpge";
+                        case EQ: return "if_icmpeq";
+                        case NEQ: return "if_icmpne";
+                        case AND:
+                        case OR:
+                        case NOTB: return negBooleanLiteral();
+                        case XOR: break;
+                    };
+                    case ARRAYREF:switch(opType){
+                    };
+                    case OBJECTREF: switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                        default: break;
+                    }
+                    case CLASS:
+                    case THIS:
+                    case STRING: break;
+                    default: return "error"; // need to add to the list of reports
                 }
-                case CLASS:
-                case THIS:
-                case STRING: break;
-                default: return "error"; // need to add to the list of reports
             }
+            else{
+                switch (type) {
+                    case BOOLEAN: switch (opType){
+                        case LTH: return "iflt";
+                        case LTE: return "ifle";
+                        case GTH: return "ifgt";
+                        case GTE: return "ifge";
+                        case EQ: return "ifeq";
+                        case NEQ: return "ifne";
+                        default: return "error";
+                    }
+                    case ARRAYREF:switch(opType){
+
+                    }
+                    case OBJECTREF: switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                        default: break;
+                    }
+                    case CLASS:
+                    case THIS:
+                    case STRING: break;
+                    default: return "error"; // need to add to the list of reports
+                }
+            }
+
         }
         else{
             switch (type) {
                 case INT32:  switch (opType){
                     case ADD: return "iinc";
                 };
-
                 default: return "error"; // need to add to the list of reports
             }
         }
@@ -414,7 +440,7 @@ public class JasminGenerator {
         code.append(TAB).append(".limit stack ").append(maxStack).append(NL);
         var tableList = method.getVarTable().values().stream().map(Descriptor::getVirtualReg).toList();
         if(tableList.isEmpty()){
-            code.append(TAB).append(".limit locals 1").append(NL);
+                code.append(TAB).append(".limit locals 1").append(NL);
         }
         else{
             code.append(TAB).append(".limit locals ").append(Collections.max(method.getVarTable().values().stream().map(Descriptor::getVirtualReg).toList())+1).append(NL);
@@ -568,7 +594,7 @@ public class JasminGenerator {
                 reg = currentMethod.getVarTable().get(((Operand)left).getName()).getVirtualReg();
                 incVal = ((LiteralElement) right).getLiteral();
             }
-            var op = instWithOp(((BinaryOpInstruction)assign.getRhs()).getOperation(),true);
+            var op = instWithOp(((BinaryOpInstruction)assign.getRhs()).getOperation(),true,false);
             code.append(op).append(" ").append(reg).append(" ").append(incVal).append(NL);
         }
         else{
@@ -578,7 +604,7 @@ public class JasminGenerator {
             var assignType = assign.getTypeOfAssign().getTypeOfElement();
             if(assignType.equals(ElementType.BOOLEAN)){
                 if(assign.getRhs() instanceof BinaryOpInstruction) {
-                    value.append(loadBooleanLiteral()).append(NL);
+                    value.append(loadBooleanLiteral());
                     System.out.println(this.stackSize);
                 }
             }
@@ -704,33 +730,39 @@ public class JasminGenerator {
     private String generateUnaryOp(UnaryOpInstruction unaryOp){
         var code  = new StringBuilder();
         var op = unaryOp.getOperation();
-        var inst = instWithOp(op,false);
+        var inst = instWithOp(op,false,false);
         code.append(generators.apply(unaryOp.getOperand())); // appends the operand for the unary operation
         code.append(inst).append(NL); //appends the instruction generated according to operation
         popFromStack();
         return code.toString();
 
     }
-    /*private Boolean checkZero(Instruction binaryOp){
 
+    private Boolean checkZero(Instruction binaryOp){
         if(binaryOp instanceof  BinaryOpInstruction){
             Element left  = ((BinaryOpInstruction)binaryOp).getLeftOperand();
             Element right = ((BinaryOpInstruction)binaryOp).getRightOperand();
-            if((left instanceof  LiteralElement && right instanceof Operand) || (right instanceof LiteralElement && left instanceof Operand)){
-                if(left instanceof LiteralElement){
-                    if(left.getType().getTypeOfElement().equals(ElementType.INT32) &&){
+            if((left.isLiteral() && !right.isLiteral()) || (right.isLiteral() && !left.isLiteral()) || (left.isLiteral() && right.isLiteral())){
+                if (left.isLiteral() && right.isLiteral()){
+                    if((left.getType().getTypeOfElement().equals(ElementType.INT32) && ((LiteralElement) left).getLiteral().equals("0"))|| (right.getType().getTypeOfElement().equals(ElementType.INT32) && ((LiteralElement) right).getLiteral().equals("0"))){
                         return true;
                     }
                 }
-                else if (right instanceof LiteralElement){
-                    if(right.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) left).getName().equals(((Operand)lhs).getName())){
+                else if(left.isLiteral()){
+                    if(left.getType().getTypeOfElement().equals(ElementType.INT32) && ((LiteralElement) left).getLiteral().equals("0")){
                         return true;
                     }
                 }
+                else if (right.isLiteral()){
+                    if(right.getType().getTypeOfElement().equals(ElementType.INT32) && ((LiteralElement) right).getLiteral().equals("0")){
+                        return true;
+                    }
+                }
+
             }
         }
         return false;
-    }*/
+    }
     private Boolean checkInc(Element lhs,Instruction binaryOp){
 
         if(binaryOp instanceof  BinaryOpInstruction){
@@ -762,19 +794,30 @@ public class JasminGenerator {
         if (!type1.equals(type2)){
             //Add error report here
         }
-        // apply operation
-        var op = instWithOp(binaryOp.getOperation(),false);
+        //load the constants
         code.append(generators.apply(left));
         code.append(generators.apply(right));
-        if (op.equals("error")) throw new NotImplementedException(binaryOp.getOperation().getOpType());
+        // apply operation
 
-        if(binaryOp.getOperation().getTypeInfo().getTypeOfElement().equals(ElementType.BOOLEAN)){
+        if(checkZero(binaryOp) && binaryOp.getOperation().getTypeInfo().getTypeOfElement().equals(ElementType.BOOLEAN)){
+            var op = instWithOp(binaryOp.getOperation(),false,true);
+            code.append("isub").append(NL);
+            popFromStack();//Leaves only the result of the isub
             code.append(op).append(" ");
         }
         else{
-            code.append(op).append(NL);
+            var op = instWithOp(binaryOp.getOperation(),false,false);
+            if (op.equals("error")) throw new NotImplementedException(binaryOp.getOperation().getOpType());
+
+            if(binaryOp.getOperation().getTypeInfo().getTypeOfElement().equals(ElementType.BOOLEAN)){
+                code.append(op).append(" ");
+            }
+            else{
+                code.append(op).append(NL);
+            }
+            popFromStack();
         }
-        popFromStack();
+
 
         return code.toString();
     }
