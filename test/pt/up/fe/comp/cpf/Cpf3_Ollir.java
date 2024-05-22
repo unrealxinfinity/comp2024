@@ -88,7 +88,7 @@ public class Cpf3_Ollir {
     public void section3_ControlFlow_If_Simple_Single_goto() {
 
         var result = getOllirResult("control_flow/SimpleIfElseStat.jmm");
-
+        System.out.println(result.getOllirCode());
         var method = CpUtils.getMethod(result, "func");
 
         var branches = CpUtils.assertInstExists(CondBranchInstruction.class, method, result);
@@ -127,7 +127,7 @@ public class Cpf3_Ollir {
     @Test
     public void section3_ControlFlow_If_Else_In_Main() {
         var result = getOllirResult("control_flow/IfElseInMain.jmm");
-
+        System.out.println(result.getOllirCode());
         var method = CpUtils.getMethod(result, "main");
 
         var branches = CpUtils.assertInstExists(CondBranchInstruction.class, method, result);
