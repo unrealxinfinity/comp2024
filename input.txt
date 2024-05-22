@@ -4,11 +4,13 @@ class Test {
 
 	public static void main(String[] args) {
     	Test test;
-        int a;
         test = new Test();
-        a = test.println();
-        io.println(test.println());
-
+        if(1<2){
+            io.println(test.println());
+        }
+        else{
+            io.println(0);
+        }
 	}
 
 	public int println(){
