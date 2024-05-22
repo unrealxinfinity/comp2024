@@ -598,9 +598,7 @@ public class JasminGenerator {
             code.append(op).append(" ").append(reg).append(" ").append(incVal).append(NL);
         }
         else{
-            var rhs = generators.apply(assign.getRhs());
-            // generate code for loading what's on the right
-            value.append(rhs);
+
             var assignType = assign.getTypeOfAssign().getTypeOfElement();
             if(assignType.equals(ElementType.BOOLEAN)){
                 if(assign.getRhs() instanceof BinaryOpInstruction) {
@@ -611,10 +609,53 @@ public class JasminGenerator {
 
             // store value in the stack in destination
             var operand = (Operand) lhs;
-            code.append(generateLhsOperand(operand,value));
+            var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+            // get type of the content in the register
+            var type = currentMethod.getVarTable().get(operand.getName()).getVarType();
+
+            //index of the array access
+            String index = "";
+            var inst = "";
+            if(lhs instanceof ArrayOperand){
+                inst = storeLoadInstWithType(type,true,true);
+
+                if(reg>3){
+                    code.append("aload "+ reg).append(NL);
+
+                }
+                else{
+                    code.append("aload_" + reg).append(NL);
+                }
+                pushToStack(); //push the aload
+
+                for(var op:((ArrayOperand) operand).getIndexOperands()){
+                    index += generators.apply(op);
+                }
+
+                code.append(index);
+                code.append(generators.apply(assign.getRhs()));
+                code.append(inst).append(NL);
+
+                popFromStack(); // pop the aload
+                for(int i = 0;i<((ArrayOperand) operand).getIndexOperands().size();i++){
+                    popFromStack(); // pop the indexes
+                }
+                popFromStack(); //pop the value
+
+            }
+            else{
+                inst = storeLoadInstWithType(type,true,false);
+                code.append(generators.apply(assign.getRhs()));
+                popFromStack(); // pop the value
+                if(reg<=3){
+                    code.append(inst+"_").append(reg).append(NL);
+                }
+                else{
+                    code.append(inst+" ").append(reg).append(NL);
+                }
+            }
 
         }
-
 
         return code.toString();
     }
@@ -675,58 +716,7 @@ public class JasminGenerator {
         }
        return code.toString();
     }
-    private String generateLhsOperand(Operand lhs,StringBuilder value){
-        StringBuilder code = new StringBuilder();
-        // get register
-        var reg = currentMethod.getVarTable().get(lhs.getName()).getVirtualReg();
-        // get type of the content in the register
-        var type = currentMethod.getVarTable().get(lhs.getName()).getVarType();
 
-        //index of the array access
-        String index = "";
-        var inst = "";
-        if(lhs instanceof ArrayOperand){
-            inst = storeLoadInstWithType(type,true,true);
-
-
-            if(reg>3){
-                code.append("aload "+ reg).append(NL);
-
-            }
-            else{
-                code.append("aload_" + reg).append(NL);
-            }
-            pushToStack(); //push the aload
-
-            for(var op:((ArrayOperand) lhs).getIndexOperands()){
-                index += generators.apply(op);
-            }
-
-            code.append(index);
-
-            code.append(value.toString());
-            code.append(inst).append(NL);
-
-            popFromStack(); // pop the aload
-            for(int i = 0;i<((ArrayOperand) lhs).getIndexOperands().size();i++){
-                popFromStack(); // pop the indexes
-            }
-            popFromStack(); //pop the value
-
-        }
-        else{
-            inst = storeLoadInstWithType(type,true,false);
-            code.append(value.toString());
-            popFromStack(); // pop the value
-            if(reg<=3){
-                code.append(inst+"_").append(reg).append(NL);
-            }
-            else{
-                code.append(inst+" ").append(reg).append(NL);
-            }
-        }
-        return code.toString();
-    }
     private String generateUnaryOp(UnaryOpInstruction unaryOp){
         var code  = new StringBuilder();
         var op = unaryOp.getOperation();
