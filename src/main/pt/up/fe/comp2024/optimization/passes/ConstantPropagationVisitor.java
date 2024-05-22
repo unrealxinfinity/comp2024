@@ -80,6 +80,9 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
             constants.remove(jmmNode.getJmmChild(0).get("name"));
             return null;
         }
+        if (jmmNode.getJmmChild(0).getObject("type", Type.class).getObject("level", Integer.class) == 0) {
+            return null;
+        }
         if (constants.containsKey(jmmNode.getJmmChild(0).get("name"))) {
             JmmNode toRemove = constants.get(jmmNode.getJmmChild(0).get("name"));
             //toRemove.getParent().removeChild(toRemove);
