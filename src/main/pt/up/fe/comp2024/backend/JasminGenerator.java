@@ -581,8 +581,7 @@ public class JasminGenerator {
         if (!(lhs instanceof Operand)) {
             throw new NotImplementedException(lhs.getClass());
         }
-        //if(checkInc(lhs,assign.getRhs())){
-        if (false) {
+        if(checkInc(lhs,assign.getRhs())){
             Element left = ((BinaryOpInstruction)assign.getRhs()).getLeftOperand();
             Element right = ((BinaryOpInstruction)assign.getRhs()).getRightOperand();
             int reg = 0;
