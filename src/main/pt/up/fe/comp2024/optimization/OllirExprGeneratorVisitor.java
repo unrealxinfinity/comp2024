@@ -5,6 +5,7 @@ import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 import java.util.ArrayList;
@@ -22,9 +23,19 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     private final String END_STMT = ";\n";
 
     private final SymbolTable table;
+    private boolean rootOfAssign = false;
 
     public OllirExprGeneratorVisitor(SymbolTable table) {
         this.table = table;
+    }
+
+    public void setRootOfAssign(boolean val) {
+        rootOfAssign = val;
+    }
+
+    public boolean rootCondition(JmmNode node) {
+        if (!node.getParent().getJmmChild(0).isInstance(VAR_REF_LITERAL)) return true;
+        else return node.getParent().getJmmChild(0).getObject("type", Type.class).getObject("level", Integer.class) != 0;
     }
 
     @Override
@@ -174,8 +185,10 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         Type retType = jmmNode.getObject("type", Type.class);
         Type objType = jmmNode.getJmmChild(0).getObject("type", Type.class);
         String code;
+        boolean tempRoot = false;
 
         StringBuilder computation = new StringBuilder();
+        StringBuilder abbreviatedComputation = new StringBuilder();
         List<String> codes = new ArrayList<>();
 
         boolean isStatic = objType.getOptionalObject("isStatic").isPresent();
@@ -195,27 +208,41 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         }
         else {
             String resOllirType = OptUtils.toOllirType(retType);
-            code = OptUtils.getTemp() + resOllirType;
-            computation.append(code).append(SPACE).append(ASSIGN).append(ollirRetType)
-                    .append(SPACE);
+            if (rootOfAssign && jmmNode.getParent().isInstance(ASSIGN_STMT) && rootCondition(jmmNode)) {
+                tempRoot = true;
+                code = "";
+                rootOfAssign = false;
+            }
+            else {
+                code = OptUtils.getTemp() + resOllirType;
+                computation.append(code).append(SPACE).append(ASSIGN).append(ollirRetType)
+                        .append(SPACE);
+            }
         }
 
 
         int i = 0;
         if (isStatic) {
-            computation.append("invokestatic").append('(').append(objType.getName())
+            abbreviatedComputation.append("invokestatic").append('(').append(objType.getName())
                     .append(", \"").append(jmmNode.get("name")).append("\"");
         }
         else {
-            computation.append("invokevirtual").append('(').append(codes.get(i))
+            abbreviatedComputation.append("invokevirtual").append('(').append(codes.get(i))
                     .append(", \"").append(jmmNode.get("name")).append("\"");
             i++;
         }
 
         for (; i < codes.size(); i++) {
-            computation.append(", ").append(codes.get(i));
+            abbreviatedComputation.append(", ").append(codes.get(i));
         }
-        computation.append(')').append(ollirRetType).append(END_STMT);
+        abbreviatedComputation.append(')').append(ollirRetType);
+
+        if (tempRoot) {
+            code = abbreviatedComputation.toString();
+        }
+        else {
+            computation.append(abbreviatedComputation).append(END_STMT);
+        }
 
         return new OllirExprResult(code, computation);
     }
@@ -289,6 +316,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         var rhs = visit(node.getJmmChild(1));
 
         StringBuilder computation = new StringBuilder();
+        StringBuilder abbreviatedComputation = new StringBuilder();
         // code to compute the children
         computation.append(lhs.getComputation());
         computation.append(rhs.getComputation());
@@ -296,15 +324,22 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         // code to compute self
         Type resType = TypeUtils.getExprType(node, table);
         String resOllirType = OptUtils.toOllirType(resType);
-        String code = OptUtils.getTemp() + resOllirType;
-
-        computation.append(code).append(SPACE)
-                .append(ASSIGN).append(resOllirType).append(SPACE)
-                .append(lhs.getCode()).append(SPACE);
+        String code;
 
         Type type = TypeUtils.getExprType(node, table);
-        computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
-                .append(rhs.getCode()).append(END_STMT);
+        abbreviatedComputation.append(lhs.getCode()).append(SPACE).append(node.get("op"))
+                .append(OptUtils.toOllirType(type)).append(SPACE).append(rhs.getCode());
+
+        if (rootOfAssign  && node.getParent().isInstance(ASSIGN_STMT) && rootCondition(node)) {
+            code = abbreviatedComputation.toString();
+            rootOfAssign = false;
+        }
+        else {
+            code = OptUtils.getTemp() + resOllirType;
+            computation.append(code).append(SPACE)
+                    .append(ASSIGN).append(resOllirType).append(SPACE);
+            computation.append(abbreviatedComputation).append(END_STMT);
+        }
 
         return new OllirExprResult(code, computation);
     }
