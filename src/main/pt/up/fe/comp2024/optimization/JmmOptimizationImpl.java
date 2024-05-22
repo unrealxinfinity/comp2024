@@ -39,8 +39,11 @@ public class JmmOptimizationImpl implements JmmOptimization {
             InterferenceGraph graph = new InterferenceGraph(method.getVarTable().entrySet()
                     .stream().filter(descriptor -> !descriptor.getValue().getScope().equals(VarScope.FIELD))
                     .map(Map.Entry::getKey).toList());
+            List<String> params = method.getVarTable().entrySet()
+                    .stream().filter(descriptor -> descriptor.getValue().getScope().equals(VarScope.PARAMETER))
+                    .map(Map.Entry::getKey).toList();
             graph.buildEdges(analyzer.getDefs(method.getMethodName()), analyzer.getOuts(method.getMethodName()),
-                    analyzer.getIns(method.getMethodName()));
+                    analyzer.getIns(method.getMethodName()), params);
 
             GraphColorer colorer = new GraphColorer(graph);
             if (!colorer.colorGraph(colors)) return false;
