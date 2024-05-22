@@ -1,0 +1,114 @@
+import io;
+
+class Quicksort {
+    public static void main(String[] a) {
+        int[] L;
+        int i;
+        Quicksort q;
+
+        L = new int[10];
+
+        i = 0;
+        while (i < L.length) {
+            i = Quicksort.auxi1(i, L);
+        }
+
+        q = new Quicksort();
+
+        q.quicksortBase(L);
+        q.printL(L);
+    }
+
+    public static int auxi1(int i, int[] L) {
+        L[i] = L.length - i;
+        return i+1;
+    }
+
+    public int auxi2(int i, int[] L) {
+        io.println(L[i]);
+        return i+1;
+    }
+
+    public boolean printL(int[] L) {
+        int i;
+        i = 0;
+        while (i < L.length) {
+            i = this.auxi2(i, L);
+        }
+
+        return true;
+
+    }
+
+    public boolean quicksortBase(int[] L) {
+        return this.quicksort(L, 0, L.length - 1);
+    }
+
+    public int auxi3(int lo, int hi, int[] L) {
+        int p;
+
+        p = this.partition(L, lo, hi);
+
+        this.quicksort(L, lo, p - 1);
+        this.quicksort(L, p + 1, hi);
+
+        return p;
+    }
+
+    public boolean quicksort(int[] L, int lo, int hi) {
+        int p;
+        int a;
+
+        if (lo < hi) {
+            p = this.auxi3(lo, hi, L);
+        } else {
+            a = 1;
+        }
+
+        return true;
+    }
+
+    int auxi4(int[] L, int[] indices) {
+        int tmp;
+
+        tmp = L[indices[0]];
+        L[indices[0]] = L[indices[1]];
+        L[indices[1]] = tmp;
+
+        indices[0] = indices[0] + 1;
+        indices[1] = indices[1] + 1;
+        return 1;
+    }
+
+    public int partition(int[] L, int lo, int hi) {
+        int p;
+        int i;
+        int j;
+        int a;
+        int tmp;
+        int[] indices;
+
+        indices = new int[2];
+
+        p = L[hi];
+        i = lo;
+        j = lo;
+        indices[0] = i;
+        indices[1] = j;
+
+        while (indices[1] < hi) {
+            if (L[j] < p) {
+                a = this.auxi4(L, indices);
+            } else {
+                indices[1] = indices[1] + 1;
+            }
+        }
+
+        tmp = L[i];
+        L[i] = L[hi];
+        L[hi] = tmp;
+
+        return i;
+
+    }
+}

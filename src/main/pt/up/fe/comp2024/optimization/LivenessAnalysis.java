@@ -28,9 +28,9 @@ public class LivenessAnalysis {
         Map<Integer, Set<String>> defSets = defs.get(method.getMethodName());
         Map<Integer, Set<String>> inSets = ins.get(method.getMethodName());
         Map<Integer, Set<String>> outSets = outs.get(method.getMethodName());
-        Set<Integer> visited = new TreeSet<>();
 
         while (changed) {
+            Set<Integer> visited = new TreeSet<>();
             changed = false;
             Queue<Node> queue = new ArrayDeque<>(Collections.singletonList(method.getBeginNode()));
 
@@ -88,7 +88,7 @@ public class LivenessAnalysis {
 
     private Set<String> getUseFromInstruction(Instruction inst) {
         return switch (inst.getInstType()) {
-            case ASSIGN -> this.getUseFromInstruction(((AssignInstruction) inst).getRhs());
+            case ASSIGN -> this.getUseFromAssign((AssignInstruction) inst);
             case CALL -> this.getUseOp(((CallInstruction) inst).getOperands());
             case GOTO -> new TreeSet<>();
             case BRANCH -> this.getUseFromInstruction(((CondBranchInstruction) inst).getCondition());
@@ -99,11 +99,27 @@ public class LivenessAnalysis {
         };
     }
 
+    private Set<String> getUseFromAssign(AssignInstruction inst) {
+        Set<String> rhs = this.getUseFromInstruction(inst.getRhs());
+        if (inst.getDest() instanceof ArrayOperand operand) {
+            Set<String> lhs = this.getUseOp(operand.getIndexOperands());
+            lhs.add(operand.getName());
+            rhs.addAll(lhs);
+        }
+        return rhs;
+    }
+
     private Set<String> getUseOp(List<Element> operands) {
         Set<String> use = new TreeSet<>();
 
         for (Element element : operands) {
             if (element == null || element.isLiteral()) continue;
+            if (((Operand) element).getName().equals("array")) {
+                continue;
+            }
+            if (((Operand) element).getName().equals("this")) {
+                continue;
+            }
 
             use.add(((Operand) element).getName());
         }
