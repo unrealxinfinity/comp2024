@@ -33,6 +33,11 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         rootOfAssign = val;
     }
 
+    public boolean rootCondition(JmmNode node) {
+        if (!node.getParent().getJmmChild(0).isInstance(VAR_REF_LITERAL)) return true;
+        else return node.getParent().getJmmChild(0).getObject("type", Type.class).getObject("level", Integer.class) != 0;
+    }
+
     @Override
     protected void buildVisitor() {
         //addVisit(VAR_REF_EXPR, this::visitVarRef);
@@ -203,7 +208,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         }
         else {
             String resOllirType = OptUtils.toOllirType(retType);
-            if (rootOfAssign && jmmNode.getParent().isInstance(ASSIGN_STMT)) {
+            if (rootOfAssign && jmmNode.getParent().isInstance(ASSIGN_STMT) && rootCondition(jmmNode)) {
                 tempRoot = true;
                 code = "";
                 rootOfAssign = false;
@@ -325,7 +330,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         abbreviatedComputation.append(lhs.getCode()).append(SPACE).append(node.get("op"))
                 .append(OptUtils.toOllirType(type)).append(SPACE).append(rhs.getCode());
 
-        if (rootOfAssign  && node.getParent().isInstance(ASSIGN_STMT)) {
+        if (rootOfAssign  && node.getParent().isInstance(ASSIGN_STMT) && rootCondition(node)) {
             code = abbreviatedComputation.toString();
             rootOfAssign = false;
         }
