@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.optimization;
 
+import org.specs.comp.ollir.Descriptor;
 import org.specs.comp.ollir.Method;
 import org.specs.comp.ollir.OllirErrorException;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
@@ -14,6 +15,7 @@ import pt.up.fe.comp2024.optimization.passes.ConstantFoldingVisitor;
 import pt.up.fe.comp2024.optimization.passes.ConstantPropagationVisitor;
 
 import java.util.Collections;
+import java.util.Map;
 
 public class JmmOptimizationImpl implements JmmOptimization {
 
@@ -40,6 +42,15 @@ public class JmmOptimizationImpl implements JmmOptimization {
 
             RegisterAllocator allocator = new RegisterAllocator(method.getVarTable(), graph, colors);
             allocator.allocateRegisters();
+        }
+
+        for (Method method : ollirResult.getOllirClass().getMethods()) {
+            for (Map.Entry<String, Descriptor> descriptor : method.getVarTable().entrySet()) {
+                Report report = Report.newLog(Stage.OPTIMIZATION, 0, 0, descriptor.getKey() + ": " + descriptor.getValue().getVirtualReg()
+                , null);
+                ollirResult.getReports().add(report);
+                System.out.println(report);
+            }
         }
 
         return true;
