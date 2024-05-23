@@ -71,7 +71,7 @@ public class ConstantFoldingVisitor extends AnalysisVisitor {
         JmmNode right = jmmNode.getJmmChild(1);
 
         switch (op) {
-            case "+", "-", "*", "/", "<" -> {
+            case "+", "-", "*", "/"/*, "<"*/ -> {
                 if (!left.isInstance(Kind.INTEGER_LITERAL) || !right.isInstance(Kind.INTEGER_LITERAL)) return null;
                 int op1 = Integer.parseInt(left.get("value"));
                 int op2 = Integer.parseInt(right.get("value"));
@@ -81,12 +81,12 @@ public class ConstantFoldingVisitor extends AnalysisVisitor {
                 replaceAndLog(jmmNode, folded);
             }
             case "&&" -> {
-                if (!left.isInstance(Kind.BOOLEAN_LITERAL) || !right.isInstance(Kind.BOOLEAN_LITERAL)) return null;
-                boolean op1 = Boolean.parseBoolean(left.get("value"));
-                boolean op2 = Boolean.parseBoolean(right.get("value"));
-                JmmNode folded = new JmmNodeImpl(Kind.BOOLEAN_LITERAL.toString(), jmmNode);
-                folded.put("value", Boolean.toString(op1 && op2));
-                replaceAndLog(jmmNode, folded);
+                //if (!left.isInstance(Kind.BOOLEAN_LITERAL) || !right.isInstance(Kind.BOOLEAN_LITERAL)) return null;
+                //boolean op1 = Boolean.parseBoolean(left.get("value"));
+                //boolean op2 = Boolean.parseBoolean(right.get("value"));
+                //JmmNode folded = new JmmNodeImpl(Kind.BOOLEAN_LITERAL.toString(), jmmNode);
+                //folded.put("value", Boolean.toString(op1 && op2));
+                //replaceAndLog(jmmNode, folded);
             }
         }
 
