@@ -100,6 +100,9 @@ public class JasminGenerator {
                         case SUB: return "isub";
                         case MUL: return "imul";
                         case DIV: return "idiv";
+                        case SHL: return "ishl";
+                        case SHR: return "ishr";
+
                     };
                     case BOOLEAN: switch (opType){
                         case LTH: return "if_icmplt";
@@ -108,18 +111,18 @@ public class JasminGenerator {
                         case GTE: return "if_icmpge";
                         case EQ: return "if_icmpeq";
                         case NEQ: return "if_icmpne";
-                        case AND:
-                        case OR:
+                        case AND: return "iand";
+                        case OR: return "ior";
                         case NOTB: return negBooleanLiteral();
-                        case XOR: break;
+                        case XOR: return "ixor";
                     };
-                    case ARRAYREF:switch(opType){
-                    };
+
                     case OBJECTREF: switch(opType){
                         case EQ: return "if_acmpeq";
                         case NEQ: return "if_acmpne";
                         default: break;
                     }
+                    case ARRAYREF:
                     case CLASS:
                     case THIS:
                     case STRING: break;
@@ -135,7 +138,7 @@ public class JasminGenerator {
                         case GTE: return "ifge";
                         case EQ: return "ifeq";
                         case NEQ: return "ifne";
-                        default: return "error";
+                        default: break;
                     }
                     case ARRAYREF:switch(opType){
 
@@ -148,17 +151,14 @@ public class JasminGenerator {
                     case CLASS:
                     case THIS:
                     case STRING: break;
-                    default: return "error"; // need to add to the list of reports
                 }
             }
-
         }
         else{
             switch (type) {
                 case INT32:  switch (opType){
                     case ADD: return "iinc";
                 };
-                default: return "error"; // need to add to the list of reports
             }
         }
         return "error";
@@ -245,7 +245,7 @@ public class JasminGenerator {
         return switch (type.getTypeOfElement()) {
             case INT32,BOOLEAN -> "ireturn";
             case ARRAYREF,OBJECTREF,CLASS,THIS,STRING-> "areturn";
-            default -> "error"; // need to add to the list of reports
+            case VOID -> "return";
         };
     }
     private String distinguishLiteral(String literal){
@@ -832,6 +832,7 @@ public class JasminGenerator {
             code.append("return").append(NL);
             return code.toString();
         }
+
 
         code.append(generators.apply(returnInst.getOperand()));
         code.append(returnInstWithType(returnInst.getReturnType())).append(NL);
