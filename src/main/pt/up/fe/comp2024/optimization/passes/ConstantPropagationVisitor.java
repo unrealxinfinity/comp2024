@@ -14,8 +14,9 @@ import java.util.*;
 
 public class ConstantPropagationVisitor extends AnalysisVisitor {
     Map<String, JmmNode> constants;
+    JmmNode endOfWhileConstant = null;
 
-    boolean inConditional = false;
+    int inConditional = 0;
 
     @Override
     protected void buildVisitor() {
@@ -25,9 +26,22 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
         addVisit(Kind.VAR_REF_LITERAL, this::visitVarRef);
         addVisit("IfStatement", this::visitIf);
         addVisit("ClassFunctionCallExpr", this::visitCall);
+        addVisit(Kind.RETURN_STMT, this::visitReturn);
+    }
+
+    private Void visitReturn(JmmNode jmmNode, SymbolTable symbolTable) {
+        if (inConditional == 0 && endOfWhileConstant != null) {
+            constants.put(endOfWhileConstant.getJmmChild(0).get("name"), endOfWhileConstant);
+            endOfWhileConstant = null;
+        }
+        return null;
     }
 
     private Void visitCall(JmmNode jmmNode, SymbolTable symbolTable) {
+        if (inConditional == 0 && endOfWhileConstant != null) {
+            constants.put(endOfWhileConstant.getJmmChild(0).get("name"), endOfWhileConstant);
+            endOfWhileConstant = null;
+        }
         constants.entrySet().removeIf(entry -> entry.getValue().getJmmChild(0).getObject("type", Type.class).getObject("level", Integer.class) == 0);
         return null;
     }
@@ -35,11 +49,9 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
     private Void visitIf(JmmNode jmmNode, SymbolTable symbolTable) {
         visit(jmmNode.getJmmChild(0), symbolTable);
 
-        inConditional = true;
         visit(jmmNode.getJmmChild(1), symbolTable);
         Map<String, JmmNode> tempConstants = new HashMap<>(constants);
         visit(jmmNode.getJmmChild(2), symbolTable);
-        inConditional = false;
 
         Map<String, JmmNode> finalConstants = new HashMap<>();
         for (Map.Entry<String, JmmNode> elem : constants.entrySet()) {
@@ -58,7 +70,7 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
     private Void visitVarRef(JmmNode jmmNode, SymbolTable symbolTable) {
         if (jmmNode.getParent().isInstance(Kind.ASSIGN_STMT) && jmmNode.getIndexOfSelf() == 0) return null;
         if (!constants.containsKey(jmmNode.get("name"))) return null;
-        if (inConditional) {
+        if (inConditional > 0) {
             Optional<JmmNode> assigningTo = jmmNode.getAncestor(Kind.ASSIGN_STMT);
             if (assigningTo.isPresent()) {
                 String name = assigningTo.get().getJmmChild(0).get("name");
@@ -79,21 +91,34 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
     }
 
     private Void visitWhile(JmmNode jmmNode, SymbolTable symbolTable) {
-        inConditional = true;
+        if (inConditional == 0 && endOfWhileConstant != null) {
+            constants.put(endOfWhileConstant.getJmmChild(0).get("name"), endOfWhileConstant);
+            endOfWhileConstant = null;
+        }
+        inConditional++;
         visit(jmmNode.getJmmChild(1), symbolTable);
-        inConditional = false;
+        inConditional--;
         visit(jmmNode.getJmmChild(0), symbolTable);
         return null;
     }
 
     private Void visitAssignment(JmmNode jmmNode, SymbolTable symbolTable) {
-        if (!inConditional && (jmmNode.getParent().getParent().isInstance("IfStatement") || jmmNode.getParent().getParent().isInstance("WhileStatement"))) return null;
+        if (inConditional == 0 && endOfWhileConstant != null) {
+            constants.put(endOfWhileConstant.getJmmChild(0).get("name"), endOfWhileConstant);
+            endOfWhileConstant = null;
+        }
+        if (inConditional == 0 && (jmmNode.getParent().getParent().isInstance("IfStatement") || jmmNode.getParent().getParent().isInstance("WhileStatement"))) return null;
         if (!jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_LITERAL)) return null;
         for (JmmNode child : jmmNode.getChildren()) {
             visit(child, symbolTable);
         }
         if (!jmmNode.getJmmChild(1).isInstance(Kind.INTEGER_LITERAL)) {
             constants.remove(jmmNode.getJmmChild(0).get("name"));
+            return null;
+        }
+        if (inConditional > 0) {
+            constants.remove(jmmNode.getJmmChild(0).get("name"));
+            endOfWhileConstant = jmmNode;
             return null;
         }
 
