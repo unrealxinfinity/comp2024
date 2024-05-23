@@ -622,6 +622,7 @@ public class JasminGenerator {
                 incVal = ((LiteralElement) right).getLiteral();
             }
             var op = instWithOp(((BinaryOpInstruction)assign.getRhs()).getOperation(),true,false);
+            if (op.equals("")) throw new NotImplementedException(((BinaryOpInstruction)assign.getRhs()).getOperation().getOpType());
             code.append(op).append(" ").append(reg).append(" ").append(incVal).append(NL);
         }
         else{
@@ -760,6 +761,8 @@ public class JasminGenerator {
         var code  = new StringBuilder();
         var op = unaryOp.getOperation();
         var inst = instWithOp(op,false,false);
+        if (inst.equals("")) throw new NotImplementedException((unaryOp.getOperation().getOpType()));
+
         code.append(generators.apply(unaryOp.getOperand())); // appends the operand for the unary operation
         code.append(inst).append(NL); //appends the instruction generated according to operation
         popFromStack();
@@ -830,6 +833,8 @@ public class JasminGenerator {
 
         if(checkZero(binaryOp) && binaryOp.getOperation().getTypeInfo().getTypeOfElement().equals(ElementType.BOOLEAN)){
             var op = instWithOp(binaryOp.getOperation(),false,true);
+            if (op.equals("")) throw new NotImplementedException(binaryOp.getOperation().getOpType());
+
             code.append("isub").append(NL);
             popFromStack();//Leaves only the result of the isub
             code.append(op).append(" ");
