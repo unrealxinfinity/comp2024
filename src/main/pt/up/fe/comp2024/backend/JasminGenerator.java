@@ -102,7 +102,6 @@ public class JasminGenerator {
                         case DIV: return "idiv";
                         case SHL: return "ishl";
                         case SHR: return "ishr";
-                        case SHRR:
                     };
                     case BOOLEAN: switch (opType){
                         case LTH: return "if_icmplt";
@@ -228,7 +227,11 @@ public class JasminGenerator {
                         var elementstype = ((ArrayType) type).getElementType();
                         switch(elementstype.getTypeOfElement()){
                             case INT32: yield "iastore";
-                            case OBJECTREF:yield "aastore";
+                            case BOOLEAN: yield "iastore";
+                            case OBJECTREF:
+                            case STRING:
+                            case THIS:
+                            case CLASS: yield "aastore";
                             default: yield "error";
                         }
                     }
@@ -249,7 +252,11 @@ public class JasminGenerator {
                         var elementstype = ((ArrayType) type).getElementType();
                         switch(elementstype.getTypeOfElement()){
                             case INT32: yield "iaload";
-                            case OBJECTREF:yield "aaload";
+                            case BOOLEAN: yield "iaload";
+                            case OBJECTREF:
+                            case STRING:
+                            case THIS:
+                            case CLASS: yield "aaload";
                             default: yield "error";
                         }
                     }
@@ -282,6 +289,7 @@ public class JasminGenerator {
             else if(Integer.parseInt(literal)>=-32768 && Integer.parseInt(literal)<=32767){
                 return "sipush ";
             }
+
         }
         return "ldc ";
     }
