@@ -800,7 +800,7 @@ public class JasminGenerator {
         if(binaryOp instanceof  BinaryOpInstruction){
             Element left  = ((BinaryOpInstruction)binaryOp).getLeftOperand();
             Element right = ((BinaryOpInstruction)binaryOp).getRightOperand();
-            if((left instanceof  LiteralElement && right instanceof Operand) || (right instanceof LiteralElement && left instanceof Operand)){
+            if(((left instanceof  LiteralElement && right instanceof Operand) || (right instanceof LiteralElement && left instanceof Operand)) && ((BinaryOpInstruction) binaryOp).getOperation().getOpType().equals(OperationType.ADD)){
                 if(left instanceof LiteralElement){
                     if(left.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) right).getName().equals(((Operand)lhs).getName())){
                         return true;
