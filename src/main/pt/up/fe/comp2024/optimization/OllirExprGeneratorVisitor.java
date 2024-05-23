@@ -294,7 +294,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         Type type = node.getObject("type", Type.class);
         String nodetype = OptUtils.toOllirType(type);
 
-        computation.append(lhs.getComputation()).append(rhs.getComputation());
+        computation.append(lhs.getComputation());
 
         String temp = OptUtils.getTemp() + nodetype;
         String if_ = OptUtils.getif();
@@ -302,9 +302,11 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         computation.append("if (" + lhs.getCode() + ") goto " + if_ + END_STMT);
         computation.append(temp + SPACE + ASSIGN + nodetype + SPACE + "0" + nodetype + END_STMT);
+
         computation.append("goto " + endif + END_STMT);
 
         computation.append(if_ + ":\n");
+        computation.append(rhs.getComputation());
         computation.append(temp + SPACE + ASSIGN + nodetype+ SPACE + rhs.getCode() + END_STMT);
 
         computation.append(endif + ":\n");

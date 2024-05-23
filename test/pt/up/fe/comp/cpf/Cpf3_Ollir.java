@@ -43,7 +43,7 @@ public class Cpf3_Ollir {
     @Test
     public void section2_Arithmetic_Simple_and() {
         var ollirResult = getOllirResult("arithmetic/Arithmetic_and.jmm");
-
+        System.out.println(ollirResult.getOllirCode());
         var method = CpUtils.getMethod(ollirResult, "main");
 
         // Check if it has ifs and a gotos
