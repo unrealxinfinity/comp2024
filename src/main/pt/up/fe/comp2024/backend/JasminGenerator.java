@@ -178,7 +178,7 @@ public class JasminGenerator {
         else{
             switch (type) {
                 case INT32:  switch (opType){
-                    case ADD: return "iinc";
+                    case ADD: case SUB: return "iinc";
                 };
             }
         }
@@ -625,7 +625,9 @@ public class JasminGenerator {
                 incVal = ((LiteralElement) right).getLiteral();
             }
             var op = instWithOp(((BinaryOpInstruction)assign.getRhs()).getOperation(),true,false);
-            code.append(op).append(" ").append(reg).append(" ").append(incVal).append(NL);
+            code.append(op).append(" ").append(reg).append(" ");
+            if (((BinaryOpInstruction)assign.getRhs()).getOperation().getOpType().equals(OperationType.SUB)) code.append('-');
+            code.append(incVal).append(NL);
         }
         else{
             // store value in the stack in destination
@@ -807,6 +809,13 @@ public class JasminGenerator {
                     }
                 }
                 else if (right instanceof LiteralElement){
+                    if(right.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) left).getName().equals(((Operand)lhs).getName())){
+                        return true;
+                    }
+                }
+            }
+            if(((left instanceof  LiteralElement && right instanceof Operand) || (right instanceof LiteralElement && left instanceof Operand)) && ((BinaryOpInstruction) binaryOp).getOperation().getOpType().equals(OperationType.SUB)){
+                if (right instanceof LiteralElement){
                     if(right.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) left).getName().equals(((Operand)lhs).getName())){
                         return true;
                     }
