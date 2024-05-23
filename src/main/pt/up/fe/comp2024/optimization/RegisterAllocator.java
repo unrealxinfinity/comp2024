@@ -36,12 +36,6 @@ public class RegisterAllocator {
             int reg = nextReg;
 
             for (GraphNode node : nodes) {
-                if (varTable.get(node.getName()).getScope().equals(VarScope.PARAMETER)) {
-                    reg = varTable.get(node.getName()).getVirtualReg();
-                }
-            }
-
-            for (GraphNode node : nodes) {
                 varTable.get(node.getName()).setVirtualReg(reg);
             }
 

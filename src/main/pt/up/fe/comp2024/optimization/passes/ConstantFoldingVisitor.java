@@ -14,6 +14,16 @@ public class ConstantFoldingVisitor extends AnalysisVisitor {
     protected void buildVisitor() {
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
         addVisit("LogicalExpr", this::visitNegation);
+        addVisit("ParensExpr", this::propagateInt);
+    }
+
+    private Void propagateInt(JmmNode jmmNode, SymbolTable symbolTable) {
+        if (jmmNode.getJmmChild(0).isInstance(Kind.INTEGER_LITERAL)) {
+            Report report = Report.newLog(Stage.OPTIMIZATION, NodeUtils.getLine(jmmNode), NodeUtils.getColumn(jmmNode), "Folded a parenthesis", null);
+            addReport(report);
+            jmmNode.replace(jmmNode.getJmmChild(0));
+        }
+        return null;
     }
 
     private void replaceAndLog(JmmNode toReplace, JmmNode folded) {
@@ -55,6 +65,8 @@ public class ConstantFoldingVisitor extends AnalysisVisitor {
 
     private Void visitBinaryExpr(JmmNode jmmNode, SymbolTable symbolTable) {
         String op = jmmNode.get("op");
+        //visit(jmmNode.getJmmChild(0));
+        //visit(jmmNode.getJmmChild(1));
         JmmNode left = jmmNode.getJmmChild(0);
         JmmNode right = jmmNode.getJmmChild(1);
 
