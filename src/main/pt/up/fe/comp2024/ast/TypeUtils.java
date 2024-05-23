@@ -48,7 +48,7 @@ public class TypeUtils {
     }
 
     public static boolean isPrimitive(Type type) {
-        return type.getName().equals(getIntTypeName()) || type.getName().equals(getBoolTypeName());
+        return type.getName().equals(getIntTypeName()) || type.getName().equals(getBoolTypeName()) || type.getName().equals(getVoidTypeName());
     }
 
     public static boolean isValidClass(String type, SymbolTable table) {
