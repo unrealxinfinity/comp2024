@@ -102,7 +102,7 @@ public class JasminGenerator {
                         case DIV: return "idiv";
                         case SHL: return "ishl";
                         case SHR: return "ishr";
-
+                        case SHRR:
                     };
                     case BOOLEAN: switch (opType){
                         case LTH: return "if_icmplt";
@@ -111,22 +111,35 @@ public class JasminGenerator {
                         case GTE: return "if_icmpge";
                         case EQ: return "if_icmpeq";
                         case NEQ: return "if_icmpne";
-                        case AND: return "iand";
-                        case OR: return "ior";
-                        case NOTB: return negBooleanLiteral();
+                        case AND:
+                        case ANDB: return "iand";
+                        case OR:
+                        case ORB: return "ior";
+                        case NOTB:
+                        case NOT:  return negBooleanLiteral();
                         case XOR: return "ixor";
-                    };
-
+                        case SHRR : return "iushr";
+                    }
+                    case ARRAYREF:switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                    }
                     case OBJECTREF: switch(opType){
                         case EQ: return "if_acmpeq";
                         case NEQ: return "if_acmpne";
-                        default: break;
                     }
-                    case ARRAYREF:
-                    case CLASS:
-                    case THIS:
-                    case STRING: break;
-                    default: return "error"; // need to add to the list of reports
+                    case CLASS: switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                    }
+                    case THIS: switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                    }
+                    case STRING: switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                    }
                 }
             }
             else{
@@ -141,16 +154,25 @@ public class JasminGenerator {
                         default: break;
                     }
                     case ARRAYREF:switch(opType){
-
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
                     }
                     case OBJECTREF: switch(opType){
                         case EQ: return "if_acmpeq";
                         case NEQ: return "if_acmpne";
-                        default: break;
                     }
-                    case CLASS:
-                    case THIS:
-                    case STRING: break;
+                    case CLASS: switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                    }
+                    case THIS: switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                    }
+                    case STRING: switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                    }
                 }
             }
         }
