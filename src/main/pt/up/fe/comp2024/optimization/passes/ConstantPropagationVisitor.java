@@ -24,6 +24,12 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
         addVisit("WhileStatement", this::visitWhile);
         addVisit(Kind.VAR_REF_LITERAL, this::visitVarRef);
         addVisit("IfStatement", this::visitIf);
+        addVisit("ClassFunctionCallExpr", this::visitCall);
+    }
+
+    private Void visitCall(JmmNode jmmNode, SymbolTable symbolTable) {
+        constants.entrySet().removeIf(entry -> entry.getValue().getJmmChild(0).getObject("type", Type.class).getObject("level", Integer.class) == 0);
+        return null;
     }
 
     private Void visitIf(JmmNode jmmNode, SymbolTable symbolTable) {
@@ -90,9 +96,7 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
             constants.remove(jmmNode.getJmmChild(0).get("name"));
             return null;
         }
-        if (jmmNode.getJmmChild(0).getObject("type", Type.class).getObject("level", Integer.class) == 0) {
-            return null;
-        }
+
         if (constants.containsKey(jmmNode.getJmmChild(0).get("name"))) {
             JmmNode toRemove = constants.get(jmmNode.getJmmChild(0).get("name"));
             //toRemove.getParent().removeChild(toRemove);
