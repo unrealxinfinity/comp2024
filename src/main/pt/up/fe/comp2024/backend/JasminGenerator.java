@@ -182,7 +182,7 @@ public class JasminGenerator {
                 };
             }
         }
-        return "";
+        return "error";
     }
     private String generateJasminType(Type type){
         var t = type.getTypeOfElement();
@@ -227,6 +227,7 @@ public class JasminGenerator {
                         var elementstype = ((ArrayType) type).getElementType();
                         switch(elementstype.getTypeOfElement()){
                             case INT32: yield "iastore";
+                            case BOOLEAN: yield "iastore";
                             case OBJECTREF:
                             case STRING:
                             case THIS:
@@ -251,6 +252,7 @@ public class JasminGenerator {
                         var elementstype = ((ArrayType) type).getElementType();
                         switch(elementstype.getTypeOfElement()){
                             case INT32: yield "iaload";
+                            case BOOLEAN: yield "iaload";
                             case OBJECTREF:
                             case STRING:
                             case THIS:
@@ -287,6 +289,7 @@ public class JasminGenerator {
             else if(Integer.parseInt(literal)>=-32768 && Integer.parseInt(literal)<=32767){
                 return "sipush ";
             }
+
         }
         return "ldc ";
     }
