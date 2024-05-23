@@ -5,6 +5,7 @@ import org.specs.comp.ollir.Method;
 import org.specs.comp.ollir.OllirErrorException;
 import org.specs.comp.ollir.VarScope;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
+import pt.up.fe.comp.jmm.ast.JmmVisitor;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
@@ -97,9 +98,9 @@ public class JmmOptimizationImpl implements JmmOptimization {
             do {
                 reports = new ArrayList<>();
                 AnalysisVisitor visitor = new ConstantFoldingVisitor();
-                AnalysisVisitor visitor2 = new ConstantPropagationVisitor();
+                ConstantPropagationVisitor visitor2 = new ConstantPropagationVisitor();
                 reports.addAll(visitor.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable()));
-                reports.addAll(visitor2.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable()));
+                reports.addAll(visitor2.analyze(semanticsResult.getRootNode()));
             } while (!reports.isEmpty());
         }
 
