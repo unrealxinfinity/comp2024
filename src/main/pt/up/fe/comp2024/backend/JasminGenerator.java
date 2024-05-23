@@ -145,16 +145,29 @@ public class JasminGenerator {
                         default: break;
                     }
                     case ARRAYREF:switch(opType){
-
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
                     }
                     case OBJECTREF: switch(opType){
                         case EQ: return "if_acmpeq";
                         case NEQ: return "if_acmpne";
                         default: break;
                     }
-                    case CLASS:
-                    case THIS:
-                    case STRING: break;
+                    case CLASS: switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                        default: break;
+                    }
+                    case THIS: switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                        default: break;
+                    }
+                    case STRING: switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                        default: break;
+                    }
                 }
             }
         }
