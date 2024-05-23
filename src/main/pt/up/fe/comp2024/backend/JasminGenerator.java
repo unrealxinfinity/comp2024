@@ -182,7 +182,7 @@ public class JasminGenerator {
                 };
             }
         }
-        return "error";
+        return "";
     }
     private String generateJasminType(Type type){
         var t = type.getTypeOfElement();
