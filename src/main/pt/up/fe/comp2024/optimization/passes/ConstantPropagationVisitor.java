@@ -10,10 +10,7 @@ import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ConstantPropagationVisitor extends AnalysisVisitor {
     Map<String, JmmNode> constants;
@@ -55,6 +52,16 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
     private Void visitVarRef(JmmNode jmmNode, SymbolTable symbolTable) {
         if (jmmNode.getParent().isInstance(Kind.ASSIGN_STMT) && jmmNode.getIndexOfSelf() == 0) return null;
         if (!constants.containsKey(jmmNode.get("name"))) return null;
+        if (inConditional) {
+            Optional<JmmNode> assigningTo = jmmNode.getAncestor(Kind.ASSIGN_STMT);
+            if (assigningTo.isPresent()) {
+                String name = assigningTo.get().getJmmChild(0).get("name");
+                if (name.equals(jmmNode.get("name"))) {
+                    constants.remove(name);
+                    return null;
+                }
+            }
+        }
         JmmNode propagated = new JmmNodeImpl(Kind.INTEGER_LITERAL.toString(), jmmNode);
         propagated.put("value", constants.get(jmmNode.get("name")).getJmmChild(1).get("value"));
         propagated.putObject("type", jmmNode.getObject("type", Type.class));
