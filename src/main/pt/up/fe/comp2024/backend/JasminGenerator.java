@@ -102,7 +102,7 @@ public class JasminGenerator {
                         case DIV: return "idiv";
                         case SHL: return "ishl";
                         case SHR: return "ishr";
-
+                        case SHRR:
                     };
                     case BOOLEAN: switch (opType){
                         case LTH: return "if_icmplt";
@@ -116,8 +116,9 @@ public class JasminGenerator {
                         case OR:
                         case ORB: return "ior";
                         case NOTB:
-                        case NOT: return negBooleanLiteral();
+                        case NOT:  return negBooleanLiteral();
                         case XOR: return "ixor";
+                        case SHRR : return "iushr";
                     }
 
                     case OBJECTREF: switch(opType){
