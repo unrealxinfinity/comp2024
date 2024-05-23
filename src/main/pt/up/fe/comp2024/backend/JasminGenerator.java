@@ -350,7 +350,7 @@ public class JasminGenerator {
             var isStatic = field.isStaticField()?"static ":"";
             var type = generateJasminType(field.getFieldType());
             var isInitialized = field.isInitialized()? " = " + field.getInitialValue():"";
-            code.append(".field "+ accessModifier + isStatic +  isFinal+ fieldName + " " + type + isInitialized).append(NL);
+            code.append(".field ").append(accessModifier).append(isStatic).append(isFinal).append('\'').append(fieldName).append('\'').append(" ").append(type).append(isInitialized).append(NL);
         }
         // generate a single constructor method
         code.append(";default constructor").append(NL).append(".method public <init>()V").append(NL).append("   aload_0").append(NL).append("   invokespecial ").append(pkg).append(superclass).append("/").append("<init>()V").append(NL).append("   return\n"+".end method\n" );
