@@ -72,7 +72,7 @@ public class LivenessAnalysis {
         AssignInstruction assign = (AssignInstruction) inst;
 
         Operand dest = (Operand) assign.getDest();
-        if (!(dest instanceof ArrayOperand)) {
+        if (!(dest instanceof ArrayOperand) && currMethod.getVarTable().get(dest.getName()).getScope().equals(VarScope.LOCAL)) {
             def.add(dest.getName());
         }
 
@@ -124,7 +124,7 @@ public class LivenessAnalysis {
             if (name.equals("this")) {
                 continue;
             }
-            if (currMethod.getVarTable().containsKey(name) && currMethod.getVarTable().get(name).getScope().equals(VarScope.FIELD)) {
+            if (currMethod.getVarTable().containsKey(name) && !currMethod.getVarTable().get(name).getScope().equals(VarScope.LOCAL)) {
                 continue;
             }
 

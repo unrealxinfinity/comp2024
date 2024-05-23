@@ -12,13 +12,7 @@ public class InterferenceGraph {
         }
     }
 
-    public void buildEdges(Map<Integer, Set<String>> defs, Map<Integer, Set<String>> outs, Map<Integer, Set<String>> ins, List<String> params) {
-        for (String s : params) {
-            for (String t : params) {
-                if (s == t) continue;
-                nodes.get(s).addAdj(t);
-            }
-        }
+    public void buildEdges(Map<Integer, Set<String>> defs, Map<Integer, Set<String>> outs, Map<Integer, Set<String>> ins) {
         for (Integer id : defs.keySet()) {
             Set<String> union = new TreeSet<>(defs.get(id));
             union.addAll(outs.get(id));
