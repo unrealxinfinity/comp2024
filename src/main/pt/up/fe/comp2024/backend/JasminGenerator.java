@@ -839,7 +839,6 @@ public class JasminGenerator {
         }
         else{
             var op = instWithOp(binaryOp.getOperation(),false,false);
-            if (op.equals("error")) throw new NotImplementedException(binaryOp.getOperation().getOpType());
 
             if(binaryOp.getOperation().getTypeInfo().getTypeOfElement().equals(ElementType.BOOLEAN)){
                 code.append(op).append(" ");

@@ -1,9 +1,21 @@
 import io;
+class IfElseInMain {
 
-class Arithmetic_and {
-	public static void main(String[] args) {
-		boolean a;
-		a = 1;
-	}
+    int a;
+
+    public int test(){
+        int i;
+        int a;
+        a = 5;
+        i = a - 5;
+        io.println(i);
+        return a;
+    }
+
+    public static void main(String[] args){
+        IfElseInMain q;
+        q = new IfElseInMain();
+        q.test();
+    }
 
 }
