@@ -249,7 +249,7 @@ public class JasminGenerator {
         };
     }
     private String distinguishLiteral(String literal){
-        boolean isNumber = literal.matches("\\d+");
+        boolean isNumber = literal.matches("-?\\d+");
         if(isNumber) {
             if(Integer.parseInt(literal)>=-1 && Integer.parseInt(literal)<=5){
                 return "iconst_";
