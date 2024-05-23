@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.optimization.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.JmmNodeImpl;
 import pt.up.fe.comp.jmm.report.Report;
@@ -9,10 +10,7 @@ import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ConstantPropagationVisitor extends AnalysisVisitor {
     Map<String, JmmNode> constants;
@@ -54,8 +52,19 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
     private Void visitVarRef(JmmNode jmmNode, SymbolTable symbolTable) {
         if (jmmNode.getParent().isInstance(Kind.ASSIGN_STMT) && jmmNode.getIndexOfSelf() == 0) return null;
         if (!constants.containsKey(jmmNode.get("name"))) return null;
+        if (inConditional) {
+            Optional<JmmNode> assigningTo = jmmNode.getAncestor(Kind.ASSIGN_STMT);
+            if (assigningTo.isPresent()) {
+                String name = assigningTo.get().getJmmChild(0).get("name");
+                if (name.equals(jmmNode.get("name"))) {
+                    constants.remove(name);
+                    return null;
+                }
+            }
+        }
         JmmNode propagated = new JmmNodeImpl(Kind.INTEGER_LITERAL.toString(), jmmNode);
         propagated.put("value", constants.get(jmmNode.get("name")).getJmmChild(1).get("value"));
+        propagated.putObject("type", jmmNode.getObject("type", Type.class));
         jmmNode.replace(propagated);
         Report report = Report.newLog(Stage.OPTIMIZATION, NodeUtils.getLine(propagated),
                 NodeUtils.getColumn(propagated), "Propagated a constant", null);
@@ -74,8 +83,14 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
     private Void visitAssignment(JmmNode jmmNode, SymbolTable symbolTable) {
         if (!inConditional && (jmmNode.getParent().getParent().isInstance("IfStatement") || jmmNode.getParent().getParent().isInstance("WhileStatement"))) return null;
         if (!jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_LITERAL)) return null;
+        for (JmmNode child : jmmNode.getChildren()) {
+            visit(child, symbolTable);
+        }
         if (!jmmNode.getJmmChild(1).isInstance(Kind.INTEGER_LITERAL)) {
             constants.remove(jmmNode.getJmmChild(0).get("name"));
+            return null;
+        }
+        if (jmmNode.getJmmChild(0).getObject("type", Type.class).getObject("level", Integer.class) == 0) {
             return null;
         }
         if (constants.containsKey(jmmNode.getJmmChild(0).get("name"))) {

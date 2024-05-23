@@ -3,6 +3,7 @@ package pt.up.fe.comp2024.optimization;
 import org.specs.comp.ollir.Descriptor;
 import org.specs.comp.ollir.Method;
 import org.specs.comp.ollir.OllirErrorException;
+import org.specs.comp.ollir.VarScope;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
@@ -14,7 +15,9 @@ import pt.up.fe.comp2024.optimization.graph.InterferenceGraph;
 import pt.up.fe.comp2024.optimization.passes.ConstantFoldingVisitor;
 import pt.up.fe.comp2024.optimization.passes.ConstantPropagationVisitor;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class JmmOptimizationImpl implements JmmOptimization {
@@ -33,9 +36,14 @@ public class JmmOptimizationImpl implements JmmOptimization {
         analyzer.buildLivenessSets(ollirResult);
 
         for (Method method : ollirResult.getOllirClass().getMethods()) {
-            InterferenceGraph graph = new InterferenceGraph(method.getVarTable().keySet().stream().toList());
+            InterferenceGraph graph = new InterferenceGraph(method.getVarTable().entrySet()
+                    .stream().filter(descriptor -> !descriptor.getValue().getScope().equals(VarScope.FIELD))
+                    .map(Map.Entry::getKey).toList());
+            List<String> params = method.getVarTable().entrySet()
+                    .stream().filter(descriptor -> descriptor.getValue().getScope().equals(VarScope.PARAMETER))
+                    .map(Map.Entry::getKey).toList();
             graph.buildEdges(analyzer.getDefs(method.getMethodName()), analyzer.getOuts(method.getMethodName()),
-                    analyzer.getIns(method.getMethodName()));
+                    analyzer.getIns(method.getMethodName()), params);
 
             GraphColorer colorer = new GraphColorer(graph);
             if (!colorer.colorGraph(colors)) return false;
@@ -45,7 +53,8 @@ public class JmmOptimizationImpl implements JmmOptimization {
         }
 
         for (Method method : ollirResult.getOllirClass().getMethods()) {
-            for (Map.Entry<String, Descriptor> descriptor : method.getVarTable().entrySet()) {
+            for (Map.Entry<String, Descriptor> descriptor : method.getVarTable().entrySet().stream()
+                    .filter(descriptor -> !descriptor.getValue().getScope().equals(VarScope.FIELD)).toList()) {
                 Report report = Report.newLog(Stage.OPTIMIZATION, 0, 0, descriptor.getKey() + ": " + descriptor.getValue().getVirtualReg()
                 , null);
                 ollirResult.getReports().add(report);
@@ -87,10 +96,14 @@ public class JmmOptimizationImpl implements JmmOptimization {
     @Override
     public JmmSemanticsResult optimize(JmmSemanticsResult semanticsResult) {
         if (Boolean.parseBoolean(semanticsResult.getConfig().getOrDefault("optimize", "false"))) {
-            AnalysisVisitor visitor = new ConstantFoldingVisitor();
-            AnalysisVisitor visitor2 = new ConstantPropagationVisitor();
-            visitor.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable());
-            visitor2.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable());
+            List<Report> reports;
+            do {
+                reports = new ArrayList<>();
+                AnalysisVisitor visitor = new ConstantFoldingVisitor();
+                AnalysisVisitor visitor2 = new ConstantPropagationVisitor();
+                reports.addAll(visitor.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable()));
+                reports.addAll(visitor2.analyze(semanticsResult.getRootNode(), semanticsResult.getSymbolTable()));
+            } while (!reports.isEmpty());
         }
 
         return semanticsResult;
