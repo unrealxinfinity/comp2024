@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.optimization.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.JmmNodeImpl;
 import pt.up.fe.comp.jmm.report.Report;
@@ -37,6 +38,7 @@ public class ConstantFoldingVisitor extends AnalysisVisitor {
         if (!operand.isInstance(Kind.BOOLEAN_LITERAL)) return null;
         boolean op1 = Boolean.parseBoolean(operand.get("value"));
         JmmNode folded = new JmmNodeImpl(Kind.BOOLEAN_LITERAL.toString(), jmmNode);
+        folded.putObject("type", jmmNode.getObject("type"));
         folded.put("value", Boolean.toString(!op1));
         replaceAndLog(jmmNode, folded);
         return null;
@@ -76,7 +78,9 @@ public class ConstantFoldingVisitor extends AnalysisVisitor {
                 int op1 = Integer.parseInt(left.get("value"));
                 int op2 = Integer.parseInt(right.get("value"));
                 String kind = op.equals("<") ? Kind.BOOLEAN_LITERAL.toString() : Kind.INTEGER_LITERAL.toString();
+                Type type = op.equals("<") ? new Type("boolean", false) : new Type("int", false);
                 JmmNode folded = new JmmNodeImpl(kind, jmmNode);
+                folded.putObject("type", type);
                 folded.put("value", runArithmeticOp(op, op1, op2));
                 replaceAndLog(jmmNode, folded);
             }

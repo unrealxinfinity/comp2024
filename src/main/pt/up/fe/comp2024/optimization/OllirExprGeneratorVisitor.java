@@ -130,7 +130,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     private OllirExprResult visitArrayNew(JmmNode jmmNode, Void unused){
         StringBuilder computation = new StringBuilder();
         Type type = jmmNode.getObject("type", Type.class);
-        Type sizetype= jmmNode.getJmmChild(0).getObject("type", Type.class);
+        Type sizetype= new Type(type.getName(), false);
         String intOllirType = OptUtils.toOllirType(sizetype);
         String arrayOllirType= OptUtils.toOllirType(type);
 
