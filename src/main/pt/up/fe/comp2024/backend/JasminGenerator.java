@@ -182,7 +182,7 @@ public class JasminGenerator {
                 };
             }
         }
-        return "error";
+        return "";
     }
     private String generateJasminType(Type type){
         var t = type.getTypeOfElement();
@@ -205,7 +205,7 @@ public class JasminGenerator {
         } else if (t.equals(ElementType.VOID)) {
             return "V";
         } else {
-            return "error";
+            return "";
         }
     }
     private String generateArrayElementType(Type type){
@@ -231,7 +231,7 @@ public class JasminGenerator {
                             case STRING:
                             case THIS:
                             case CLASS: yield "aastore";
-                            default: yield "error";
+                            default: yield "";
                         }
                     }
                     else{
@@ -239,7 +239,7 @@ public class JasminGenerator {
                     }
 
                 }
-                default -> "error"; // need to add to the list of reports
+                default -> ""; // need to add to the list of reports
             };
         }
         else{
@@ -255,7 +255,7 @@ public class JasminGenerator {
                             case STRING:
                             case THIS:
                             case CLASS: yield "aaload";
-                            default: yield "error";
+                            default: yield "";
                         }
                     }
                     else{
@@ -263,7 +263,7 @@ public class JasminGenerator {
                     }
 
                 }
-                default -> "error"; // need to add to the list of reports
+                default -> ""; // need to add to the list of reports
             };
         }
 
@@ -836,7 +836,6 @@ public class JasminGenerator {
         }
         else{
             var op = instWithOp(binaryOp.getOperation(),false,false);
-            if (op.equals("error")) throw new NotImplementedException(binaryOp.getOperation().getOpType());
 
             if(binaryOp.getOperation().getTypeInfo().getTypeOfElement().equals(ElementType.BOOLEAN)){
                 code.append(op).append(" ");
