@@ -801,13 +801,13 @@ public class JasminGenerator {
         code.append(generators.apply(right));
         // apply operation
 
-        /*if(checkZero(binaryOp) && binaryOp.getOperation().getTypeInfo().getTypeOfElement().equals(ElementType.BOOLEAN)){
+        if(checkZero(binaryOp) && binaryOp.getOperation().getTypeInfo().getTypeOfElement().equals(ElementType.BOOLEAN)){
             var op = instWithOp(binaryOp.getOperation(),false,true);
             code.append("isub").append(NL);
             popFromStack();//Leaves only the result of the isub
             code.append(op).append(" ");
         }
-        else{*/
+        else{
             var op = instWithOp(binaryOp.getOperation(),false,false);
             if (op.equals("error")) throw new NotImplementedException(binaryOp.getOperation().getOpType());
 
@@ -818,7 +818,7 @@ public class JasminGenerator {
                 code.append(op).append(NL);
             }
             popFromStack();
-        //}
+        }
 
 
         return code.toString();
