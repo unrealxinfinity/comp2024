@@ -182,7 +182,7 @@ public class JasminGenerator {
                 };
             }
         }
-        return "";
+        return "error";
     }
     private String generateJasminType(Type type){
         var t = type.getTypeOfElement();
@@ -205,7 +205,7 @@ public class JasminGenerator {
         } else if (t.equals(ElementType.VOID)) {
             return "V";
         } else {
-            return "";
+            return "error";
         }
     }
     private String generateArrayElementType(Type type){
@@ -231,7 +231,7 @@ public class JasminGenerator {
                             case STRING:
                             case THIS:
                             case CLASS: yield "aastore";
-                            default: yield "";
+                            default: yield "error";
                         }
                     }
                     else{
@@ -239,7 +239,7 @@ public class JasminGenerator {
                     }
 
                 }
-                default -> ""; // need to add to the list of reports
+                default -> "error"; // need to add to the list of reports
             };
         }
         else{
@@ -255,7 +255,7 @@ public class JasminGenerator {
                             case STRING:
                             case THIS:
                             case CLASS: yield "aaload";
-                            default: yield "";
+                            default: yield "error";
                         }
                     }
                     else{
@@ -263,7 +263,7 @@ public class JasminGenerator {
                     }
 
                 }
-                default -> ""; // need to add to the list of reports
+                default -> "error"; // need to add to the list of reports
             };
         }
 
@@ -622,7 +622,6 @@ public class JasminGenerator {
                 incVal = ((LiteralElement) right).getLiteral();
             }
             var op = instWithOp(((BinaryOpInstruction)assign.getRhs()).getOperation(),true,false);
-            if (op.equals("")) throw new NotImplementedException(((BinaryOpInstruction)assign.getRhs()).getOperation().getOpType());
             code.append(op).append(" ").append(reg).append(" ").append(incVal).append(NL);
         }
         else{
@@ -761,8 +760,6 @@ public class JasminGenerator {
         var code  = new StringBuilder();
         var op = unaryOp.getOperation();
         var inst = instWithOp(op,false,false);
-        if (inst.equals("")) throw new NotImplementedException((unaryOp.getOperation().getOpType()));
-
         code.append(generators.apply(unaryOp.getOperand())); // appends the operand for the unary operation
         code.append(inst).append(NL); //appends the instruction generated according to operation
         popFromStack();
@@ -833,14 +830,13 @@ public class JasminGenerator {
 
         if(checkZero(binaryOp) && binaryOp.getOperation().getTypeInfo().getTypeOfElement().equals(ElementType.BOOLEAN)){
             var op = instWithOp(binaryOp.getOperation(),false,true);
-            if (op.equals("")) throw new NotImplementedException(binaryOp.getOperation().getOpType());
-
             code.append("isub").append(NL);
             popFromStack();//Leaves only the result of the isub
             code.append(op).append(" ");
         }
         else{
             var op = instWithOp(binaryOp.getOperation(),false,false);
+            if (op.equals("error")) throw new NotImplementedException(binaryOp.getOperation().getOpType());
 
             if(binaryOp.getOperation().getTypeInfo().getTypeOfElement().equals(ElementType.BOOLEAN)){
                 code.append(op).append(" ");
