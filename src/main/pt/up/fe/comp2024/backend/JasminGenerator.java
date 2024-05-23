@@ -111,11 +111,14 @@ public class JasminGenerator {
                         case GTE: return "if_icmpge";
                         case EQ: return "if_icmpeq";
                         case NEQ: return "if_icmpne";
-                        case AND: return "iand";
-                        case OR: return "ior";
-                        case NOTB: return negBooleanLiteral();
+                        case AND:
+                        case ANDB: return "iand";
+                        case OR:
+                        case ORB: return "ior";
+                        case NOTB:
+                        case NOT: return negBooleanLiteral();
                         case XOR: return "ixor";
-                    };
+                    }
 
                     case OBJECTREF: switch(opType){
                         case EQ: return "if_acmpeq";
