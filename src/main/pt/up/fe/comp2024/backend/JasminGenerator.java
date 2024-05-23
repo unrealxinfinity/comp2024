@@ -120,17 +120,26 @@ public class JasminGenerator {
                         case XOR: return "ixor";
                         case SHRR : return "iushr";
                     }
-
+                    case ARRAYREF:switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                    }
                     case OBJECTREF: switch(opType){
                         case EQ: return "if_acmpeq";
                         case NEQ: return "if_acmpne";
-                        default: break;
                     }
-                    case ARRAYREF:
-                    case CLASS:
-                    case THIS:
-                    case STRING: break;
-                    default: return "error"; // need to add to the list of reports
+                    case CLASS: switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                    }
+                    case THIS: switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                    }
+                    case STRING: switch(opType){
+                        case EQ: return "if_acmpeq";
+                        case NEQ: return "if_acmpne";
+                    }
                 }
             }
             else{
@@ -151,22 +160,18 @@ public class JasminGenerator {
                     case OBJECTREF: switch(opType){
                         case EQ: return "if_acmpeq";
                         case NEQ: return "if_acmpne";
-                        default: break;
                     }
                     case CLASS: switch(opType){
                         case EQ: return "if_acmpeq";
                         case NEQ: return "if_acmpne";
-                        default: break;
                     }
                     case THIS: switch(opType){
                         case EQ: return "if_acmpeq";
                         case NEQ: return "if_acmpne";
-                        default: break;
                     }
                     case STRING: switch(opType){
                         case EQ: return "if_acmpeq";
                         case NEQ: return "if_acmpne";
-                        default: break;
                     }
                 }
             }
