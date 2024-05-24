@@ -16,8 +16,10 @@ import java.util.*;
 public class ConstantPropagationVisitor extends AJmmVisitor<Boolean, Boolean> {
     Map<String, JmmNode> constants;
     List<Report> reports = new ArrayList<>();
+    Set<String> changedInWhile = new HashSet<>();
 
     boolean lookingForForbiddens = false;
+    boolean inWhile = false;
 
     @Override
     protected void buildVisitor() {
@@ -81,23 +83,31 @@ public class ConstantPropagationVisitor extends AJmmVisitor<Boolean, Boolean> {
 
     private Boolean visitWhile(JmmNode jmmNode, Boolean bool) {
         Map<String, JmmNode> tempConstants = new HashMap<>(constants);
+        Set<String> tempChanged = new HashSet<>(changedInWhile);
         constants = new HashMap<>();
 
         lookingForForbiddens = true;
         visit(jmmNode.getJmmChild(0), bool);
         lookingForForbiddens = false;
 
+        inWhile = true;
         visit(jmmNode.getJmmChild(1), bool);
+        inWhile = false;
 
         Map<String, JmmNode> finalConstants = new HashMap<>();
-        for (Map.Entry<String, JmmNode> elem : constants.entrySet()) {
-            if (!tempConstants.containsKey(elem.getKey())) continue;
+        for (Map.Entry<String, JmmNode> elem : tempConstants.entrySet()) {
+            if (!changedInWhile.contains(elem.getKey())) {
+                finalConstants.put(elem.getKey(), elem.getValue());
+                continue;
+            }
+            if (!constants.containsKey(elem.getKey())) continue;
             int left = Integer.parseInt(elem.getValue().getJmmChild(1).get("value"));
             int right = Integer.parseInt(tempConstants.get(elem.getKey()).getJmmChild(1).get("value"));
             if (left != right) continue;
 
             finalConstants.put(elem.getKey(), elem.getValue());
         }
+        changedInWhile = new HashSet<>(tempChanged);
 
         constants = new HashMap<>(finalConstants);
         visit(jmmNode.getJmmChild(0), bool);
@@ -108,6 +118,10 @@ public class ConstantPropagationVisitor extends AJmmVisitor<Boolean, Boolean> {
         if (!jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_LITERAL)) return null;
         for (JmmNode child : jmmNode.getChildren()) {
             visit(child, bool);
+        }
+
+        if (inWhile) {
+            changedInWhile.add(jmmNode.getJmmChild(0).get("name"));
         }
         if (!jmmNode.getJmmChild(1).isInstance(Kind.INTEGER_LITERAL)) {
             constants.remove(jmmNode.getJmmChild(0).get("name"));
