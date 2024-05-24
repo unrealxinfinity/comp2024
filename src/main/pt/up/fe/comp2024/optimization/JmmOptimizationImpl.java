@@ -73,8 +73,15 @@ public class JmmOptimizationImpl implements JmmOptimization {
 
         if (regValue != 0) {
             if (!runRegisterAllocation(ollirResult, regValue)) {
+
+                int currRegs = regValue;
+                boolean success;
+                do {
+                    success = runRegisterAllocation(ollirResult, currRegs);
+                    currRegs++;
+                } while (!success);
                 Report report = Report.newError(Stage.OPTIMIZATION, 0,0,
-                        "Couldn't allocate with the specified number of registers!", null);
+                        "Couldn't allocate with the specified number of registers! You would need " + (currRegs-1), null);
                 ollirResult.getReports().add(report);
             }
         }
