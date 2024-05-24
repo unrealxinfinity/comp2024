@@ -115,10 +115,11 @@ public class ConstantPropagationVisitor extends AJmmVisitor<Boolean, Boolean> {
     }
 
     private Boolean visitAssignment(JmmNode jmmNode, Boolean bool) {
-        if (!jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_LITERAL)) return null;
         for (JmmNode child : jmmNode.getChildren()) {
             visit(child, bool);
         }
+        if (!jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_LITERAL)) return null;
+
 
         if (inWhile) {
             changedInWhile.add(jmmNode.getJmmChild(0).get("name"));
