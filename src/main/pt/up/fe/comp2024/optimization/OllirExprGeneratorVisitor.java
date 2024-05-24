@@ -256,7 +256,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         String code;
         String computation="";
         if( type.getObject("level", Integer.class) == 0 ){
-            if(type.isArray()){code = "getfield(this," + varName+ ".array"  + ollirVarType+ ')'+ollirVarType;}
+            if(type.isArray()){code = "getfield(this," + varName+ ollirVarType+ ')'+ollirVarType;}
             else {
                 var temp = OptUtils.getTemp()+ ollirVarType;
                 computation = temp+SPACE+ASSIGN+ollirVarType+SPACE+"getfield(this," + varName + ollirVarType+ ')'+ollirVarType+END_STMT;
