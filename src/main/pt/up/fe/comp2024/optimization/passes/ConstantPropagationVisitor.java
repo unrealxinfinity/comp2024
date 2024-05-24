@@ -15,7 +15,6 @@ import java.util.*;
 
 public class ConstantPropagationVisitor extends AJmmVisitor<Boolean, Boolean> {
     Map<String, JmmNode> constants;
-    Map<String, JmmNode> forbiddenConstants;
     List<Report> reports = new ArrayList<>();
 
     boolean lookingForForbiddens = false;
@@ -66,10 +65,9 @@ public class ConstantPropagationVisitor extends AJmmVisitor<Boolean, Boolean> {
     private Boolean visitVarRef(JmmNode jmmNode, Boolean bool) {
         if (jmmNode.getParent().isInstance(Kind.ASSIGN_STMT) && jmmNode.getIndexOfSelf() == 0) return null;
         if (lookingForForbiddens) {
-            forbiddenConstants.put(jmmNode.get("name"), jmmNode);
+            constants.remove(jmmNode.get("name"));
             return bool;
         }
-        if (forbiddenConstants.containsKey(jmmNode.get("name"))) return null;
         if (!constants.containsKey(jmmNode.get("name"))) return null;
         JmmNode propagated = new JmmNodeImpl(Kind.INTEGER_LITERAL.toString(), jmmNode);
         propagated.put("value", constants.get(jmmNode.get("name")).getJmmChild(1).get("value"));
@@ -83,17 +81,13 @@ public class ConstantPropagationVisitor extends AJmmVisitor<Boolean, Boolean> {
 
     private Boolean visitWhile(JmmNode jmmNode, Boolean bool) {
         Map<String, JmmNode> tempConstants = new HashMap<>(constants);
-        Map<String, JmmNode> tempForbiddens = new HashMap<>(forbiddenConstants);
         constants = new HashMap<>();
 
         lookingForForbiddens = true;
         visit(jmmNode.getJmmChild(0), bool);
         lookingForForbiddens = false;
-        constants = new HashMap<>(tempConstants);
 
         visit(jmmNode.getJmmChild(1), bool);
-
-        Map<String, JmmNode> afterConstants = new HashMap<>(constants);
 
         Map<String, JmmNode> finalConstants = new HashMap<>();
         for (Map.Entry<String, JmmNode> elem : constants.entrySet()) {
@@ -105,11 +99,8 @@ public class ConstantPropagationVisitor extends AJmmVisitor<Boolean, Boolean> {
             finalConstants.put(elem.getKey(), elem.getValue());
         }
 
-        forbiddenConstants.keySet().removeIf(finalConstants::containsKey);
         constants = new HashMap<>(finalConstants);
         visit(jmmNode.getJmmChild(0), bool);
-        forbiddenConstants.keySet().removeIf(key -> !tempForbiddens.containsKey(key));
-        constants = new HashMap<>(finalConstants);
         return bool;
     }
 
@@ -129,7 +120,6 @@ public class ConstantPropagationVisitor extends AJmmVisitor<Boolean, Boolean> {
 
     private Boolean visitMethodDecl(JmmNode jmmNode, Boolean bool) {
         constants = new HashMap<>();
-        forbiddenConstants = new HashMap<>();
         for (JmmNode child : jmmNode.getChildren()) {
             if (!child.isInstance("Stmt")) continue;
             visit(child);
