@@ -109,7 +109,7 @@ public class ConstantPropagationVisitor extends AJmmVisitor<Boolean, Boolean> {
         constants = new HashMap<>(finalConstants);
         visit(jmmNode.getJmmChild(0), bool);
         forbiddenConstants.keySet().removeIf(key -> !tempForbiddens.containsKey(key));
-        constants = new HashMap<>(afterConstants);
+        constants = new HashMap<>(finalConstants);
         return bool;
     }
 
