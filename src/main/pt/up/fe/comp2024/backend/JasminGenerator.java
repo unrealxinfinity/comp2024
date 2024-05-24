@@ -102,6 +102,7 @@ public class JasminGenerator {
                         case DIV: return "idiv";
                         case SHL: return "ishl";
                         case SHR: return "ishr";
+                        case SHRR : return "iushr";
                     };
                     case BOOLEAN: switch (opType){
                         case LTH: return "if_icmplt";
@@ -117,7 +118,6 @@ public class JasminGenerator {
                         case NOTB:
                         case NOT:  return negBooleanLiteral();
                         case XOR: return "ixor";
-                        case SHRR : return "iushr";
                     }
                     case ARRAYREF:switch(opType){
                         case EQ: return "if_acmpeq";
@@ -823,7 +823,7 @@ public class JasminGenerator {
                     }
                 }
             }
-            if(((left instanceof  LiteralElement && right instanceof Operand) || (right instanceof LiteralElement && left instanceof Operand)) && ((BinaryOpInstruction) binaryOp).getOperation().getOpType().equals(OperationType.SUB)){
+            if((right instanceof LiteralElement && left instanceof Operand) && ((BinaryOpInstruction) binaryOp).getOperation().getOpType().equals(OperationType.SUB)){
                 if (right instanceof LiteralElement){
                     if(right.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) left).getName().equals(((Operand)lhs).getName())
                     && fitsInByte(Integer.parseInt(((LiteralElement) right).getLiteral()))){
