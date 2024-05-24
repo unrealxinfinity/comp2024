@@ -628,8 +628,8 @@ public class JasminGenerator {
             }
             var op = instWithOp(((BinaryOpInstruction)assign.getRhs()).getOperation(),true,false);
             code.append(op).append(" ").append(reg).append(" ");
-            if (((BinaryOpInstruction)assign.getRhs()).getOperation().getOpType().equals(OperationType.SUB)) code.append('-');
-            code.append(incVal).append(NL);
+            if (((BinaryOpInstruction)assign.getRhs()).getOperation().getOpType().equals(OperationType.SUB)) code.append(-Integer.parseInt(incVal)).append(NL);
+            else code.append(incVal).append(NL);
         }
         else{
             // store value in the stack in destination
