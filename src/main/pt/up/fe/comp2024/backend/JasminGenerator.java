@@ -799,6 +799,11 @@ public class JasminGenerator {
         }
         return false;
     }
+
+    private boolean fitsInByte(int i) {
+        return i >= -128 && i <= 127;
+    }
+
     private Boolean checkInc(Element lhs,Instruction binaryOp){
 
         if(binaryOp instanceof  BinaryOpInstruction){
@@ -806,19 +811,22 @@ public class JasminGenerator {
             Element right = ((BinaryOpInstruction)binaryOp).getRightOperand();
             if(((left instanceof  LiteralElement && right instanceof Operand) || (right instanceof LiteralElement && left instanceof Operand)) && ((BinaryOpInstruction) binaryOp).getOperation().getOpType().equals(OperationType.ADD)){
                 if(left instanceof LiteralElement){
-                    if(left.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) right).getName().equals(((Operand)lhs).getName())){
+                    if(left.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) right).getName().equals(((Operand)lhs).getName())
+                    && fitsInByte(Integer.parseInt(((LiteralElement) left).getLiteral()))){
                         return true;
                     }
                 }
                 else if (right instanceof LiteralElement){
-                    if(right.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) left).getName().equals(((Operand)lhs).getName())){
+                    if(right.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) left).getName().equals(((Operand)lhs).getName())
+                    && fitsInByte(Integer.parseInt(((LiteralElement) right).getLiteral()))){
                         return true;
                     }
                 }
             }
             if(((left instanceof  LiteralElement && right instanceof Operand) || (right instanceof LiteralElement && left instanceof Operand)) && ((BinaryOpInstruction) binaryOp).getOperation().getOpType().equals(OperationType.SUB)){
                 if (right instanceof LiteralElement){
-                    if(right.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) left).getName().equals(((Operand)lhs).getName())){
+                    if(right.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) left).getName().equals(((Operand)lhs).getName())
+                    && fitsInByte(Integer.parseInt(((LiteralElement) right).getLiteral()))){
                         return true;
                     }
                 }
