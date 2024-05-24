@@ -538,10 +538,12 @@ public class JasminGenerator {
             }
             funcToCall = funcToCall.replace("\"", "");
             code.append(funcToCall).append(NL);
-            code.append("dup").append(NL);
-            pushToStack();
-            //has to be popped later since i will only use one of the duplicated references
-            this.extraRerence += 1;
+            if (!(callRet instanceof ArrayType)) {
+                code.append("dup").append(NL);
+                pushToStack();
+                //has to be popped later since i will only use one of the duplicated references
+                this.extraRerence += 1;
+            }
         }
         else if (call.getInvocationType().equals(CallType.arraylength)){
             code.append(call.getInvocationType().toString().toLowerCase()).append(NL);

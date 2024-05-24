@@ -87,7 +87,7 @@ param
 
 stmt
     : LCURLY (stmt)* RCURLY #EncvaloseStatement
-    | IF LPAREN expr RPAREN
+    | IF LPAREN (expr)* RPAREN
         stmt
       ELSE
         stmt #IfStatement
