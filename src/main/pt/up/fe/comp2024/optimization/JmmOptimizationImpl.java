@@ -46,7 +46,7 @@ public class JmmOptimizationImpl implements JmmOptimization {
             GraphColorer colorer = new GraphColorer(graph);
             if (!colorer.colorGraph(colors)) return false;
 
-            RegisterAllocator allocator = new RegisterAllocator(method.getVarTable(), graph, colors);
+            RegisterAllocator allocator = new RegisterAllocator(method.getVarTable(), graph, colors, method.isStaticMethod());
             allocator.allocateRegisters();
         }
 

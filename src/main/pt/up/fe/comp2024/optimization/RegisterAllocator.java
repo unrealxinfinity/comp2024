@@ -15,17 +15,18 @@ public class RegisterAllocator {
     private InterferenceGraph graph;
     private int colors;
 
-    public RegisterAllocator(Map<String, Descriptor> varTable, InterferenceGraph graph, int colors) {
+    public RegisterAllocator(Map<String, Descriptor> varTable, InterferenceGraph graph, int colors, boolean isStatic) {
         this.varTable = varTable;
         this.graph = graph;
         this.colors = colors;
+        if (isStatic) nextReg = 0;
+        else nextReg = 1;
         countParams();
-        nextReg = params+1;
     }
 
     private void countParams() {
         for (Descriptor descriptor : varTable.values()) {
-            if (descriptor.getScope().equals(VarScope.PARAMETER)) this.params++;
+            if (descriptor.getScope().equals(VarScope.PARAMETER)) this.nextReg = Math.max(this.nextReg, descriptor.getVirtualReg()+1);
         }
     }
 
