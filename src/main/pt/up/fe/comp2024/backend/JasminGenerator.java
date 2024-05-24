@@ -95,7 +95,7 @@ public class JasminGenerator {
         if(!inc){
             if(!zeroSimplify){
                 switch (type) {
-                    case INT32:  switch (opType){
+                    case INT32: case BOOLEAN:  switch (opType){
                         case ADD: return "iadd";
                         case SUB: return "isub";
                         case MUL: return "imul";
@@ -103,8 +103,6 @@ public class JasminGenerator {
                         case SHL: return "ishl";
                         case SHR: return "ishr";
                         case SHRR : return "iushr";
-                    };
-                    case BOOLEAN: switch (opType){
                         case LTH: return "if_icmplt";
                         case LTE: return "if_icmple";
                         case GTH: return "if_icmpgt";
@@ -118,7 +116,22 @@ public class JasminGenerator {
                         case NOTB:
                         case NOT:  return negBooleanLiteral();
                         case XOR: return "ixor";
-                    }
+                    };
+                    /*case BOOLEAN: switch (opType){
+                        case LTH: return "if_icmplt";
+                        case LTE: return "if_icmple";
+                        case GTH: return "if_icmpgt";
+                        case GTE: return "if_icmpge";
+                        case EQ: return "if_icmpeq";
+                        case NEQ: return "if_icmpne";
+                        case AND:
+                        case ANDB: return "iand";
+                        case OR:
+                        case ORB: return "ior";
+                        case NOTB:
+                        case NOT:  return negBooleanLiteral();
+                        case XOR: return "ixor";
+                    }*/
                     case ARRAYREF:switch(opType){
                         case EQ: return "if_acmpeq";
                         case NEQ: return "if_acmpne";
