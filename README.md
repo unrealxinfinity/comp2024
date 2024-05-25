@@ -6,9 +6,9 @@
 
 ## Work Distribution
 
-- Afonso - 39 %
+- Afonso - 37 %
 - Haochang - 33 %
-- André - 28 %
+- André - 30 %
 
 ## Self-Assessment
 
