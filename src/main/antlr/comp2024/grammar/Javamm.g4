@@ -4,101 +4,119 @@ grammar Javamm;
     package pt.up.fe.comp2024;
 }
 
-LENGTH: 'length';
-NEW: 'new';
-EQUALS : '=';
+EQUALS: '=';
+DOT: '...';
 SEMI : ';' ;
 LRECT: '[';
 RRECT: ']';
-LCURLY : '{' ;
-RCURLY : '}' ;
-LPAREN : '(' ;
-RPAREN : ')' ;
-LRECT = '[';
-RRECT = ']';
-MUL : '*' ;
-ADD : '+' ;
-DIV : '/' ;
-SUB : '-' ;
-NOT : '!';
-CLASS : 'class' ;
-INT : 'int' ;
-BOOLEAN :'bool';
-PUBLIC : 'public' ;
-NEW: 'new'
-THIS: 'this';
-RETURN : 'return' ;
-TRUE : 'true';
-FALSE: 'false';
-THIS : 'this';
+LCURLY: '{';
+RCURLY: '}';
+LPAREN: '(';
+RPAREN: ')';
+MUL: '*' ;
+ADD: '+' ;
+DIV: '/' ;
+SUB: '-' ;
+NOT: '!';
 AND: '&&';
 LT: '<';
-INTEGER : '0' | [1-9][0-9]*;
-ID : [a-zA-Z]+ ;
 
+PUBLIC : 'public';
+STATIC: 'static';
+CLASS: 'class';
+VOID: 'void';
+RETURN: 'return';
+TRUE: 'true';
+FALSE: 'false';
+THIS : 'this';
+IF: 'if';
+ELSE:'else';
+WHILE: 'while';
+STR: 'String';
+INT: 'int';
+//STRINGARRAY: STR LRECT RRECT;
+//INTVARARG:'int...';
+BOOLEAN:'boolean';
+NEW: 'new';
+
+SINGLE_COMMENT : '//' .*? '\n' -> skip ;
+MULTI_COMMENT : '/*' .*? '*/' -> skip ;
+
+INTEGER : [0-9] | [1-9][0-9]+ ;
+ID : [a-zA-Z_$][a-zA-Z_$0-9]*  ;
+STRING : [a-zA-Z]+;
 WS : [ \t\n\r\f]+ -> skip ;
 
 program
-    : (importDeclaration)* classDecl EOF
+    : (importDecl)* classDecl EOF
     ;
 
-importDeclaration : 'import' ID ( '.' ID )* ';' ;
+importDecl : 'import' ( name+=ID '.')* name+=ID ';' ;
 
 classDecl
-    : 'class' ID ('extends' ID)? '{' (varDecl)* (methodDecl)* '}'
+    : 'class' name=ID ('extends' superclass=ID)? '{'
+            (varDecl)* (methodDecl)*
+        '}'
     ;
 
 varDecl
     : type name=ID SEMI
     ;
 
-type
-    : name=INT '['']'
-    | name=INT '...'
-    | name= INT
-    | name = BOOLEAN
-    | ID
+type locals[boolean isArray=false, boolean isVarargs=false]
+    : name=INT ((LRECT RRECT {$isArray=true;}) | (DOT {$isVarargs=true;}))? #IntTypes
+    | name=INT DOT #IntVarType
+    | name= INT #IntType
+    | name = BOOLEAN #BoolType
+    | name= STR LRECT RRECT {$isArray=true;} #StringArrType
+    | name= ID #ClassType
+    | name= STR #StringType
+    | name= VOID #VoidType
     ;
 
-methodDecl locals[boolean isPublic=false]
-    : ('public' {$isPublic=true;})?
-        type name=ID
-        LPAREN param RPAREN
-        LCURLY varDecl* stmt* RCURLY
+methodDecl locals[boolean isPublic=false, boolean isStatic=false]
+    : (PUBLIC {$isPublic=true;})? (STATIC {$isStatic=true;})? type name=ID LPAREN (param)? (',' param)* RPAREN
+        LCURLY
+            varDecl* stmt*
+        RCURLY
     ;
 
 param
-    : (type name=ID(',')?)*
+    : type name=ID
     ;
 
 stmt
-    : LCURLY (stmt)* RCURLY
-    |'if' LPAREN expr RPAREN (stmt)* 'else' (stmt)*
-    | 'while' LPAREN expr RPAREN (stmt)*
-    | expr ';'
-    | ID '=' expr ';'
-    | ID LRECT expr RRECT '=' expr ';'
-    //| RETURN expr SEMI
+    : LCURLY (stmt)* RCURLY #EncvaloseStatement
+    | IF LPAREN (expr)* RPAREN
+        stmt
+      ELSE
+        stmt #IfStatement
+    | WHILE LPAREN expr RPAREN stmt #WhileStatement
+    | expr SEMI #SimpleStatement
+    | expr '=' expr SEMI #AssignStmt
+    | expr LRECT expr RRECT '=' expr SEMI #ArrayAlterIndexStatement
+    | RETURN expr SEMI #ReturnStmt
     ;
 expr
     : '(' expr ')' #ParensExpr
     | expr '[' expr ']' #IndexedExpr
-    | expr '.' LENGTH #LengthExpr
-    | expr '.' ID '(' (expr ( ',' expr )*)? ')' #Custom3Expr
+    | expr '.' name=ID #LengthFunctionExpr
+    | NEW name=ID LPAREN RPAREN #NewClassExpr
+    | expr '.' name=ID LPAREN (expr ( ',' expr )*)? RPAREN #ClassFunctionCallExpr
+    //| name=ID LPAREN (expr ( ',' expr )*)? RPAREN #SameClassCallExpr
     | expr (op= MUL | op=DIV)  expr #BinaryExpr //
     | expr (op= ADD | op=SUB) expr #BinaryExpr //
     | NOT expr #LogicalExpr
-    | expr LT expr #LogicalExpr
-    | expr AND expr #LogicalExpr
+    | expr (op=LT) expr #BinaryExpr
+    | expr (op=AND) expr #BinaryExpr
     //| expr OR expr #LogicalExpr
-    | NEW INT '[' expr ']' #CustomExpr
-    | NEW ID LPAREN RPAREN #Custom2Expr
-    | '[' expr '(' ',' expr')''*' ')''?' ']' #Custom3Expr
-    | value=INTEGER #IntegerLiteral //
+    | NEW INT LRECT expr RRECT #NewArrayExpr
+    | LRECT (expr ( ',' expr)* )? RRECT #ArrayExpr
+    | value=INTEGER #IntegerLiteral
     | value=TRUE #BooleanLiteral
     | value=FALSE #BooleanLiteral
-    | name=ID #VarRefExpr //
-    | 'this' #This
+    | name=ID #VarRefLiteral //
+    | THIS #This
     ;
 
 

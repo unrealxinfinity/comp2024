@@ -1,0 +1,14 @@
+
+class NoIdOnLeftSideOfAssign {
+    int[] a;
+
+
+    int bar() {
+        a = [1,2,34];
+        a[0] = [1,2,3][2];
+        return 0;
+    }
+    public static void main(String[] args) {
+
+    }
+}

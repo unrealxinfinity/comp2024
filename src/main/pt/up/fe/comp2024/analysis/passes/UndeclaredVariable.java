@@ -1,12 +1,15 @@
 package pt.up.fe.comp2024.analysis.passes;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
+import pt.up.fe.comp2024.ast.TypeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
 /**
@@ -21,7 +24,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
     @Override
     public void buildVisitor() {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
-        addVisit(Kind.VAR_REF_EXPR, this::visitVarRefExpr);
+        addVisit(Kind.VAR_REF_LITERAL, this::visitVarRefExpr);
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
@@ -35,26 +38,49 @@ public class UndeclaredVariable extends AnalysisVisitor {
         // Check if exists a parameter or variable declaration with the same name as the variable reference
         var varRefName = varRefExpr.get("name");
 
-        // Var is a field, return
-        if (table.getFields().stream()
-                .anyMatch(param -> param.getName().equals(varRefName))) {
-            return null;
-        }
-
-        // Var is a parameter, return
-        if (table.getParameters(currentMethod).stream()
-                .anyMatch(param -> param.getName().equals(varRefName))) {
-            return null;
-        }
+        Symbol checkLocal = table.getLocalVariables(currentMethod).stream()
+                .filter(param -> param.getName().equals(varRefName)).findFirst().orElse(null);
 
         // Var is a declared variable, return
-        if (table.getLocalVariables(currentMethod).stream()
-                .anyMatch(varDecl -> varDecl.getName().equals(varRefName))) {
+        if (checkLocal != null) {
+            Type type = checkLocal.getType();
+            type.putObject("level", 2);
+            varRefExpr.putObject("type", checkLocal.getType());
+            return null;
+        }
+
+        Symbol checkParam = table.getParameters(currentMethod).stream()
+                .filter(param -> param.getName().equals(varRefName)).findFirst().orElse(null);
+
+        // Var is a parameter, return
+        if (checkParam != null) {
+            Type type = checkParam.getType();
+            type.putObject("level", 1);
+            varRefExpr.putObject("type", checkParam.getType());
+            return null;
+        }
+
+        Symbol checkField = table.getFields().stream()
+                .filter(param -> param.getName().equals(varRefName)).findFirst().orElse(null);
+
+        // Var is a field, return
+        if (checkField != null) {
+            Type type = checkField.getType();
+            type.putObject("level", 0);
+            varRefExpr.putObject("type", type);
+            return null;
+        }
+
+        if (varRefExpr.getJmmParent().isInstance("ClassFunctionCallExpr")
+                && TypeUtils.isValidClass(varRefName, table)) {
+            Type type = new Type(varRefName, false);
+            type.putObject("isStatic", true);
+            varRefExpr.putObject("type", type);
             return null;
         }
 
         // Create error report
-        var message = String.format("Variable '%s' does not exist.", varRefName);
+        var message = String.format("Variable or class '%s' does not exist.", varRefName);
         addReport(Report.newError(
                 Stage.SEMANTIC,
                 NodeUtils.getLine(varRefExpr),

@@ -10,18 +10,47 @@ public enum Kind {
     PROGRAM,
     CLASS_DECL,
     VAR_DECL,
+    IMPORT_DECL,
     TYPE,
     METHOD_DECL,
     PARAM,
     ASSIGN_STMT,
     RETURN_STMT,
     BINARY_EXPR,
+
+    LOGICAL_EXPR,
+
     INTEGER_LITERAL,
-    VAR_REF_EXPR;
+    VAR_REF_EXPR,
+    VAR_REF_LITERAL,
+
+    IF_STATEMENT,
+
+    WHILE_STATEMENT,
+
+    SIMPLE_STATEMENT,
+
+    NEW_CLASS_EXPR,
+
+    ENCVALOSE_STATEMENT,
+    INDEXED_EXPR,
+
+    CLASS_FUNCTION_CALL_EXPR,
+
+    ARRAY_EXPR,
+
+    ARRAY_ALTER_INDEX_STATEMENT,
+
+    NEW_ARRAY_EXPR,
+
+    LENGTH_FUNCTION_EXPR,
+
+    THIS,
+    BOOLEAN_LITERAL;
 
 
-    private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);
-    private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, INTEGER_LITERAL, VAR_REF_EXPR);
+    private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT, SIMPLE_STATEMENT);
+    private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, INTEGER_LITERAL, VAR_REF_LITERAL);
 
     private final String name;
 
@@ -30,6 +59,7 @@ public enum Kind {
     }
 
     private Kind() {
+
         this.name = SpecsStrings.toCamelCase(name(), "_", true);
     }
 
@@ -73,7 +103,8 @@ public enum Kind {
      * @return
      */
     public boolean check(JmmNode node) {
-        return node.getKind().equals(getNodeName());
+        return node.isInstance(getNodeName());
+        //return node.getKind().equals(getNodeName());
     }
 
     /**
