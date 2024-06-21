@@ -1,21 +1,14 @@
-import io;
-class IfElseInMain {
 
-    int a;
+class NoIdOnLeftSideOfAssign {
+    int[] a;
 
-    public int test(){
-        int i;
-        int a;
-        a = 5;
-        i = a - 5;
-        io.println(i);
-        return a;
+
+    int bar() {
+        a = [1,2,34];
+        a[0] = [1,2,3][2];
+        return 0;
     }
+    public static void main(String[] args) {
 
-    public static void main(String[] args){
-        IfElseInMain q;
-        q = new IfElseInMain();
-        q.test();
     }
-
 }

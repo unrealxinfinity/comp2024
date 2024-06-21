@@ -95,13 +95,14 @@ public class JasminGenerator {
         if(!inc){
             if(!zeroSimplify){
                 switch (type) {
-                    case INT32:  switch (opType){
+                    case INT32: switch (opType){
                         case ADD: return "iadd";
                         case SUB: return "isub";
                         case MUL: return "imul";
                         case DIV: return "idiv";
                         case SHL: return "ishl";
                         case SHR: return "ishr";
+                        case SHRR : return "iushr";
                     };
                     case BOOLEAN: switch (opType){
                         case LTH: return "if_icmplt";
@@ -117,7 +118,6 @@ public class JasminGenerator {
                         case NOTB:
                         case NOT:  return negBooleanLiteral();
                         case XOR: return "ixor";
-                        case SHRR : return "iushr";
                     }
                     case ARRAYREF:switch(opType){
                         case EQ: return "if_acmpeq";
@@ -538,10 +538,12 @@ public class JasminGenerator {
             }
             funcToCall = funcToCall.replace("\"", "");
             code.append(funcToCall).append(NL);
-            code.append("dup").append(NL);
-            pushToStack();
-            //has to be popped later since i will only use one of the duplicated references
-            this.extraRerence += 1;
+            if (!(callRet instanceof ArrayType)) {
+                code.append("dup").append(NL);
+                pushToStack();
+                //has to be popped later since i will only use one of the duplicated references
+                this.extraRerence += 1;
+            }
         }
         else if (call.getInvocationType().equals(CallType.arraylength)){
             code.append(call.getInvocationType().toString().toLowerCase()).append(NL);
@@ -626,8 +628,8 @@ public class JasminGenerator {
             }
             var op = instWithOp(((BinaryOpInstruction)assign.getRhs()).getOperation(),true,false);
             code.append(op).append(" ").append(reg).append(" ");
-            if (((BinaryOpInstruction)assign.getRhs()).getOperation().getOpType().equals(OperationType.SUB)) code.append('-');
-            code.append(incVal).append(NL);
+            if (((BinaryOpInstruction)assign.getRhs()).getOperation().getOpType().equals(OperationType.SUB)) code.append(-Integer.parseInt(incVal)).append(NL);
+            else code.append(incVal).append(NL);
         }
         else{
             // store value in the stack in destination
@@ -797,6 +799,11 @@ public class JasminGenerator {
         }
         return false;
     }
+
+    private boolean fitsInByte(int i) {
+        return i >= -128 && i <= 127;
+    }
+
     private Boolean checkInc(Element lhs,Instruction binaryOp){
 
         if(binaryOp instanceof  BinaryOpInstruction){
@@ -804,19 +811,22 @@ public class JasminGenerator {
             Element right = ((BinaryOpInstruction)binaryOp).getRightOperand();
             if(((left instanceof  LiteralElement && right instanceof Operand) || (right instanceof LiteralElement && left instanceof Operand)) && ((BinaryOpInstruction) binaryOp).getOperation().getOpType().equals(OperationType.ADD)){
                 if(left instanceof LiteralElement){
-                    if(left.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) right).getName().equals(((Operand)lhs).getName())){
+                    if(left.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) right).getName().equals(((Operand)lhs).getName())
+                    && fitsInByte(Integer.parseInt(((LiteralElement) left).getLiteral()))){
                         return true;
                     }
                 }
                 else if (right instanceof LiteralElement){
-                    if(right.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) left).getName().equals(((Operand)lhs).getName())){
+                    if(right.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) left).getName().equals(((Operand)lhs).getName())
+                    && fitsInByte(Integer.parseInt(((LiteralElement) right).getLiteral()))){
                         return true;
                     }
                 }
             }
-            if(((left instanceof  LiteralElement && right instanceof Operand) || (right instanceof LiteralElement && left instanceof Operand)) && ((BinaryOpInstruction) binaryOp).getOperation().getOpType().equals(OperationType.SUB)){
+            if((right instanceof LiteralElement && left instanceof Operand) && ((BinaryOpInstruction) binaryOp).getOperation().getOpType().equals(OperationType.SUB)){
                 if (right instanceof LiteralElement){
-                    if(right.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) left).getName().equals(((Operand)lhs).getName())){
+                    if(right.getType().getTypeOfElement().equals(ElementType.INT32) && ((Operand) left).getName().equals(((Operand)lhs).getName())
+                    && fitsInByte(Integer.parseInt(((LiteralElement) right).getLiteral()))){
                         return true;
                     }
                 }

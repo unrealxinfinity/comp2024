@@ -67,8 +67,8 @@ public class ConstantFoldingVisitor extends AnalysisVisitor {
 
     private Void visitBinaryExpr(JmmNode jmmNode, SymbolTable symbolTable) {
         String op = jmmNode.get("op");
-        //visit(jmmNode.getJmmChild(0));
-        //visit(jmmNode.getJmmChild(1));
+        visit(jmmNode.getJmmChild(0));
+        visit(jmmNode.getJmmChild(1));
         JmmNode left = jmmNode.getJmmChild(0);
         JmmNode right = jmmNode.getJmmChild(1);
 

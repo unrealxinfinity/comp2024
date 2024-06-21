@@ -2,6 +2,7 @@ package pt.up.fe.comp2024.optimization.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
+import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.JmmNodeImpl;
 import pt.up.fe.comp.jmm.report.Report;
@@ -12,11 +13,13 @@ import pt.up.fe.comp2024.ast.NodeUtils;
 
 import java.util.*;
 
-public class ConstantPropagationVisitor extends AnalysisVisitor {
+public class ConstantPropagationVisitor extends AJmmVisitor<Boolean, Boolean> {
     Map<String, JmmNode> constants;
-    JmmNode endOfWhileConstant = null;
+    List<Report> reports = new ArrayList<>();
+    Set<String> changedInWhile = new HashSet<>();
 
-    int inConditional = 0;
+    boolean lookingForForbiddens = false;
+    boolean inWhile = false;
 
     @Override
     protected void buildVisitor() {
@@ -26,32 +29,26 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
         addVisit(Kind.VAR_REF_LITERAL, this::visitVarRef);
         addVisit("IfStatement", this::visitIf);
         addVisit("ClassFunctionCallExpr", this::visitCall);
-        addVisit(Kind.RETURN_STMT, this::visitReturn);
+        setDefaultVisit(this::defaultVisit);
     }
 
-    private Void visitReturn(JmmNode jmmNode, SymbolTable symbolTable) {
-        if (inConditional == 0 && endOfWhileConstant != null) {
-            constants.put(endOfWhileConstant.getJmmChild(0).get("name"), endOfWhileConstant);
-            endOfWhileConstant = null;
-        }
-        return null;
+    private Boolean defaultVisit(JmmNode jmmNode, Boolean bool) {
+        for (JmmNode child : jmmNode.getChildren()) visit(child, bool);
+        return bool;
     }
 
-    private Void visitCall(JmmNode jmmNode, SymbolTable symbolTable) {
-        if (inConditional == 0 && endOfWhileConstant != null) {
-            constants.put(endOfWhileConstant.getJmmChild(0).get("name"), endOfWhileConstant);
-            endOfWhileConstant = null;
-        }
+    private Boolean visitCall(JmmNode jmmNode, Boolean bool) {
+        for (JmmNode child : jmmNode.getChildren()) visit(child, bool);
         constants.entrySet().removeIf(entry -> entry.getValue().getJmmChild(0).getObject("type", Type.class).getObject("level", Integer.class) == 0);
         return null;
     }
 
-    private Void visitIf(JmmNode jmmNode, SymbolTable symbolTable) {
-        visit(jmmNode.getJmmChild(0), symbolTable);
+    private Boolean visitIf(JmmNode jmmNode, Boolean bool) {
+        visit(jmmNode.getJmmChild(0), bool);
 
-        visit(jmmNode.getJmmChild(1), symbolTable);
+        visit(jmmNode.getJmmChild(1), bool);
         Map<String, JmmNode> tempConstants = new HashMap<>(constants);
-        visit(jmmNode.getJmmChild(2), symbolTable);
+        visit(jmmNode.getJmmChild(2), bool);
 
         Map<String, JmmNode> finalConstants = new HashMap<>();
         for (Map.Entry<String, JmmNode> elem : constants.entrySet()) {
@@ -64,81 +61,101 @@ public class ConstantPropagationVisitor extends AnalysisVisitor {
         }
 
         constants = new HashMap<>(finalConstants);
-        return null;
+        return bool;
     }
 
-    private Void visitVarRef(JmmNode jmmNode, SymbolTable symbolTable) {
+    private Boolean visitVarRef(JmmNode jmmNode, Boolean bool) {
         if (jmmNode.getParent().isInstance(Kind.ASSIGN_STMT) && jmmNode.getIndexOfSelf() == 0) return null;
-        if (!constants.containsKey(jmmNode.get("name"))) return null;
-        if (inConditional > 0) {
-            Optional<JmmNode> assigningTo = jmmNode.getAncestor(Kind.ASSIGN_STMT);
-            if (assigningTo.isPresent()) {
-                String name = assigningTo.get().getJmmChild(0).get("name");
-                if (name.equals(jmmNode.get("name"))) {
-                    constants.remove(name);
-                    return null;
-                }
-            }
+        if (lookingForForbiddens) {
+            constants.remove(jmmNode.get("name"));
+            return bool;
         }
+        if (!constants.containsKey(jmmNode.get("name"))) return null;
         JmmNode propagated = new JmmNodeImpl(Kind.INTEGER_LITERAL.toString(), jmmNode);
         propagated.put("value", constants.get(jmmNode.get("name")).getJmmChild(1).get("value"));
         propagated.putObject("type", jmmNode.getObject("type", Type.class));
         jmmNode.replace(propagated);
-        Report report = Report.newLog(Stage.OPTIMIZATION, NodeUtils.getLine(propagated),
-                NodeUtils.getColumn(propagated), "Propagated a constant", null);
+        Report report = Report.newLog(Stage.OPTIMIZATION, NodeUtils.getLine(jmmNode), NodeUtils.getColumn(jmmNode),
+                "Propagated a constant", null);
         addReport(report);
-        return null;
+        return true;
     }
 
-    private Void visitWhile(JmmNode jmmNode, SymbolTable symbolTable) {
-        if (inConditional == 0 && endOfWhileConstant != null) {
-            constants.put(endOfWhileConstant.getJmmChild(0).get("name"), endOfWhileConstant);
-            endOfWhileConstant = null;
+    private Boolean visitWhile(JmmNode jmmNode, Boolean bool) {
+        Map<String, JmmNode> tempConstants = new HashMap<>(constants);
+        Set<String> tempChanged = new HashSet<>(changedInWhile);
+        constants = new HashMap<>();
+
+        lookingForForbiddens = true;
+        visit(jmmNode.getJmmChild(0), bool);
+        lookingForForbiddens = false;
+
+        inWhile = true;
+        visit(jmmNode.getJmmChild(1), bool);
+        inWhile = false;
+
+        Map<String, JmmNode> finalConstants = new HashMap<>();
+        for (Map.Entry<String, JmmNode> elem : tempConstants.entrySet()) {
+            if (!changedInWhile.contains(elem.getKey())) {
+                finalConstants.put(elem.getKey(), elem.getValue());
+                continue;
+            }
+            if (!constants.containsKey(elem.getKey())) continue;
+            int left = Integer.parseInt(elem.getValue().getJmmChild(1).get("value"));
+            int right = Integer.parseInt(tempConstants.get(elem.getKey()).getJmmChild(1).get("value"));
+            if (left != right) continue;
+
+            finalConstants.put(elem.getKey(), elem.getValue());
         }
-        inConditional++;
-        visit(jmmNode.getJmmChild(1), symbolTable);
-        inConditional--;
-        visit(jmmNode.getJmmChild(0), symbolTable);
-        return null;
+        changedInWhile = new HashSet<>(tempChanged);
+
+        constants = new HashMap<>(finalConstants);
+        visit(jmmNode.getJmmChild(0), bool);
+        return bool;
     }
 
-    private Void visitAssignment(JmmNode jmmNode, SymbolTable symbolTable) {
-        if (inConditional == 0 && endOfWhileConstant != null) {
-            constants.put(endOfWhileConstant.getJmmChild(0).get("name"), endOfWhileConstant);
-            endOfWhileConstant = null;
-        }
-        if (inConditional == 0 && (jmmNode.getParent().getParent().isInstance("IfStatement") || jmmNode.getParent().getParent().isInstance("WhileStatement"))) return null;
-        if (!jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_LITERAL)) return null;
+    private Boolean visitAssignment(JmmNode jmmNode, Boolean bool) {
         for (JmmNode child : jmmNode.getChildren()) {
-            visit(child, symbolTable);
+            visit(child, bool);
+        }
+        if (!jmmNode.getJmmChild(0).isInstance(Kind.VAR_REF_LITERAL)) return null;
+
+
+        if (inWhile) {
+            changedInWhile.add(jmmNode.getJmmChild(0).get("name"));
         }
         if (!jmmNode.getJmmChild(1).isInstance(Kind.INTEGER_LITERAL)) {
             constants.remove(jmmNode.getJmmChild(0).get("name"));
-            return null;
-        }
-        if (inConditional > 0) {
-            constants.remove(jmmNode.getJmmChild(0).get("name"));
-            endOfWhileConstant = jmmNode;
-            return null;
+            return bool;
         }
 
-        if (constants.containsKey(jmmNode.getJmmChild(0).get("name"))) {
-            JmmNode toRemove = constants.get(jmmNode.getJmmChild(0).get("name"));
-            //toRemove.getParent().removeChild(toRemove);
-        }
         constants.put(jmmNode.getJmmChild(0).get("name"), jmmNode);
-        return null;
+        return bool;
     }
 
-    private Void visitMethodDecl(JmmNode jmmNode, SymbolTable symbolTable) {
+    private Boolean visitMethodDecl(JmmNode jmmNode, Boolean bool) {
         constants = new HashMap<>();
         for (JmmNode child : jmmNode.getChildren()) {
             if (!child.isInstance("Stmt")) continue;
             visit(child);
         }
-        for (JmmNode toRemove : constants.values()) {
-            //toRemove.getParent().removeChild(toRemove);
-        }
-        return null;
+        return bool;
+    }
+
+    protected void addReport(Report report) {
+        reports.add(report);
+    }
+
+    protected List<Report> getReports() {
+        return reports;
+    }
+
+
+    public List<Report> analyze(JmmNode root) {
+        // Visit the node
+        visit(root, false);
+
+        // Return reports
+        return getReports();
     }
 }
